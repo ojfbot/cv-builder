@@ -1,0 +1,33 @@
+{
+  "name": "cv-builder",
+  "version": "0.1.0",
+  "description": "AI-powered CV builder with Claude agent orchestration",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@cv-builder/browser-app",
+    "build": "npm run build --workspaces --if-present",
+    "preview": "npm run preview --workspace=@cv-builder/browser-app",
+    "cli": "npm run cli --workspace=@cv-builder/agent-core",
+    "cli:headless": "npm run cli:headless --workspace=@cv-builder/agent-core",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "docker:build": "docker build -t cv-builder-agents .",
+    "docker:run": "docker run -it --rm -v $(pwd)/data:/app/data --env-file .env.local cv-builder-agents"
+  },
+  "keywords": [
+    "cv",
+    "resume",
+    "ai",
+    "claude",
+    "career"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3"
+  }
+}

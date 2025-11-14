@@ -1,0 +1,40 @@
+{
+  "id": "example-job-001",
+  "title": "Senior Full Stack Engineer",
+  "company": "InnovateTech",
+  "location": "San Francisco, CA (Hybrid)",
+  "salary": {
+    "min": 150000,
+    "max": 200000,
+    "currency": "USD"
+  },
+  "postedDate": "2024-01-15",
+  "applicationDeadline": "2024-02-15",
+  "description": "We're seeking a talented Senior Full Stack Engineer to join our growing team. You'll work on cutting-edge projects that impact millions of users worldwide. Our tech stack includes React, Node.js, and PostgreSQL, deployed on AWS infrastructure.",
+  "requirements": [
+    "5+ years of professional software development experience",
+    "Strong proficiency in TypeScript/JavaScript and React",
+    "Experience with Node.js and RESTful API development",
+    "Familiarity with SQL databases (PostgreSQL preferred)",
+    "Experience with cloud platforms (AWS, GCP, or Azure)",
+    "Strong understanding of software architecture and design patterns",
+    "Excellent communication and collaboration skills",
+    "Bachelor's degree in Computer Science or equivalent experience"
+  ],
+  "niceToHave": [
+    "Experience with microservices architecture",
+    "Knowledge of Docker and Kubernetes",
+    "Contributions to open source projects",
+    "Experience mentoring junior developers",
+    "Familiarity with CI/CD pipelines",
+    "Understanding of security best practices"
+  ],
+  "companyInfo": {
+    "size": "100-500 employees",
+    "industry": "Technology / SaaS",
+    "culture": "Fast-paced, collaborative, innovation-focused",
+    "website": "https://innovatetech.example.com"
+  },
+  "applicationUrl": "https://innovatetech.example.com/careers/senior-fullstack",
+  "notes": "This role offers great growth opportunities and the chance to work with cutting-edge technologies."
+}

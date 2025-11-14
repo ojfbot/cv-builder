@@ -1,0 +1,29 @@
+{
+  "name": "@cv-builder/agent-core",
+  "version": "0.1.0",
+  "description": "Core AI agent system for CV Builder",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./agents/*": "./src/agents/*.ts",
+    "./models/*": "./src/models/*.ts",
+    "./utils/*": "./src/utils/*.ts"
+  },
+  "scripts": {
+    "cli": "tsx src/cli/index.ts",
+    "cli:headless": "tsx src/cli/index.ts --headless",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

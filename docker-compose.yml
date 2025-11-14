@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Agent System - Claude-powered AI agents
+  agents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: cv-builder-agents
+    volumes:
+      - ./packages/agent-core:/app/packages/agent-core
+      - ./data:/app/data
+      - agent-node-modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    env_file:
+      - .env.local
+    command: npm run cli --workspace=@cv-builder/agent-core
+    stdin_open: true
+    tty: true
+    networks:
+      - cv-builder-network
+
+  # Browser App - React UI (optional, for development)
+  browser-app:
+    image: node:20-alpine
+    container_name: cv-builder-browser
+    working_dir: /app
+    volumes:
+      - ./packages/browser-app:/app
+      - ./packages/agent-core:/agent-core
+      - browser-node-modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    command: sh -c "npm install && npm run dev -- --host"
+    networks:
+      - cv-builder-network
+
+volumes:
+  agent-node-modules:
+  browser-node-modules:
+
+networks:
+  cv-builder-network:
+    driver: bridge

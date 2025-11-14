@@ -1,0 +1,57 @@
+// Global styles
+html, body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+// App-level container for header and content
+.app-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// Ensure header stays on top
+.cds--header {
+  position: relative;
+  z-index: 8000;
+  flex-shrink: 0;
+}
+
+// Override Carbon theme variables if needed
+:root {
+  --cds-productive-heading-01-font-size: 14px;
+}
+
+// Custom styles
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+// Remove duplicate interactive-chat styles - defined in InteractiveChat.css

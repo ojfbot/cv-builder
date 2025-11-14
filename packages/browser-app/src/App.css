@@ -1,0 +1,4 @@
+/* Override Carbon's hidden class for HeaderMenuButton */
+.cds--header__menu-toggle__hidden {
+  display: flex !important;
+}

@@ -1,0 +1,46 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+env.json
+
+# Private data directories
+/bio/
+/jobs/
+/output/
+/research/
+/pipelines/
+/toolbox/
+
+# Temporary working directory
+/temp/
+
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+/build
+/dist
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+.cache/
