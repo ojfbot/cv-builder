@@ -14,9 +14,10 @@ interface MarkdownMessageProps {
   content: string
   suggestions?: QuickAction[]
   onActionClick?: (action: QuickAction) => void
+  onActionExecute?: (actions: any[], badgeAction: any) => void
 }
 
-function MarkdownMessage({ content, suggestions, onActionClick }: MarkdownMessageProps) {
+function MarkdownMessage({ content, suggestions, onActionClick, onActionExecute }: MarkdownMessageProps) {
   // Parse list items in "Next Steps" section to extract action labels
   const parseListItem = (text: string) => {
     // Match pattern: "Label: Description" or "**Label**: Description"
@@ -59,6 +60,11 @@ function MarkdownMessage({ content, suggestions, onActionClick }: MarkdownMessag
     const lowerLabel = label.toLowerCase()
     console.log('[MarkdownMessage] No match in suggestions, trying pattern matching for:', lowerLabel)
 
+    // Upload Resume - special file upload action
+    if (lowerLabel.match(/\b(upload.*resume|resume.*upload)\b/)) {
+      return { label, query: '__FILE_UPLOAD__', icon: '📤' }
+    }
+
     // Bio/Profile tab (tab 1)
     if (lowerLabel.match(/\b(bio|profile|add.*(bio|profile)|create.*(bio|profile)|your.*(bio|profile))\b/)) {
       return { label, query: label, icon: '👤', navigateTo: 1 }
@@ -85,6 +91,14 @@ function MarkdownMessage({ content, suggestions, onActionClick }: MarkdownMessag
     <div className="markdown-message">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        urlTransform={(url) => {
+          // Allow custom protocols like upload: and action:
+          if (url.startsWith('upload:') || url.startsWith('action:')) {
+            return url
+          }
+          // Default transformation for other URLs
+          return url
+        }}
         components={{
           // Custom code block renderer with copy functionality
           code({ node, className, children, ...props }: any) {
@@ -125,9 +139,46 @@ function MarkdownMessage({ content, suggestions, onActionClick }: MarkdownMessag
               )
             }
           },
-          // Style links - convert action: links to banner buttons
+          // Style links - convert action: and upload: links to badge buttons
           a({ children, href, ...props }: any) {
             console.log('[MarkdownMessage] Link detected:', { href, children })
+
+            // Check if this is a file upload link
+            if (href && href.startsWith('upload:')) {
+              console.log('[MarkdownMessage] Upload link detected!')
+              const accept = href.replace('upload:', '') || '.pdf,.docx,.txt,.md'
+              const label = typeof children === 'string' ? children : children?.join?.('') || 'Upload'
+
+              if (onActionExecute) {
+                console.log('[MarkdownMessage] Rendering upload Tag button')
+                return (
+                  <Tag
+                    type="blue"
+                    className="action-badge inline-action"
+                    onClick={(e: any) => {
+                      e.preventDefault()
+                      console.log('[MarkdownMessage] Upload button clicked')
+                      const actions = [{ type: 'file_upload', accept, multiple: false }]
+                      const badgeAction = { label, actions, icon: '📎' }
+                      onActionExecute(actions, badgeAction)
+                    }}
+                    title={`Upload file (${accept})`}
+                  >
+                    <span className="action-icon">📎</span>
+                    {label}
+                  </Tag>
+                )
+              } else {
+                console.warn('[MarkdownMessage] Upload link detected but no onActionExecute handler!')
+                // Return a disabled badge to show it's not functional
+                return (
+                  <Tag type="gray" className="action-badge inline-action" title="Upload handler not available">
+                    <span className="action-icon">📎</span>
+                    {label}
+                  </Tag>
+                )
+              }
+            }
 
             // Check if this is an action link
             if (href && href.startsWith('action:')) {

@@ -162,6 +162,14 @@ function MarkdownMessage({ content, suggestions, onActionClick, onActionExecute,
     <div className="markdown-message">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        urlTransform={(url) => {
+          // Preserve custom protocols like upload: and action:
+          if (url.startsWith('upload:') || url.startsWith('action:')) {
+            return url
+          }
+          // Default transformation for other URLs
+          return url
+        }}
         components={{
           // Custom code block renderer with copy functionality
           code({ node, className, children, ...props }: any) {
@@ -202,9 +210,41 @@ function MarkdownMessage({ content, suggestions, onActionClick, onActionExecute,
               )
             }
           },
-          // Style links - convert action: links to badge buttons
+          // Style links - convert action: and upload: links to badge buttons
           a({ children, href, ...props }: any) {
             console.log('[MarkdownMessage] Link detected:', { href, children })
+
+            // Check if this is a file upload link
+            if (href && href.startsWith('upload:')) {
+              console.log('[MarkdownMessage] Upload link detected!')
+              const uploadParams = href.replace('upload:', '')
+              const label = typeof children === 'string' ? children : children?.join?.('') || 'Upload'
+
+              // Parse upload parameters (e.g., "upload:.pdf,.docx" or just "upload:")
+              const accept = uploadParams || '.pdf,.docx,.txt'
+
+              // Create a file upload badge action
+              const badgeAction: BadgeAction = createBadgeAction(
+                label,
+                [{
+                  type: 'file_upload',
+                  accept,
+                  multiple: false,
+                }],
+                { icon: '📎', variant: 'blue' }
+              )
+
+              console.log('[MarkdownMessage] File upload badge action:', badgeAction)
+
+              return (
+                <BadgeButton
+                  badgeAction={badgeAction}
+                  onExecute={handleActionExecute}
+                  className="inline-action"
+                  size="sm"
+                />
+              )
+            }
 
             // Check if this is an action link
             if (href && href.startsWith('action:')) {
