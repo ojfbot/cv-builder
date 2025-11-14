@@ -1,63 +1,50 @@
-import { useState } from 'react'
-import {
-  Modal,
-  TextInput,
-  InlineNotification,
-} from '@carbon/react'
-import { useAgent } from '../contexts/AgentContext'
+import { Modal, InlineNotification } from '@carbon/react';
+import { useAgent } from '../contexts/AgentContext';
 
 interface ApiKeySettingsProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
+/**
+ * API Connection Status Modal
+ *
+ * This component displays the connection status to the backend API.
+ * API keys are now managed securely on the server via env.json.
+ */
 function ApiKeySettings({ open, onClose }: ApiKeySettingsProps) {
-  const { apiKey, setApiKey, isInitialized, error } = useAgent()
-  const [inputValue, setInputValue] = useState(apiKey || '')
-  const [showSuccess, setShowSuccess] = useState(false)
-
-  const handleSave = () => {
-    if (inputValue.trim()) {
-      setApiKey(inputValue.trim())
-      setShowSuccess(true)
-      setTimeout(() => {
-        setShowSuccess(false)
-        onClose()
-      }, 1500)
-    }
-  }
+  const { isInitialized, error } = useAgent();
 
   return (
     <Modal
       open={open}
-      modalHeading="API Key Configuration"
+      modalHeading="API Connection Status"
       modalLabel="Settings"
-      primaryButtonText="Save"
-      secondaryButtonText="Cancel"
+      primaryButtonText="Close"
       onRequestClose={onClose}
-      onRequestSubmit={handleSave}
-      preventCloseOnClickOutside
+      onRequestSubmit={onClose}
+      secondaryButtonText={undefined}
     >
       <div style={{ marginBottom: '1rem' }}>
         <p style={{ marginBottom: '1rem' }}>
-          Enter your Anthropic API key to enable the CV Builder agents.
+          CV Builder now uses a secure backend API for all agent operations.
         </p>
-        <p style={{ marginBottom: '1rem', fontSize: '0.875rem', color: 'var(--cds-text-secondary)' }}>
-          Get your API key from{' '}
-          <a
-            href="https://console.anthropic.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            console.anthropic.com
-          </a>
+        <p
+          style={{
+            marginBottom: '1rem',
+            fontSize: '0.875rem',
+            color: 'var(--cds-text-secondary)',
+          }}
+        >
+          API keys are stored securely on the server in <code>env.json</code> and are
+          never exposed to the browser.
         </p>
       </div>
 
       {error && (
         <InlineNotification
           kind="error"
-          title="Error"
+          title="Connection Error"
           subtitle={error}
           lowContrast
           hideCloseButton
@@ -65,44 +52,40 @@ function ApiKeySettings({ open, onClose }: ApiKeySettingsProps) {
         />
       )}
 
-      {showSuccess && (
-        <InlineNotification
-          kind="success"
-          title="Success"
-          subtitle="API key saved successfully!"
-          lowContrast
-          hideCloseButton
-          style={{ marginBottom: '1rem' }}
-        />
-      )}
-
-      {isInitialized && !showSuccess && (
+      {isInitialized && !error && (
         <InlineNotification
           kind="success"
           title="Connected"
-          subtitle="Agent service is active and ready to use."
+          subtitle="API server is reachable and agent service is ready."
           lowContrast
           hideCloseButton
           style={{ marginBottom: '1rem' }}
         />
       )}
 
-      <TextInput
-        id="api-key-input"
-        labelText="Anthropic API Key"
-        placeholder="sk-ant-api03-..."
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        type="password"
-        autoComplete="off"
-      />
+      {!isInitialized && !error && (
+        <InlineNotification
+          kind="info"
+          title="Initializing"
+          subtitle="Connecting to API server..."
+          lowContrast
+          hideCloseButton
+          style={{ marginBottom: '1rem' }}
+        />
+      )}
 
-      <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--cds-text-secondary)' }}>
-        <strong>Note:</strong> Your API key is stored locally in your browser.
-        In a production environment, you should use a backend server to protect your API key.
+      <div
+        style={{
+          marginTop: '1rem',
+          fontSize: '0.875rem',
+          color: 'var(--cds-text-secondary)',
+        }}
+      >
+        <strong>Configuration:</strong> API keys are configured in{' '}
+        <code>packages/agent-core/env.json</code> on the server.
       </div>
     </Modal>
-  )
+  );
 }
 
-export default ApiKeySettings
+export default ApiKeySettings;
