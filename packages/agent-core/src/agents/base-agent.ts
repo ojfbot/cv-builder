@@ -19,11 +19,10 @@ export abstract class BaseAgent {
     protected apiKey: string,
     protected agentName: string
   ) {
-    // Enable browser usage (only for development/demo)
-    // In production, use a backend server to protect your API key
+    // Agents now run server-side only for security
+    // API keys are never exposed to the browser
     this.client = new Anthropic({
       apiKey,
-      dangerouslyAllowBrowser: true
     })
   }
 
@@ -110,5 +109,17 @@ export abstract class BaseAgent {
 
   getHistory(): AgentMessage[] {
     return [...this.conversationHistory]
+  }
+
+  setHistory(history: AgentMessage[]): void {
+    this.conversationHistory = [...history]
+  }
+
+  getConversationHistory(): AgentMessage[] {
+    return this.getHistory()
+  }
+
+  setConversationHistory(history: AgentMessage[]): void {
+    this.setHistory(history)
   }
 }
