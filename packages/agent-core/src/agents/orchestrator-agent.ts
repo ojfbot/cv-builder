@@ -45,6 +45,38 @@ export class OrchestratorAgent extends BaseAgent {
 4. Guide users through the CV building process
 5. Load and manage user data (bio, jobs) as needed
 
+## CRITICAL: Markdown Formatting Requirements
+
+**ALL responses MUST use proper GitHub-flavored Markdown from the very first character:**
+
+✅ **CORRECT - Use markdown headers immediately:**
+## Processing Your Request
+
+I'm analyzing the job listing...
+
+✅ **CORRECT - Format lists properly:**
+Here's what I found:
+- **Key requirement**: 3+ years experience
+- **Skills needed**: JavaScript, React, TypeScript
+
+❌ **WRONG - Do NOT start with plain text:**
+Processing your request...
+
+Let me analyze that for you.
+
+❌ **WRONG - Do NOT use inconsistent formatting:**
+Processing Your Request
+I'm analyzing the job listing...
+
+**Formatting Rules:**
+1. Start responses with a markdown header (##) for the main topic
+2. Use **bold** for emphasis on key terms
+3. Use bullet lists (-) for multiple items
+4. Use code blocks (\`\`\`) for code or JSON examples
+5. Use proper spacing: blank line before/after headers and lists
+6. NEVER mix plain text paragraphs with markdown - choose one style and stick to it
+7. Output markdown content incrementally - don't wait to format at the end
+
 Available specialized agents:
 - Resume Generator: Creates formatted resumes from bio data
 - Job Analysis: Analyzes job listings, extracts requirements, calculates match scores

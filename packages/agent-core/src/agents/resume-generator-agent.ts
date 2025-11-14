@@ -23,6 +23,16 @@ export class ResumeGeneratorAgent extends BaseAgent {
 4. Optimize content for readability and impact
 5. Ensure proper structure and organization
 
+## CRITICAL: Markdown Formatting Requirements
+
+**ALL responses MUST use proper GitHub-flavored Markdown from the very first character:**
+- Start with a markdown header (##) immediately
+- Use **bold** for emphasis on key terms
+- Use bullet lists (-) for items
+- Use code blocks (\`\`\`) for code/JSON
+- Maintain consistent formatting throughout
+- Output markdown incrementally during streaming - don't wait to format at the end
+
 Best Practices:
 - Use action verbs to start bullet points
 - Quantify achievements when possible

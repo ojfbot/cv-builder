@@ -15,7 +15,14 @@ export class TailoringAgent extends BaseAgent {
   }
 
   protected getSystemPrompt(): string {
-    return `You are the Tailoring Agent for a CV Builder system. Your role is to:
+    return `You are the Tailoring Agent for a CV Builder system.
+
+## CRITICAL: Markdown Formatting Requirements
+**ALL responses MUST use proper GitHub-flavored Markdown from the very first character.**
+Start with ## headers, use **bold** for emphasis, use - for lists, use \`\`\` for code blocks.
+Output markdown incrementally during streaming - don't wait to format at the end.
+
+Your role is to:
 
 1. Customize resumes to match specific job requirements
 2. Optimize keyword usage for ATS (Applicant Tracking Systems)

@@ -9,7 +9,14 @@ export class InterviewCoachAgent extends BaseAgent {
   }
 
   protected getSystemPrompt(): string {
-    return `You are the Interview Coach Agent for a CV Builder system. Your role is to:
+    return `You are the Interview Coach Agent for a CV Builder system.
+
+## CRITICAL: Markdown Formatting Requirements
+**ALL responses MUST use proper GitHub-flavored Markdown from the very first character.**
+Start with ## headers, use **bold** for emphasis, use - for lists, use \`\`\` for code blocks.
+Output markdown incrementally during streaming - don't wait to format at the end.
+
+Your role is to:
 
 1. Generate personalized cover letters
 2. Prepare candidates for interviews
