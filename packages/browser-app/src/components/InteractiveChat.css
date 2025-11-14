@@ -131,16 +131,41 @@
 
 .input-wrapper {
   display: flex;
-  gap: 1rem;
-  align-items: flex-end;
+  width: 100%;
 }
 
 .textarea-container {
   flex: 1;
+  position: relative;
 }
 
-.send-button {
-  margin-bottom: 0.5rem;
+.input-actions {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  z-index: 10;
+}
+
+.microphone-button-input {
+  min-height: 2rem !important;
+  min-width: 2rem !important;
+  padding: 0.25rem !important;
+}
+
+.microphone-button-input:hover {
+  background-color: var(--cds-layer-accent-01) !important;
+}
+
+.microphone-button-input svg {
+  fill: var(--cds-icon-primary);
+}
+
+.send-button-inline {
+  min-height: 2rem !important;
+  min-width: 2rem !important;
 }
 
 /* Contextual suggestions below input */
