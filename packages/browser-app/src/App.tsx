@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Theme,
   Header,
@@ -8,6 +8,7 @@ import {
   HeaderMenuButton,
   SideNav,
   SideNavItems,
+  TextInput,
 } from '@carbon/react'
 import { Asleep, Light, Settings } from '@carbon/icons-react'
 import { Provider } from 'react-redux'
@@ -21,6 +22,23 @@ function App() {
   const [theme, setTheme] = useState<'white' | 'g100'>('g100')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [sideNavExpanded, setSideNavExpanded] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Mock applications for demo
+  const applications = [
+    'CV Builder',
+    'HR Portal',
+    'Analytics Dashboard',
+    'Project Manager',
+    'Document Editor',
+    'Calendar App'
+  ]
+
+  // Filter applications based on search query
+  const filteredApplications = applications.filter(app =>
+    app.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   useEffect(() => {
     // Apply theme to document
@@ -34,6 +52,16 @@ function App() {
   const onClickSideNavExpand = () => {
     setSideNavExpanded(!sideNavExpanded)
   }
+
+  // Focus search input when sidebar expands
+  useEffect(() => {
+    if (sideNavExpanded && searchInputRef.current) {
+      // Small delay to ensure the sidebar is fully rendered
+      setTimeout(() => {
+        searchInputRef.current?.focus()
+      }, 150)
+    }
+  }, [sideNavExpanded])
 
   return (
     <Provider store={store}>
@@ -73,7 +101,29 @@ function App() {
               onOverlayClick={onClickSideNavExpand}
             >
               <SideNavItems>
-                <div>{/* Sidebar menu items will go here */}</div>
+                <div className="sidebar-search-container">
+                  <TextInput
+                    ref={searchInputRef}
+                    id="app-search"
+                    labelText=""
+                    placeholder="Search applications..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    size="lg"
+                  />
+                  
+                  <div className="applications-list">
+                    {filteredApplications.length > 0 ? (
+                      filteredApplications.map((app, index) => (
+                        <div key={index} className="application-item">
+                          {app}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="no-results">No applications found</div>
+                    )}
+                  </div>
+                </div>
               </SideNavItems>
             </SideNav>
           )}
