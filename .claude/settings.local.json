@@ -8,7 +8,11 @@
       "Bash(npm install:*)",
       "Bash(tree:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: add Express API server for secure agent execution\n\nImplements server-side API to run Claude agents securely without exposing API keys to the browser.\n\n- Created Express API server in packages/api/ with authenticated endpoints\n- Added API client in packages/browser-app/src/api/ for browser-to-server communication\n- Implemented routes for resume, job analysis, tailoring, skills gap, and interview prep\n- Added security middleware (authentication, CORS, rate limiting, request validation)\n- Created .env.example for API configuration\n- Updated dependencies with express, cors, helmet, and express-rate-limit\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: add Express API server for secure agent execution\n\nImplements server-side API to run Claude agents securely without exposing API keys to the browser.\n\n- Created Express API server in packages/api/ with authenticated endpoints\n- Added API client in packages/browser-app/src/api/ for browser-to-server communication\n- Implemented routes for resume, job analysis, tailoring, skills gap, and interview prep\n- Added security middleware (authentication, CORS, rate limiting, request validation)\n- Created .env.example for API configuration\n- Updated dependencies with express, cors, helmet, and express-rate-limit\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(npx tsc:*)",
+      "Bash(curl:*)",
+      "Bash(npx tsx:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
