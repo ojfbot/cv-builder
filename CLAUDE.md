@@ -4,15 +4,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CV Builder is an AI-powered resume and career development tool that uses Claude AI agents to help users create tailored resumes, prepare for interviews, and develop professional skills. The system uses a multi-agent architecture where specialized agents handle different aspects of resume generation.
+CV Builder is an AI-powered resume and career development tool that uses Claude AI agents to help users create tailored resumes, prepare for interviews, and develop professional skills. The system uses a **secure client-server architecture** with a multi-agent system where specialized agents run server-side and communicate with the browser through a REST API.
+
+**Key Architecture Changes** (as of latest update):
+- All agents now run **server-side only** via a new Express API (`packages/api/`)
+- API keys are stored securely in `env.json` on the server (never exposed to browser)
+- Browser app communicates through REST API with proper security middleware
+- Removed `dangerouslyAllowBrowser` flag from all agents
+
+For detailed architecture documentation, see `ARCHITECTURE.md`.
 
 ## Development Commands
 
 ### Running the Application
-```bash
-# Web UI (development server on port 3000)
-npm run dev
 
+**Development Mode (Recommended)**:
+```bash
+# Run both API server and browser app together
+npm run dev:all
+```
+
+**Alternative - Run services separately**:
+```bash
+# Terminal 1: API server (port 3001)
+npm run dev:api
+
+# Terminal 2: Browser app (port 3000)
+npm run dev
+```
+
+**CLI Mode**:
+```bash
 # CLI interactive mode
 npm run cli
 
