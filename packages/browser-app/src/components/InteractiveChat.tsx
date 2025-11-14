@@ -2,11 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   TextArea,
   Button,
+  IconButton,
   Tile,
   InlineLoading,
   InlineNotification,
 } from '@carbon/react'
-import { SendAlt } from '@carbon/icons-react'
+import { SendAlt, Microphone } from '@carbon/icons-react'
 import { useAgent } from '../contexts/AgentContext'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import {
@@ -95,16 +96,19 @@ function InteractiveChat() {
     }
   }, [streamingContent, scrollToBottom])
 
-  // Scroll to bottom when returning to Interactive tab
+  // Scroll to bottom when returning to Interactive tab and mark messages as read
   useEffect(() => {
     if (currentTab === TabKey.INTERACTIVE && messages.length > 0) {
       console.log('[InteractiveChat] Returned to Interactive tab, scrolling to bottom')
+      // Mark all messages as read since user is viewing full chat
+      dispatch(markMessagesAsRead())
       // Add a small delay to ensure tab transition is complete
       setTimeout(() => {
         scrollToBottom(true) // Use smooth scroll for tab switching
       }, 100)
     }
-  }, [currentTab, scrollToBottom, messages.length])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTab, dispatch]) // Removed messages.length and scrollToBottom from dependencies
 
   // Extract suggestions from the last assistant message
   useEffect(() => {
@@ -262,7 +266,7 @@ function InteractiveChat() {
         role: 'assistant',
         content: '⚠️ **Agent service not initialized**\n\nPlease configure your API key first by clicking the Settings icon in the header.'
       }
-      dispatch(addMessageToStore(errorMessage))
+      dispatch(addMessageToStore({ message: errorMessage, markAsRead: true }))
       return
     }
 
@@ -274,7 +278,7 @@ function InteractiveChat() {
       content: textToSend
     }
 
-    dispatch(addMessageToStore(userMessage))
+    dispatch(addMessageToStore({ message: userMessage, markAsRead: true }))
     // Clear input immediately and synchronously
     dispatch(setDraftInputAction(''))
     dispatch(setIsLoading(true))
@@ -317,7 +321,7 @@ function InteractiveChat() {
         content: cleanedContent,
         suggestions
       }
-      dispatch(addMessageToStore(assistantMessage))
+      dispatch(addMessageToStore({ message: assistantMessage, markAsRead: true }))
       dispatch(setStreamingContent(''))
       setContextualSuggestions(suggestions)
 
@@ -334,12 +338,46 @@ function InteractiveChat() {
         role: 'assistant',
         content: `## ❌ Error\n\n${error instanceof Error ? error.message : 'An unknown error occurred'}\n\n**Troubleshooting:**\n- Check your API key configuration\n- Ensure you have API credits available\n- Try again in a moment`
       }
-      dispatch(addMessageToStore(errorMessage))
+      dispatch(addMessageToStore({ message: errorMessage, markAsRead: true }))
       dispatch(setStreamingContent(''))
     } finally {
       dispatch(setIsLoading(false))
     }
   }, [currentTab, draftInput, isLoading, isInitialized, orchestrator, dispatch])
+
+  // File upload handler
+  const handleFileUpload = useCallback(async (accept?: string, multiple?: boolean) => {
+    console.log('[InteractiveChat] File upload triggered', { accept, multiple })
+
+    // Create a file input element
+    const input = document.createElement('input')
+    input.type = 'file'
+    if (accept) input.accept = accept
+    if (multiple) input.multiple = multiple
+
+    // Handle file selection
+    input.onchange = async (e) => {
+      const files = (e.target as HTMLInputElement).files
+      if (!files || files.length === 0) {
+        console.log('[InteractiveChat] No files selected')
+        return
+      }
+
+      console.log('[InteractiveChat] Files selected:', files.length)
+
+      // TODO: Implement actual file processing
+      // For now, just show a message
+      const fileNames = Array.from(files).map(f => f.name).join(', ')
+      const message: Message = {
+        role: 'assistant',
+        content: `📎 **Files selected:** ${fileNames}\n\n_File processing will be implemented soon. For now, please manually add your resume information to your Bio._`
+      }
+      dispatch(addMessageToStore({ message, markAsRead: true }))
+    }
+
+    // Trigger the file dialog
+    input.click()
+  }, [dispatch])
 
   const handleQuickAction = useCallback((action: QuickAction) => {
     console.log('[InteractiveChat] ========================================')
@@ -393,10 +431,7 @@ function InteractiveChat() {
       onSendMessage: async (message: string) => {
         await handleSend(message)
       },
-      // TODO: Implement file upload handler
-      onFileUpload: async (accept?: string, multiple?: boolean) => {
-        console.warn('[InteractiveChat] File upload not yet implemented', { accept, multiple })
-      },
+      onFileUpload: handleFileUpload,
     })
 
     // Handle suggested message after actions complete
@@ -440,7 +475,7 @@ function InteractiveChat() {
           role: 'assistant',
           content: content,
         }
-        dispatch(addMessageToStore(assistantMessage))
+        dispatch(addMessageToStore({ message: assistantMessage, markAsRead: true }))
 
         // Focus input for user to type their response
         // Small delay to ensure message is rendered first
@@ -551,15 +586,32 @@ function InteractiveChat() {
               rows={3}
               disabled={!isInitialized}
             />
+            <div className="input-actions">
+              <IconButton
+                label="Voice input"
+                onClick={() => {
+                  console.log('[InteractiveChat] Microphone button clicked - functionality to be implemented')
+                  // TODO: Implement voice input functionality
+                }}
+                disabled={!isInitialized}
+                className="microphone-button-input"
+                kind="ghost"
+                size="sm"
+              >
+                <Microphone size={20} />
+              </IconButton>
+              <Button
+                renderIcon={SendAlt}
+                onClick={() => handleSend()}
+                disabled={!draftInput.trim() || isLoading || !isInitialized}
+                className="send-button-inline"
+                kind="primary"
+                size="sm"
+                hasIconOnly
+                iconDescription="Send message"
+              />
+            </div>
           </div>
-          <Button
-            renderIcon={SendAlt}
-            onClick={() => handleSend()}
-            disabled={!draftInput.trim() || isLoading || !isInitialized}
-            className="send-button"
-          >
-            Send
-          </Button>
         </div>
 
         {/* Contextual suggestions removed - now shown inline in Next Steps */}

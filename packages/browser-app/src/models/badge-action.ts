@@ -284,13 +284,21 @@ export const ExampleBadgeActions = {
     }
   ),
 
-  // Upload resume file and navigate to Bio
+  // Upload resume - shows upload instructions with inline button
   uploadResume: createBadgeAction(
     'Upload Resume',
     [
-      createFileUploadAction('.pdf,.docx,.txt', false),
+      createExpandChatAction(), // Just expand chat to show the message
     ],
-    { icon: '📄', variant: 'blue' }
+    {
+      icon: '📄',
+      variant: 'blue',
+      suggestedMessage: createSuggestedMessage(
+        'assistant',
+        'I\'ll help you upload your resume! You can:\n\n**Upload Methods:**\n• [Click here](upload:.pdf,.docx) to browse files\n• Drag and drop a file into the chat\n• Type /upload in the chat\n\n**Supported Formats:**\n• PDF documents\n• Word documents (.docx)\n• Plain text files (.txt, .md)\n\nOnce uploaded, I\'ll extract your information and help you enhance it!',
+        '[Click here](upload:) to upload your resume'
+      ),
+    }
   ),
 
   // Generate resume and navigate to outputs with user confirmation

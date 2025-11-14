@@ -9,7 +9,7 @@ import {
 import { SendAlt } from '@carbon/icons-react'
 import { useAgent } from '../contexts/AgentContext'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
-import { addMessage as addMessageToStore } from '../store/slices/chatSlice'
+import { addMessage as addMessageToStore, markMessagesAsRead } from '../store/slices/chatSlice'
 import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
 import { setDraftInput as setDraftInputAction } from '../store/slices/chatSlice'
 import MarkdownMessage from './MarkdownMessage'
@@ -53,6 +53,12 @@ function InteractiveChat() {
   useEffect(() => {
     scrollToBottom()
   }, [messages, streamingContent])
+
+  // Mark messages as read when user is viewing the Interactive tab
+  useEffect(() => {
+    // Clear unread count when viewing messages
+    dispatch(markMessagesAsRead())
+  }, [messages, dispatch])
 
   // Extract suggestions from the last assistant message
   useEffect(() => {
@@ -196,6 +202,35 @@ function InteractiveChat() {
     return finalSuggestions
   }
 
+  // Handle file upload
+  const handleFileUpload = useCallback((accept?: string, multiple?: boolean) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    if (accept) input.accept = accept
+    if (multiple) input.multiple = multiple
+
+    input.onchange = (e) => {
+      const files = (e.target as HTMLInputElement).files
+      if (files && files.length > 0) {
+        const file = files[0]
+        const userMessage: Message = {
+          role: 'user',
+          content: `[Uploaded file: ${file.name}]`
+        }
+        dispatch(addMessageToStore(userMessage))
+        
+        // Add a placeholder response (in real implementation, this would process the file)
+        const assistantMessage: Message = {
+          role: 'assistant',
+          content: `I've received your file "${file.name}". File upload processing will be implemented soon!`
+        }
+        dispatch(addMessageToStore(assistantMessage))
+      }
+    }
+
+    input.click()
+  }, [dispatch])
+
   const handleSend = useCallback(async (messageText?: string) => {
     const textToSend = messageText || draftInput.trim()
     if (!textToSend || isLoading) return
@@ -281,6 +316,31 @@ function InteractiveChat() {
     console.log('[InteractiveChat] navigateTo is undefined?', action.navigateTo === undefined)
     console.log('[InteractiveChat] ========================================')
 
+    // If this is a file upload action (marked with navigateTo: -1), add message with file upload suggestion
+    if (action.navigateTo === -1) {
+      console.log('[InteractiveChat] ✅ FILE UPLOAD MESSAGE DETECTED!')
+      const uploadMessage: Message = {
+        role: 'assistant',
+        content: action.query,
+        suggestions: [
+          {
+            label: 'Click here',
+            query: '__FILE_UPLOAD__',
+            icon: '📎'
+          }
+        ]
+      }
+      dispatch(addMessageToStore(uploadMessage))
+      return
+    }
+
+    // If this is a file upload action, trigger file upload
+    if (action.query === '__FILE_UPLOAD__') {
+      console.log('[InteractiveChat] ✅ FILE UPLOAD ACTION DETECTED!')
+      handleFileUpload('.pdf,.docx,.txt,.md', false)
+      return
+    }
+
     // If this is a navigation action, navigate immediately
     if (action.navigateTo !== undefined) {
       console.log('[InteractiveChat] ✅ NAVIGATION ACTION DETECTED!')
@@ -304,7 +364,41 @@ function InteractiveChat() {
     setTimeout(() => {
       handleSend(action.query)
     }, 300)
-  }, [dispatch, handleSend])
+  }, [dispatch, handleSend, handleFileUpload])
+
+  // Handle new BadgeAction format
+  const handleActionExecute = useCallback((actions: any[], badgeAction: any) => {
+    console.log('[InteractiveChat] handleActionExecute called with actions:', actions)
+    
+    for (const action of actions) {
+      if (action.type === 'file_upload') {
+        console.log('[InteractiveChat] File upload action detected:', action)
+        handleFileUpload(action.accept, action.multiple)
+      } else if (action.type === 'navigate') {
+        console.log('[InteractiveChat] Navigate action detected:', action)
+        const tabIndexMap: Record<string, number> = {
+          'interactive': 0,
+          'bio': 1,
+          'jobs': 2,
+          'outputs': 3,
+          'research': 4,
+          'pipelines': 5,
+          'toolbox': 6,
+        }
+        const tabIndex = tabIndexMap[action.tab] ?? 0
+        dispatch(setCurrentTabAction(tabIndex))
+      } else if (action.type === 'chat') {
+        console.log('[InteractiveChat] Chat action detected:', action)
+        if (badgeAction.suggestedMessage) {
+          // Add the suggested message to chat
+          dispatch(addMessageToStore(badgeAction.suggestedMessage))
+        } else {
+          // Send the message
+          handleSend(action.message)
+        }
+      }
+    }
+  }, [dispatch, handleSend, handleFileUpload])
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -343,9 +437,10 @@ function InteractiveChat() {
                   content={msg.content}
                   suggestions={msg.suggestions}
                   onActionClick={(action) => {
-                    // Handle action clicks from inline badges
+                    // Handle action clicks from inline badges (legacy support)
                     handleQuickAction(action)
                   }}
+                  onActionExecute={handleActionExecute}
                 />
               )}
             </div>
@@ -364,6 +459,7 @@ function InteractiveChat() {
                 onActionClick={(action) => {
                   handleQuickAction(action)
                 }}
+                onActionExecute={handleActionExecute}
               />
             </div>
           </Tile>

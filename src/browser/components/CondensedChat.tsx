@@ -8,7 +8,7 @@ import {
   InlineLoading,
   Tile,
 } from '@carbon/react'
-import { SendAlt, Minimize, ChatBot } from '@carbon/icons-react'
+import { SendAlt, Minimize, ChatBot, Microphone } from '@carbon/icons-react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { addMessage, setDraftInput as setDraftInputAction } from '../store/slices/chatSlice'
 import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
@@ -28,6 +28,7 @@ function CondensedChat() {
   const messages = useAppSelector(state => state.chat.messages)
   const draftInput = useAppSelector(state => state.chat.draftInput)
   const chatSummary = useAppSelector(state => state.chat.chatSummary)
+  const unreadCount = useAppSelector(state => state.chat.unreadCount)
   const { orchestrator, isInitialized } = useAgent()
   
   // Debug: log draftInput and chatSummary changes
@@ -214,9 +215,6 @@ function CondensedChat() {
     setTimeout(() => handleSend(action.query), 200)
   }, [dispatch, handleSend])
 
-  const lastMessage = messages[messages.length - 1]
-  const isAssistantThinking = isLoading && lastMessage?.role === 'user'
-
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -246,6 +244,14 @@ function CondensedChat() {
           <span className="header-title">
             AI Assistant{chatSummary ? ` - ${chatSummary}` : ''}
           </span>
+          {!isExpanded && isLoading && (
+            <div className="header-thinking-spinner">
+              <InlineLoading status="active" />
+            </div>
+          )}
+          {!isExpanded && !isLoading && unreadCount > 0 && (
+            <span className="unread-badge">{unreadCount}</span>
+          )}
         </div>
         {isExpanded && (
           <IconButton
@@ -263,7 +269,7 @@ function CondensedChat() {
       </div>
 
       {isExpanded && (
-        <div ref={messagesContainerRef} className="chat-messages-container">
+        <div className="chat-messages-container" ref={messagesContainerRef}>
           {messages.map((msg, idx) => (
             <Tile
               key={idx}
@@ -315,56 +321,68 @@ function CondensedChat() {
         </div>
       )}
 
-      {!isExpanded && isAssistantThinking && (
-        <div className="thinking-indicator">
-          <InlineLoading description="Thinking..." status="active" />
-        </div>
-      )}
-
       <div className="condensed-input-wrapper">
-        {isExpanded ? (
-          <TextArea
-            ref={textAreaRef}
-            labelText="Message"
-            placeholder="Ask me anything..."
-            value={draftInput}
-            onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
-            onKeyPress={handleKeyPress}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            disabled={!isInitialized || isLoading}
-            rows={3}
-            className="condensed-chat-textarea"
-          />
-        ) : (
-          <TextInput
-            ref={inputRef}
-            id="condensed-input"
-            labelText=""
-            placeholder="Ask me anything..."
-            value={draftInput}
-            onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleSend()
-              }
-            }}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            disabled={!isInitialized || isLoading}
-            size="sm"
-          />
-        )}
-        <Button
-          renderIcon={SendAlt}
-          onClick={() => handleSend()}
-          disabled={!draftInput.trim() || isLoading || !isInitialized}
-          size="sm"
-          kind="primary"
-          hasIconOnly
-          iconDescription="Send"
-        />
+        <div className="textarea-container-condensed">
+          {isExpanded ? (
+            <TextArea
+              ref={textAreaRef}
+              labelText="Message"
+              placeholder="Ask me anything..."
+              value={draftInput}
+              onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
+              onKeyPress={handleKeyPress}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              disabled={!isInitialized || isLoading}
+              rows={3}
+              className="condensed-chat-textarea"
+            />
+          ) : (
+            <TextInput
+              ref={inputRef}
+              id="condensed-input"
+              labelText=""
+              placeholder="Ask me anything..."
+              value={draftInput}
+              onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleSend()
+                }
+              }}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              disabled={!isInitialized || isLoading}
+              size="md"
+            />
+          )}
+          <div className="input-actions-condensed">
+            <IconButton
+              label="Voice input"
+              onClick={() => {
+                console.log('[CondensedChat] Microphone button clicked - functionality to be implemented')
+                // TODO: Implement voice input functionality
+              }}
+              disabled={!isInitialized || isLoading}
+              className="microphone-button-input-condensed"
+              kind="ghost"
+              size="sm"
+            >
+              <Microphone size={20} />
+            </IconButton>
+            <Button
+              renderIcon={SendAlt}
+              onClick={() => handleSend()}
+              disabled={!draftInput.trim() || isLoading || !isInitialized}
+              size="sm"
+              kind="primary"
+              hasIconOnly
+              iconDescription="Send"
+              className="send-button-inline-condensed"
+            />
+          </div>
+        </div>
       </div>
 
       {showSuggestions && contextualSuggestions.length > 0 && !isLoading && (

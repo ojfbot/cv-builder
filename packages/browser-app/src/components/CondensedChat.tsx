@@ -7,7 +7,7 @@ import {
   InlineLoading,
   Tile,
 } from '@carbon/react'
-import { SendAlt, Minimize, ChatBot } from '@carbon/icons-react'
+import { SendAlt, Minimize, ChatBot, Microphone } from '@carbon/icons-react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import {
   addMessage,
@@ -245,6 +245,39 @@ function CondensedChat() {
     return suggestions.slice(0, 4) // Limit to 4 in condensed mode
   }
 
+  // File upload handler
+  const handleFileUpload = useCallback(async (accept?: string, multiple?: boolean) => {
+    console.log('[CondensedChat] File upload triggered', { accept, multiple })
+
+    // Create a file input element
+    const input = document.createElement('input')
+    input.type = 'file'
+    if (accept) input.accept = accept
+    if (multiple) input.multiple = multiple
+
+    // Handle file selection
+    input.onchange = async (e) => {
+      const files = (e.target as HTMLInputElement).files
+      if (!files || files.length === 0) {
+        console.log('[CondensedChat] No files selected')
+        return
+      }
+
+      console.log('[CondensedChat] Files selected:', files.length)
+
+      // TODO: Implement actual file processing
+      // For now, just show a message
+      const fileNames = Array.from(files).map(f => f.name).join(', ')
+      dispatch(addMessage({
+        role: 'assistant',
+        content: `📎 **Files selected:** ${fileNames}\n\n_File processing will be implemented soon. For now, please manually add your resume information to your Bio._`
+      }))
+    }
+
+    // Trigger the file dialog
+    input.click()
+  }, [dispatch])
+
   const handleQuickAction = useCallback((action: QuickAction) => {
     console.log('[CondensedChat] handleQuickAction called:', {
       label: action.label,
@@ -284,11 +317,7 @@ function CondensedChat() {
       onSendMessage: async (message: string) => {
         await handleSend(message)
       },
-      // TODO: Implement file upload handler
-      onFileUpload: async (accept?: string, multiple?: boolean) => {
-        console.warn('[CondensedChat] File upload not yet implemented', { accept, multiple })
-        // Future: Trigger file input dialog and upload to appropriate location
-      },
+      onFileUpload: handleFileUpload,
     })
 
     // Handle suggested message after actions complete
@@ -394,32 +423,32 @@ function CondensedChat() {
           <span className="header-title">
             AI Assistant{chatSummary ? ` - ${chatSummary}` : ''}
           </span>
-          {!isExpanded && unreadCount > 0 && (
-            <span className="unread-badge">{unreadCount}</span>
+          {!isExpanded && isLoading && (
+            <div className="header-thinking-spinner">
+              <InlineLoading status="active" />
+            </div>
+          )}
+          {!isExpanded && !isLoading && unreadCount > 0 && (
+            <span className="unread-badge">new</span>
           )}
         </div>
-        {isExpanded && (
-          <IconButton
-            label="Minimize chat"
-            onClick={(e) => {
-              e.stopPropagation()
-              console.log('[CondensedChat] Minimize button clicked')
-              dispatch(setIsExpandedAction(false))
-            }}
-            size="sm"
-            kind="ghost"
-          >
-            <Minimize size={16} />
-          </IconButton>
-        )}
-      </div>
-
-      {/* Show thinking indicator when collapsed and loading */}
-      {!isExpanded && isLoading && (
-        <div className="thinking-indicator">
-          <InlineLoading description="Thinking..." />
+        <div className="header-actions">
+          {isExpanded && (
+            <IconButton
+              label="Minimize chat"
+              onClick={(e) => {
+                e.stopPropagation()
+                console.log('[CondensedChat] Minimize button clicked')
+                dispatch(setIsExpandedAction(false))
+              }}
+              size="sm"
+              kind="ghost"
+            >
+              <Minimize size={16} />
+            </IconButton>
+          )}
         </div>
-      )}
+      </div>
 
       {isExpanded && (
         <div className="chat-messages-container" ref={messagesContainerRef}>
@@ -490,47 +519,65 @@ function CondensedChat() {
       )}
 
       <div className="condensed-input-wrapper">
-        {isExpanded ? (
-          <TextArea
-            ref={textAreaRef}
-            labelText="Message"
-            placeholder="Ask me anything..."
-            value={draftInput}
-            onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
-            onKeyDown={handleKeyDown}
-            onFocus={handleInputFocus}
-            disabled={!isInitialized}
-            rows={3}
-            className="condensed-chat-textarea"
-          />
-        ) : (
-          <TextInput
-            ref={inputRef}
-            id="condensed-input"
-            labelText=""
-            placeholder="Ask me anything..."
-            value={draftInput}
-            onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !isLoading) {
-                e.preventDefault()
-                handleSend()
-              }
-            }}
-            onFocus={handleInputFocus}
-            disabled={!isInitialized}
-            size="sm"
-          />
-        )}
-        <Button
-          renderIcon={SendAlt}
-          onClick={() => handleSend()}
-          disabled={!draftInput.trim() || isLoading || !isInitialized}
-          size="sm"
-          kind="primary"
-          hasIconOnly
-          iconDescription="Send"
-        />
+        <div className="textarea-container-condensed">
+          {isExpanded ? (
+            <TextArea
+              ref={textAreaRef}
+              labelText="Message"
+              placeholder="Ask me anything..."
+              value={draftInput}
+              onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
+              onKeyDown={handleKeyDown}
+              onFocus={handleInputFocus}
+              disabled={!isInitialized}
+              rows={3}
+              className="condensed-chat-textarea"
+            />
+          ) : (
+            <TextInput
+              ref={inputRef}
+              id="condensed-input"
+              labelText=""
+              placeholder="Ask me anything..."
+              value={draftInput}
+              onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !isLoading) {
+                  e.preventDefault()
+                  handleSend()
+                }
+              }}
+              onFocus={handleInputFocus}
+              disabled={!isInitialized}
+              size="md"
+            />
+          )}
+          <div className="input-actions-condensed">
+            <IconButton
+              label="Voice input"
+              onClick={() => {
+                console.log('[CondensedChat] Microphone button clicked - functionality to be implemented')
+                // TODO: Implement voice input functionality
+              }}
+              disabled={!isInitialized}
+              className="microphone-button-input-condensed"
+              kind="ghost"
+              size="sm"
+            >
+              <Microphone size={20} />
+            </IconButton>
+            <Button
+              renderIcon={SendAlt}
+              onClick={() => handleSend()}
+              disabled={!draftInput.trim() || isLoading || !isInitialized}
+              size="sm"
+              kind="primary"
+              hasIconOnly
+              iconDescription="Send"
+              className="send-button-inline-condensed"
+            />
+          </div>
+        </div>
       </div>
     </div>
   )
