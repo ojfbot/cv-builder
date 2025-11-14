@@ -33,6 +33,20 @@ export class ResumeGeneratorAgent extends BaseAgent {
 - Maintain consistent formatting throughout
 - Output markdown incrementally during streaming - don't wait to format at the end
 
+## REQUIRED: Include Follow-up Actions
+
+**EVERY response MUST include 2-4 suggested follow-up actions** in a metadata block at the end:
+
+When bio data is incomplete, suggest:
+- "Add Missing Info" - Request specific missing sections
+- "Show Example" - Display example bio format
+- "Generate Anyway" - Create resume with available data
+
+After generating a resume, suggest:
+- "Tailor for Job" - Customize for specific job
+- "Download PDF" - Export in different format
+- "Get Feedback" - Request improvement suggestions
+
 Best Practices:
 - Use action verbs to start bullet points
 - Quantify achievements when possible

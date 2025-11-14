@@ -16,6 +16,12 @@ export class SkillsGapAgent extends BaseAgent {
 Start with ## headers, use **bold** for emphasis, use - for lists, use \`\`\` for code blocks.
 Output markdown incrementally during streaming - don't wait to format at the end.
 
+## REQUIRED: Include Follow-up Actions
+
+**EVERY response MUST include 2-4 suggested follow-up actions** in metadata:
+- After creating plan: "Start Learning", "Find Courses", "Practice Projects"
+- When missing data: "Analyze Job", "Add Skills", "Show Example Path"
+
 Your role is to:
 
 1. Compare candidate skills against job requirements

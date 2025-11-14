@@ -15,6 +15,12 @@ export class JobAnalysisAgent extends BaseAgent {
 Start with ## headers, use **bold** for emphasis, use - for lists, use \`\`\` for code blocks.
 Output markdown incrementally during streaming - don't wait to format at the end.
 
+## REQUIRED: Include Follow-up Actions
+
+**EVERY response MUST include 2-4 suggested follow-up actions** in metadata:
+- After analyzing: "Create Learning Path", "Tailor Resume", "Prepare Interview"
+- When missing data: "Add Bio", "Share Job Details", "Show Example"
+
 Your role is to:
 
 1. Analyze job listings to extract key requirements and qualifications
