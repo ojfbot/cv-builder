@@ -179,26 +179,8 @@ function CondensedChat() {
     }
 
     // FALLBACK: extract navigation tags [NAVIGATE_TO_TAB:X:Label]
-    const navRegex = /\[NAVIGATE_TO_TAB:(\d+):([^\]]+)\]/g
-    let navMatch
-    while ((navMatch = navRegex.exec(response)) !== null) {
-      const tabNumber = parseInt(navMatch[1], 10)
-      const label = navMatch[2].trim()
-
-      // Determine icon based on tab
-      let icon = '📍'
-      if (tabNumber === 1) icon = '👤'  // Bio tab
-      else if (tabNumber === 2) icon = '💼'  // Jobs tab
-      else if (tabNumber === 3) icon = '📄'  // Outputs tab
-      else if (tabNumber === 4) icon = '🔬'  // Research tab
-
-      suggestions.push({
-        label,
-        query: label,
-        icon,
-        navigateTo: tabNumber
-      })
-    }
+    // This is deprecated - agents should use JSON metadata instead
+    // Kept for backward compatibility only
 
     // DEPRECATED: "Next Steps" parsing is disabled to force agents to use JSON metadata
     /*

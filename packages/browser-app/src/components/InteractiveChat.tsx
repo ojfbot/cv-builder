@@ -128,6 +128,17 @@ function InteractiveChat() {
     // FALLBACK: Also remove old bracket-style navigation tags
     cleaned = cleaned.replace(/\[NAVIGATE_TO_TAB:\d+:[^\]]+\]/g, '')
 
+    // Fix incomplete code blocks during streaming to prevent rendering issues
+    // Count backticks to detect incomplete code blocks
+    const backtickMatches = cleaned.match(/```/g)
+    const backtickCount = backtickMatches ? backtickMatches.length : 0
+
+    // If we have an odd number of ``` markers, we have an incomplete code block
+    if (backtickCount % 2 !== 0) {
+      // Add a temporary closing marker with a note
+      cleaned += '\n```\n*[Streaming...]*'
+    }
+
     return cleaned.trim()
   }
 
@@ -165,53 +176,15 @@ function InteractiveChat() {
         console.log('[InteractiveChat] Not valid JSON, trying XML format...')
 
         // FALLBACK: Try XML format (old format)
-        const navRegex = /<navigate\s+tab="(\d+)"\s+label="([^"]+)"\s*\/>/g
-        let navMatch
-
-        while ((navMatch = navRegex.exec(metadataContent)) !== null) {
-          const tabNumber = parseInt(navMatch[1], 10)
-          const label = navMatch[2].trim()
-
-          console.log('[InteractiveChat] Found navigation in XML metadata:', { tabNumber, label })
-
-          // Determine icon based on tab
-          let icon = '📍'
-          if (tabNumber === 1) icon = '👤'  // Bio tab
-          else if (tabNumber === 2) icon = '💼'  // Jobs tab
-          else if (tabNumber === 3) icon = '📄'  // Outputs tab
-          else if (tabNumber === 4) icon = '🔬'  // Research tab
-
-          suggestions.push({
-            label,
-            query: label,
-            icon,
-            navigateTo: tabNumber
-          })
-        }
+        // This is deprecated - agents should use JSON metadata instead
+        // Kept for backward compatibility only
       }
     }
 
     // FALLBACK: Also support old bracket format for backward compatibility
     // Format: [NAVIGATE_TO_TAB:1:Add your profile]
-    const oldNavRegex = /\[NAVIGATE_TO_TAB:(\d+):([^\]]+)\]/g
-    let oldNavMatch
-    while ((oldNavMatch = oldNavRegex.exec(response)) !== null) {
-      const tabNumber = parseInt(oldNavMatch[1], 10)
-      const label = oldNavMatch[2].trim()
-
-      // Determine icon based on tab
-      let icon = '📍'
-      if (tabNumber === 1) icon = '👤'  // Bio tab
-      else if (tabNumber === 2) icon = '💼'  // Jobs tab
-      else if (tabNumber === 3) icon = '📄'  // Outputs tab
-
-      suggestions.push({
-        label,
-        query: label,
-        icon,
-        navigateTo: tabNumber
-      })
-    }
+    // This is deprecated - agents should use JSON metadata instead
+    // Kept for backward compatibility only
 
     // DEPRECATED: "Next Steps" parsing is disabled to force agents to use JSON metadata
     // This encourages agents to output proper structured badge actions
@@ -266,12 +239,8 @@ function InteractiveChat() {
     */
 
     // Return only the suggestions we found (no default fallback)
-    const finalSuggestions = suggestions.slice(0, 6)
-    console.log('[InteractiveChat] Final suggestions:', finalSuggestions.map(s => ({
-      label: s.label,
-      navigateTo: s.navigateTo
-    })))
-    return finalSuggestions
+    console.log('[InteractiveChat] Final suggestions count:', suggestions.length)
+    return suggestions.slice(0, 6)
   }
 
   const handleSend = useCallback(async (messageText?: string) => {
@@ -427,33 +396,38 @@ function InteractiveChat() {
       console.log('[InteractiveChat] Processing suggested message:', { role, content, hasNavigate })
 
       // If we navigated to another tab, we need to ensure chat is expanded
-      // before sending the message (since we'll be showing CondensedChat)
+      // before showing the message (since we'll be on CondensedChat)
       if (hasNavigate) {
-        console.log('[InteractiveChat] Navigated to another tab - will expand CondensedChat and send message')
+        console.log('[InteractiveChat] Navigated to another tab - will expand CondensedChat')
         // Wait for tab transition
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, 300))
 
         // Expand the CondensedChat
-        if (role === 'assistant') {
-          console.log('[InteractiveChat] Expanding CondensedChat before sending assistant message')
-          dispatch(setIsExpandedAction(true))
-          // Wait for expansion animation
-          await new Promise(resolve => setTimeout(resolve, 200))
-        }
-      } else {
-        // Shorter delay for same-tab actions
+        dispatch(setIsExpandedAction(true))
+        // Wait for expansion animation
         await new Promise(resolve => setTimeout(resolve, 300))
       }
 
       if (role === 'user') {
         // Pre-populate input for user to review and send
         dispatch(setDraftInputAction(content))
-        if (!hasNavigate) {
+        // Auto-send the message after navigation if navigated
+        if (hasNavigate) {
+          // Wait for the input to be populated
+          await new Promise(resolve => setTimeout(resolve, 100))
+          await handleSend(content)
+        } else {
+          // Just focus for manual sending if no navigation
           inputRef.current?.focus()
         }
       } else if (role === 'assistant') {
-        // Auto-send as assistant message (simulated agent prompt)
-        await handleSend(content)
+        // Add directly as assistant message (scoped follow-up prompt)
+        // Don't call handleSend as that would trigger another agent response
+        const assistantMessage: Message = {
+          role: 'assistant',
+          content: content,
+        }
+        dispatch(addMessageToStore(assistantMessage))
       }
     }
   }, [dispatch, handleSend])

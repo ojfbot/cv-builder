@@ -8,9 +8,8 @@ import {
   Heading,
 } from '@carbon/react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
-import { setCurrentTab, requestTabChange } from '../store/slices/navigationSlice'
+import { setCurrentTab } from '../store/slices/navigationSlice'
 import { generateChatSummary, setChatSummary } from '../store/slices/chatSlice'
-import { useAgent } from '../contexts/AgentContext'
 import { TabKey, TAB_ORDER, getTabByKey } from '../models/navigation'
 import BioDashboard from './BioDashboard'
 import JobsDashboard from './JobsDashboard'
@@ -28,14 +27,6 @@ function DashboardContent() {
   const currentTabIndex = useAppSelector(state => state.navigation.currentTabIndex)
   const previousTab = useAppSelector(state => state.navigation.previousTab)
   const messages = useAppSelector(state => state.chat.messages)
-  const { setTabChangeHandler } = useAgent()
-
-  // Connect the tab change handler from the agent service to Redux
-  useEffect(() => {
-    setTabChangeHandler((tab: number | TabKey, reason: string) => {
-      dispatch(requestTabChange({ tab, reason }))
-    })
-  }, [setTabChangeHandler, dispatch])
 
   // Generate chat summary when navigating away from Interactive tab
   useEffect(() => {
