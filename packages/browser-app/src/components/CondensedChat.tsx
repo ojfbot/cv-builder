@@ -1,117 +1,115 @@
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import {
   TextInput,
   TextArea,
   Button,
   IconButton,
-  Tag,
   InlineLoading,
   Tile,
 } from '@carbon/react'
 import { SendAlt, Minimize, ChatBot } from '@carbon/icons-react'
-import { useChat } from '../contexts/ChatContext'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
+import {
+  addMessage,
+  setDraftInput as setDraftInputAction,
+  setIsLoading,
+  setStreamingContent,
+  setIsExpanded as setIsExpandedAction,
+} from '../store/slices/chatSlice'
+import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
 import { useAgent } from '../contexts/AgentContext'
 import MarkdownMessage from './MarkdownMessage'
+import { Action } from '../models/badge-action'
+import { executeActions } from '../utils/action-dispatcher'
 import './CondensedChat.css'
 
-interface NavigateAction {
-  tab: number
-  focus?: string
-  context?: string
-}
-
+// Legacy interface - kept for backward compatibility only
 interface QuickAction {
   label: string
   query: string
   icon: string
-  navigateTo?: number  // DEPRECATED: Use navigate instead
-  navigate?: NavigateAction
+  navigateTo?: number
 }
 
 function CondensedChat() {
-  const { messages, addMessage, setCurrentTab, currentTab, draftInput, setDraftInput, isLoading, setIsLoading, streamingContent, setStreamingContent, generateChatSummary } = useChat()
+  const dispatch = useAppDispatch()
+  const messages = useAppSelector(state => state.chat.messages)
+  const draftInput = useAppSelector(state => state.chat.draftInput)
+  const chatSummary = useAppSelector(state => state.chat.chatSummary)
+  const isLoading = useAppSelector(state => state.chat.isLoading)
+  const streamingContent = useAppSelector(state => state.chat.streamingContent)
+  const isExpanded = useAppSelector(state => state.chat.isExpanded)
+  const unreadCount = useAppSelector(state => state.chat.unreadCount)
   const { orchestrator, isInitialized } = useAgent()
-  // Use shared draftInput from context instead of local state
-  const input = draftInput
-  const setInput = setDraftInput
 
-  console.log('[CondensedChat] Render - draftInput:', draftInput, 'input:', input)
-  const [isExpanded, setIsExpandedLocal] = useState(false)
-  const [hasUnread, setHasUnread] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const prevMessagesLengthRef = useRef(messages.length)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
-  // Generate chat summary for header
-  const chatSummary = messages.length > 1 ? generateChatSummary() : ''
+  // Auto-scroll to bottom - direct scrollTop manipulation is more reliable
+  const scrollToBottom = useCallback((smooth = false) => {
+    // Use multiple RAF calls to ensure layout is complete
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (messagesContainerRef.current) {
+          const container = messagesContainerRef.current
+          if (smooth) {
+            // Smooth animated scroll
+            container.scrollTo({
+              top: container.scrollHeight,
+              behavior: 'smooth'
+            })
+          } else {
+            // Instant scroll
+            container.scrollTop = container.scrollHeight
+          }
+          console.log('[CondensedChat] Scrolled to:', container.scrollTop, 'of', container.scrollHeight)
+        }
+      })
+    })
+  }, [])
 
-  // Debug: log when expansion state changes
-  useEffect(() => {
-    console.log('[CondensedChat] isExpanded changed to:', isExpanded)
-    // Clear unread indicator when expanded
-    if (isExpanded) {
-      setHasUnread(false)
-    }
-  }, [isExpanded])
-
-  // Detect new assistant messages when collapsed
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1]
-    const hasNewMessage = messages.length > prevMessagesLengthRef.current
-
-    // Show unread indicator if:
-    // 1. We're in collapsed state
-    // 2. A new message was added
-    // 3. The new message is from the assistant
-    // 4. We're not currently loading (thinking is complete)
-    if (!isExpanded && hasNewMessage && lastMessage?.role === 'assistant' && !isLoading) {
-      console.log('[CondensedChat] New assistant message received while collapsed - showing unread indicator')
-      setHasUnread(true)
-    }
-
-    prevMessagesLengthRef.current = messages.length
-  }, [messages, isExpanded, isLoading])
-
-  // Auto-scroll to bottom when messages change
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
+  // Auto-focus input when expanding
   useEffect(() => {
     if (isExpanded) {
+      setTimeout(() => {
+        textAreaRef.current?.focus()
+      }, 100)
+      // Scroll to bottom when expanding to show latest messages (with smooth animation)
+      scrollToBottom(true)
+    }
+  }, [isExpanded, scrollToBottom])
+
+  // Auto-scroll when messages change (only when expanded)
+  useEffect(() => {
+    if (isExpanded && messages.length > 0) {
+      console.log('[CondensedChat] Messages changed, scrolling. Count:', messages.length)
       scrollToBottom()
     }
-  }, [messages, streamingContent, isExpanded])
+  }, [messages, isExpanded, scrollToBottom])
 
-  // Scroll to bottom when navigating to a non-Interactive tab (making CondensedChat visible)
+  // Auto-scroll when streaming content changes (only when expanded)
   useEffect(() => {
-    if (currentTab !== 0 && isExpanded) {
-      // Use setTimeout to ensure the component has fully rendered
-      setTimeout(() => {
-        scrollToBottom()
-      }, 100)
+    if (isExpanded && streamingContent) {
+      scrollToBottom()
     }
-  }, [currentTab, isExpanded])
+  }, [streamingContent, isExpanded, scrollToBottom])
 
 
-  const handleSend = async (messageText?: string) => {
-    const textToSend = messageText || input.trim()
+  const handleSend = useCallback(async (messageText?: string) => {
+    const textToSend = messageText || draftInput.trim()
     if (!textToSend || isLoading || !orchestrator || !isInitialized) return
-
-    console.log('[CondensedChat] handleSend called with input:', input)
-    console.log('[CondensedChat] About to clear input')
 
     const userMessage = {
       role: 'user' as const,
       content: textToSend
     }
 
-    addMessage(userMessage)
-    setInput('')
-    console.log('[CondensedChat] setInput(\"\") called, input should now be empty')
-    setIsLoading(true)
-    setStreamingContent('')
+    dispatch(addMessage(userMessage))
+    // Clear input immediately and synchronously
+    dispatch(setDraftInputAction(''))
+    dispatch(setIsLoading(true))
+    dispatch(setStreamingContent(''))
 
     try {
       let fullResponse = ''
@@ -127,123 +125,251 @@ function CondensedChat() {
           fullResponse += chunk
           // Show streaming in expanded mode
           if (isExpanded) {
-            setStreamingContent(fullResponse)
+            dispatch(setStreamingContent(fullResponse))
           }
         }
       )
 
       // Extract suggestions
+      const suggestions = extractSuggestionsFromResponse(fullResponse)
+
       // Remove metadata block from displayed content
       let cleanedContent = fullResponse.replace(/<metadata>[\s\S]*?<\/metadata>/gi, '')
       cleanedContent = cleanedContent.replace(/\[NAVIGATE_TO_TAB:\d+:[^\]]+\]/g, '').trim()
 
-      addMessage({
+      dispatch(addMessage({
         role: 'assistant',
-        content: cleanedContent
-      })
+        content: cleanedContent,
+        suggestions
+      }))
 
-      setStreamingContent('')
+      dispatch(setStreamingContent(''))
     } catch (error) {
-      addMessage({
+      dispatch(addMessage({
         role: 'assistant',
         content: `## ❌ Error\n\n${error instanceof Error ? error.message : 'An unknown error occurred'}`
-      })
-      setStreamingContent('')
+      }))
+      dispatch(setStreamingContent(''))
     } finally {
-      setIsLoading(false)
+      dispatch(setIsLoading(false))
     }
+  }, [draftInput, isLoading, orchestrator, isInitialized, dispatch, isExpanded])
+
+  const extractSuggestionsFromResponse = (response: string): import('../models/badge-action').BadgeAction[] => {
+    const suggestions: import('../models/badge-action').BadgeAction[] = []
+
+    // First, try to extract JSON badge action metadata (new format)
+    const metadataMatch = response.match(/<metadata>([\s\S]*?)<\/metadata>/i)
+
+    if (metadataMatch) {
+      const metadataContent = metadataMatch[1].trim()
+
+      // Try to parse as JSON first (new format)
+      try {
+        const metadata = JSON.parse(metadataContent)
+        if (metadata.suggestions && Array.isArray(metadata.suggestions)) {
+          console.log('[CondensedChat] Found BadgeAction suggestions with suggestedMessage:', metadata.suggestions)
+          // Return BadgeAction objects directly - DO NOT convert to QuickAction
+          // This preserves suggestedMessage and all other metadata
+          return metadata.suggestions.slice(0, 4) // Limit to 4 in condensed mode
+        }
+      } catch (e) {
+        // Fall through to legacy parsing
+      }
+    }
+
+    // FALLBACK: extract navigation tags [NAVIGATE_TO_TAB:X:Label]
+    const navRegex = /\[NAVIGATE_TO_TAB:(\d+):([^\]]+)\]/g
+    let navMatch
+    while ((navMatch = navRegex.exec(response)) !== null) {
+      const tabNumber = parseInt(navMatch[1], 10)
+      const label = navMatch[2].trim()
+
+      // Determine icon based on tab
+      let icon = '📍'
+      if (tabNumber === 1) icon = '👤'  // Bio tab
+      else if (tabNumber === 2) icon = '💼'  // Jobs tab
+      else if (tabNumber === 3) icon = '📄'  // Outputs tab
+      else if (tabNumber === 4) icon = '🔬'  // Research tab
+
+      suggestions.push({
+        label,
+        query: label,
+        icon,
+        navigateTo: tabNumber
+      })
+    }
+
+    // DEPRECATED: "Next Steps" parsing is disabled to force agents to use JSON metadata
+    /*
+    const suggestionsMatch = response.match(/## Next Steps?[\s\S]*?(?=\n##|\n```|$)/i)
+    if (suggestionsMatch) {
+      const suggestionsText = suggestionsMatch[0]
+      const bulletRegex = /[-*]\s*\*\*(.+?)\*\*[:\s]*(.+?)(?=\n[-*]|\n\n|$)/g
+      let match
+
+      while ((match = bulletRegex.exec(suggestionsText)) !== null) {
+        const label = match[1].trim()
+        const description = match[2].trim()
+
+        let icon = '💡'
+        if (label.toLowerCase().includes('resume')) icon = '📄'
+        else if (label.toLowerCase().includes('job') || label.toLowerCase().includes('analyze')) icon = '🔍'
+        else if (label.toLowerCase().includes('tailor')) icon = '✨'
+        else if (label.toLowerCase().includes('learn') || label.toLowerCase().includes('skill')) icon = '📚'
+        else if (label.toLowerCase().includes('cover')) icon = '✍️'
+        else if (label.toLowerCase().includes('interview')) icon = '💼'
+        else if (label.toLowerCase().includes('bio') || label.toLowerCase().includes('profile')) icon = '👤'
+
+        suggestions.push({ label, query: description, icon })
+      }
+    }
+    */
+
+    return suggestions.slice(0, 4) // Limit to 4 in condensed mode
   }
 
+  const handleQuickAction = useCallback((action: QuickAction) => {
+    console.log('[CondensedChat] handleQuickAction called:', {
+      label: action.label,
+      query: action.query,
+      navigateTo: action.navigateTo,
+      icon: action.icon
+    })
 
-  const lastMessage = messages[messages.length - 1]
-  const isAssistantThinking = isLoading && lastMessage?.role === 'user'
+    // If this is a navigation action, navigate directly
+    if (action.navigateTo !== undefined) {
+      console.log('[CondensedChat] Navigation action detected, calling setCurrentTab with:', action.navigateTo)
+      dispatch(setCurrentTabAction(action.navigateTo))
+      return
+    }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+    // Otherwise, it's a chat query action
+    console.log('[CondensedChat] Regular action, setting input and sending')
+    dispatch(setDraftInputAction(action.query))
+    setTimeout(() => handleSend(action.query), 200)
+  }, [dispatch, handleSend])
+
+  // New action handler using the action dispatcher
+  const handleActionExecute = useCallback(async (actions: Action[], badgeAction: import('../models/badge-action').BadgeAction) => {
+    console.log('[CondensedChat] handleActionExecute called with actions:', actions)
+    console.log('[CondensedChat] badgeAction with suggested message:', badgeAction.suggestedMessage)
+
+    // Check if we're navigating with a chat action - expand if so
+    const hasNavigate = actions.some(a => a.type === 'navigate')
+    const hasChat = actions.some(a => a.type === 'chat')
+
+    if (hasNavigate && hasChat && !isExpanded) {
+      console.log('[CondensedChat] Will expand chat for navigate + chat action combo')
+    }
+
+    await executeActions(actions, {
+      dispatch,
+      onSendMessage: async (message: string) => {
+        await handleSend(message)
+      },
+      // TODO: Implement file upload handler
+      onFileUpload: async (accept?: string, multiple?: boolean) => {
+        console.warn('[CondensedChat] File upload not yet implemented', { accept, multiple })
+        // Future: Trigger file input dialog and upload to appropriate location
+      },
+    })
+
+    // Handle suggested message after actions complete
+    if (badgeAction.suggestedMessage) {
+      const { role, content, compactContent } = badgeAction.suggestedMessage
+      const hasNavigate = actions.some(a => a.type === 'navigate')
+
+      console.log('[CondensedChat] Processing suggested message:', {
+        role,
+        hasNavigate,
+        isExpanded,
+        hasCompactContent: !!compactContent
+      })
+
+      // Track if we're expanding the chat
+      let willBeExpanded = isExpanded
+
+      // If we have a navigate + assistant message combo, expand the chat
+      if (hasNavigate && role === 'assistant' && !isExpanded) {
+        console.log('[CondensedChat] Expanding chat for navigate + assistant message')
+        dispatch(setIsExpandedAction(true))
+        willBeExpanded = true
+        // Wait for expansion animation
+        await new Promise(resolve => setTimeout(resolve, 200))
+      } else {
+        // Wait for actions to complete
+        await new Promise(resolve => setTimeout(resolve, 300))
+      }
+
+      // Use compact content if available and chat is in compact mode
+      // Use full content if we expanded or chat was already expanded
+      const messageToUse = (!willBeExpanded && compactContent) ? compactContent : content
+
+      console.log('[CondensedChat] Sending message:', {
+        role,
+        willBeExpanded,
+        usingCompact: !willBeExpanded && !!compactContent,
+        messageLength: messageToUse.length
+      })
+
+      if (role === 'user') {
+        // Pre-populate input for user to review and send
+        dispatch(setDraftInputAction(messageToUse))
+        if (willBeExpanded) {
+          // Focus after a brief delay to ensure textarea is mounted
+          setTimeout(() => textAreaRef.current?.focus(), 100)
+        }
+      } else if (role === 'assistant') {
+        // Auto-send as assistant message (simulated agent prompt)
+        await handleSend(messageToUse)
+      }
+    }
+  }, [dispatch, handleSend, isExpanded])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
-  }
+  }, [handleSend])
 
-  const handleQuickAction = (action: QuickAction) => {
-    console.log('[CondensedChat] handleQuickAction called:', action)
-
-    // Check for new navigate object first, then fall back to legacy navigateTo
-    const navigationTarget = action.navigate || (action.navigateTo !== undefined ? { tab: action.navigateTo } : null)
-
-    if (navigationTarget) {
-      console.log('[CondensedChat] Navigation action detected:', navigationTarget)
-      console.log('[CondensedChat] Current tab:', currentTab, 'Target tab:', navigationTarget.tab)
-
-      // Only navigate if we're not already on the target tab
-      const shouldNavigate = currentTab !== navigationTarget.tab
-
-      if (shouldNavigate) {
-        console.log('[CondensedChat] Not on target tab - will navigate')
-        setCurrentTab(navigationTarget.tab)
-
-        // TODO: Handle focus field if navigationTarget.focus is provided
-        if (navigationTarget.focus) {
-          console.log('[CondensedChat] Focus requested for:', navigationTarget.focus)
-          // This can be implemented later with a focus handler in the target tab
-        }
-
-        // TODO: Handle context message if navigationTarget.context is provided
-        if (navigationTarget.context) {
-          console.log('[CondensedChat] Context message:', navigationTarget.context)
-          // Could send this message before or after navigation
-        }
-      } else {
-        console.log('[CondensedChat] Already on target tab - just sending query as regular action')
-        // Already on the target tab, just send the query
-        handleSend(action.query)
-      }
-
-      return
-    }
-
-    // Otherwise, it's a chat query action - send the query
-    console.log('[CondensedChat] Regular query action, sending:', action.query)
-    handleSend(action.query)
-  }
-
-  const handleExpandContent = () => {
-    console.log('[CondensedChat] Expanding content - navigating to Interactive tab')
-    setCurrentTab(0)  // Navigate to Interactive tab (tab 0)
-  }
-
-  const handleInputFocus = () => {
+  const handleInputFocus = useCallback(() => {
     // When collapsed, focusing the input expands the chat
     if (!isExpanded) {
       console.log('[CondensedChat] Input focused while collapsed - expanding chat')
-      setIsExpandedLocal(true)
+      dispatch(setIsExpandedAction(true))
     }
-  }
-
-  const handleInputBlur = () => {
-    // Intentionally empty - kept for future use
-  }
+  }, [isExpanded, dispatch])
 
   return (
     <div className={`condensed-chat ${isExpanded ? 'expanded' : ''}`}>
-      <div className="condensed-header">
+      <div
+        className="condensed-header"
+        onClick={() => {
+          if (!isExpanded) {
+            console.log('[CondensedChat] Header clicked - expanding chat')
+            dispatch(setIsExpandedAction(true))
+          }
+        }}
+        style={{ cursor: isExpanded ? 'default' : 'pointer' }}
+      >
         <div className="header-left">
           <ChatBot size={20} />
           <span className="header-title">
             AI Assistant{chatSummary ? ` - ${chatSummary}` : ''}
           </span>
-          {!isExpanded && hasUnread && (
-            <Tag type="red" size="sm" className="unread-badge">
-              New
-            </Tag>
+          {!isExpanded && unreadCount > 0 && (
+            <span className="unread-badge">{unreadCount}</span>
           )}
         </div>
         {isExpanded && (
           <IconButton
             label="Minimize chat"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation()
               console.log('[CondensedChat] Minimize button clicked')
-              setIsExpandedLocal(false)
+              dispatch(setIsExpandedAction(false))
             }}
             size="sm"
             kind="ghost"
@@ -253,8 +379,15 @@ function CondensedChat() {
         )}
       </div>
 
+      {/* Show thinking indicator when collapsed and loading */}
+      {!isExpanded && isLoading && (
+        <div className="thinking-indicator">
+          <InlineLoading description="Thinking..." />
+        </div>
+      )}
+
       {isExpanded && (
-        <div className="chat-messages-container">
+        <div className="chat-messages-container" ref={messagesContainerRef}>
           {messages.map((msg, idx) => (
             <Tile
               key={idx}
@@ -269,9 +402,12 @@ function CondensedChat() {
                 ) : (
                   <MarkdownMessage
                     content={msg.content}
-                    onActionClick={handleQuickAction}
+                    suggestions={msg.suggestions}
+                    onActionClick={(action) => {
+                      handleQuickAction(action)
+                    }}
+                    onActionExecute={handleActionExecute}
                     compact={true}
-                    onExpandContent={handleExpandContent}
                   />
                 )}
               </div>
@@ -287,9 +423,11 @@ function CondensedChat() {
               <div className="message-content">
                 <MarkdownMessage
                   content={streamingContent}
-                  onActionClick={handleQuickAction}
+                  onActionClick={(action) => {
+                    handleQuickAction(action)
+                  }}
+                  onActionExecute={handleActionExecute}
                   compact={true}
-                  onExpandContent={handleExpandContent}
                 />
               </div>
             </Tile>
@@ -300,14 +438,6 @@ function CondensedChat() {
               <InlineLoading description="Thinking..." />
             </Tile>
           )}
-
-          <div ref={messagesEndRef} />
-        </div>
-      )}
-
-      {!isExpanded && isAssistantThinking && (
-        <div className="thinking-indicator">
-          <InlineLoading description="Thinking..." status="active" />
         </div>
       )}
 
@@ -317,11 +447,10 @@ function CondensedChat() {
             ref={textAreaRef}
             labelText="Message"
             placeholder="Ask me anything..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
+            value={draftInput}
+            onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
+            onKeyDown={handleKeyDown}
             onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
             disabled={!isInitialized}
             rows={3}
             className="condensed-chat-textarea"
@@ -332,16 +461,15 @@ function CondensedChat() {
             id="condensed-input"
             labelText=""
             placeholder="Ask me anything..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
+            value={draftInput}
+            onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !isLoading) {
                 e.preventDefault()
                 handleSend()
               }
             }}
             onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
             disabled={!isInitialized}
             size="sm"
           />
@@ -349,7 +477,7 @@ function CondensedChat() {
         <Button
           renderIcon={SendAlt}
           onClick={() => handleSend()}
-          disabled={!input.trim() || isLoading || !isInitialized}
+          disabled={!draftInput.trim() || isLoading || !isInitialized}
           size="sm"
           kind="primary"
           hasIconOnly

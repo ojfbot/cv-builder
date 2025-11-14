@@ -24,7 +24,7 @@ function JobsDashboard() {
   const rows: any[] = []
 
   return (
-    <div>
+    <div className="dashboard-content">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading className="section-header">Job Listings</Heading>
         <Button renderIcon={DocumentAdd} kind="primary">

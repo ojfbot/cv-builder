@@ -1,105 +1,110 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   TextArea,
   Button,
   Tile,
   InlineLoading,
   InlineNotification,
-  Tag,
 } from '@carbon/react'
 import { SendAlt } from '@carbon/icons-react'
 import { useAgent } from '../contexts/AgentContext'
-import { useChat } from '../contexts/ChatContext'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
+import {
+  addMessage as addMessageToStore,
+  setDraftInput as setDraftInputAction,
+  setIsLoading,
+  setStreamingContent,
+  appendStreamingContent,
+  markMessagesAsRead,
+  setIsExpanded as setIsExpandedAction,
+} from '../store/slices/chatSlice'
+import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
+import { TabKey } from '../models/navigation'
+import { Action } from '../models/badge-action'
+import { executeActions } from '../utils/action-dispatcher'
 import MarkdownMessage from './MarkdownMessage'
 import './InteractiveChat.css'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
-  suggestions?: QuickAction[]
+  suggestions?: import('../models/badge-action').BadgeAction[]
 }
 
-interface NavigateAction {
-  tab: number
-  focus?: string
-  context?: string
-}
-
+// Legacy interface - kept for backward compatibility only
 interface QuickAction {
   label: string
   query: string
   icon: string
-  navigateTo?: number  // DEPRECATED: Use navigate instead
-  navigate?: NavigateAction
+  navigateTo?: number
 }
 
-const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
-  {
-    label: 'Generate Resume',
-    query: 'Generate my professional resume in markdown format',
-    icon: '📄'
-  },
-  {
-    label: 'Analyze Job',
-    query: 'Help me analyze a job listing and see how well I match',
-    icon: '🔍'
-  },
-  {
-    label: 'Tailor Resume',
-    query: 'Tailor my resume for a specific job posting',
-    icon: '✨'
-  },
-  {
-    label: 'Learning Path',
-    query: 'Create a personalized learning path to help me close my skills gaps',
-    icon: '📚'
-  },
-  {
-    label: 'Cover Letter',
-    query: 'Write a compelling cover letter for a job application',
-    icon: '✍️'
-  },
-  {
-    label: 'Interview Prep',
-    query: 'Help me prepare for an upcoming interview with practice questions',
-    icon: '💼'
-  }
-]
-
 function InteractiveChat() {
+  const dispatch = useAppDispatch()
   const { orchestrator, isInitialized } = useAgent()
-  const { messages, addMessage, setCurrentTab, currentTab, draftInput, setDraftInput, isLoading, setIsLoading, streamingContent, setStreamingContent } = useChat()
-  // Use shared draftInput from context instead of local state
-  const input = draftInput
-  const setInput = setDraftInput
-
+  const currentTab = useAppSelector(state => state.navigation.currentTab)
+  const draftInput = useAppSelector(state => state.chat.draftInput)
+  const messages = useAppSelector(state => state.chat.messages)
+  const isLoading = useAppSelector(state => state.chat.isLoading)
+  const streamingContent = useAppSelector(state => state.chat.streamingContent)
   // These state variables are used in JSX conditionals below - TS incorrectly flags them as unused
   // @ts-expect-error - TS6133: Variables are used in JSX below
   const [inputFocused, setInputFocused] = useState(false)
   // @ts-expect-error - TS6133: Variables are used in JSX below
-  const [contextualSuggestions, setContextualSuggestions] = useState<QuickAction[]>(DEFAULT_QUICK_ACTIONS)
+  const [contextualSuggestions, setContextualSuggestions] = useState<import('../models/badge-action').BadgeAction[]>([])
   // @ts-expect-error - TS6133: Variables are used in JSX below
   const [showContextualSuggestions, setShowContextualSuggestions] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  // Auto-scroll to bottom - direct scrollTop manipulation is more reliable
+  const scrollToBottom = useCallback((smooth = false) => {
+    // Use multiple RAF calls to ensure layout is complete
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (messagesContainerRef.current) {
+          const container = messagesContainerRef.current
+          if (smooth) {
+            // Smooth animated scroll
+            container.scrollTo({
+              top: container.scrollHeight,
+              behavior: 'smooth'
+            })
+          } else {
+            // Instant scroll
+            container.scrollTop = container.scrollHeight
+          }
+          console.log('[InteractiveChat] Scrolled to:', container.scrollTop, 'of', container.scrollHeight)
+        }
+      })
+    })
+  }, [])
 
+  // Auto-scroll when messages change
   useEffect(() => {
-    scrollToBottom()
-  }, [messages, streamingContent])
+    if (messages.length > 0) {
+      console.log('[InteractiveChat] Messages changed, scrolling. Count:', messages.length)
+      scrollToBottom()
+    }
+  }, [messages, scrollToBottom])
 
-  // Scroll to bottom when navigating back to Interactive tab
+  // Auto-scroll when streaming content changes
   useEffect(() => {
-    if (currentTab === 0) {
-      // Use setTimeout to ensure the component has fully rendered
+    if (streamingContent) {
+      scrollToBottom()
+    }
+  }, [streamingContent, scrollToBottom])
+
+  // Scroll to bottom when returning to Interactive tab
+  useEffect(() => {
+    if (currentTab === TabKey.INTERACTIVE && messages.length > 0) {
+      console.log('[InteractiveChat] Returned to Interactive tab, scrolling to bottom')
+      // Add a small delay to ensure tab transition is complete
       setTimeout(() => {
-        scrollToBottom()
+        scrollToBottom(true) // Use smooth scroll for tab switching
       }, 100)
     }
-  }, [currentTab])
+  }, [currentTab, scrollToBottom, messages.length])
 
   // Extract suggestions from the last assistant message
   useEffect(() => {
@@ -126,42 +131,63 @@ function InteractiveChat() {
     return cleaned.trim()
   }
 
-  const extractSuggestionsFromResponse = (response: string): QuickAction[] => {
-    const suggestions: QuickAction[] = []
+  const extractSuggestionsFromResponse = (response: string): import('../models/badge-action').BadgeAction[] => {
+    const suggestions: import('../models/badge-action').BadgeAction[] = []
 
-    console.log('[InteractiveChat] extractSuggestionsFromResponse called, response length:', response.length)
-    console.log('[InteractiveChat] Response preview (last 500 chars):', response.slice(-500))
+    console.log('[InteractiveChat] ========================================')
+    console.log('[InteractiveChat] extractSuggestionsFromResponse called')
+    console.log('[InteractiveChat] Response length:', response.length)
+    console.log('[InteractiveChat] Full response:')
+    console.log(response)
+    console.log('[InteractiveChat] ========================================')
 
-    // First, try to extract navigation metadata from XML-style tags (preferred format)
-    // Format: <metadata><navigate tab="1" label="Add your profile" /></metadata>
+    // First, try to extract JSON badge action metadata (new format)
+    // Format: <metadata>{ "suggestions": [...] }</metadata>
     const metadataMatch = response.match(/<metadata>([\s\S]*?)<\/metadata>/i)
     console.log('[InteractiveChat] Metadata match found:', !!metadataMatch)
 
     if (metadataMatch) {
-      const metadataContent = metadataMatch[1]
+      const metadataContent = metadataMatch[1].trim()
       console.log('[InteractiveChat] Metadata content:', metadataContent)
 
-      const navRegex = /<navigate\s+tab="(\d+)"\s+label="([^"]+)"\s*\/>/g
-      let navMatch
+      // Try to parse as JSON first (new format)
+      try {
+        const metadata = JSON.parse(metadataContent)
+        if (metadata.suggestions && Array.isArray(metadata.suggestions)) {
+          console.log('[InteractiveChat] Found JSON badge action suggestions:', metadata.suggestions.length)
 
-      while ((navMatch = navRegex.exec(metadataContent)) !== null) {
-        const tabNumber = parseInt(navMatch[1], 10)
-        const label = navMatch[2].trim()
+          // Return BadgeAction objects directly - DO NOT convert to QuickAction
+          // This preserves suggestedMessage and all other metadata
+          console.log('[InteractiveChat] Returning full BadgeAction objects with suggestedMessage')
+          return metadata.suggestions.slice(0, 6)
+        }
+      } catch (e) {
+        console.log('[InteractiveChat] Not valid JSON, trying XML format...')
 
-        console.log('[InteractiveChat] Found navigation in metadata:', { tabNumber, label })
+        // FALLBACK: Try XML format (old format)
+        const navRegex = /<navigate\s+tab="(\d+)"\s+label="([^"]+)"\s*\/>/g
+        let navMatch
 
-        // Determine icon based on tab
-        let icon = '📍'
-        if (tabNumber === 1) icon = '👤'  // Bio tab
-        else if (tabNumber === 2) icon = '💼'  // Jobs tab
-        else if (tabNumber === 3) icon = '📄'  // Outputs tab
+        while ((navMatch = navRegex.exec(metadataContent)) !== null) {
+          const tabNumber = parseInt(navMatch[1], 10)
+          const label = navMatch[2].trim()
 
-        suggestions.push({
-          label,
-          query: label,
-          icon,
-          navigateTo: tabNumber
-        })
+          console.log('[InteractiveChat] Found navigation in XML metadata:', { tabNumber, label })
+
+          // Determine icon based on tab
+          let icon = '📍'
+          if (tabNumber === 1) icon = '👤'  // Bio tab
+          else if (tabNumber === 2) icon = '💼'  // Jobs tab
+          else if (tabNumber === 3) icon = '📄'  // Outputs tab
+          else if (tabNumber === 4) icon = '🔬'  // Research tab
+
+          suggestions.push({
+            label,
+            query: label,
+            icon,
+            navigateTo: tabNumber
+          })
+        }
       }
     }
 
@@ -187,6 +213,11 @@ function InteractiveChat() {
       })
     }
 
+    // DEPRECATED: "Next Steps" parsing is disabled to force agents to use JSON metadata
+    // This encourages agents to output proper structured badge actions
+    // If you need to re-enable during migration, uncomment the block below
+
+    /*
     // Then, look for a suggestions section in the response
     const suggestionsMatch = response.match(/## Next Steps?[\s\S]*?(?=\n##|<metadata>|$)/i)
     if (suggestionsMatch) {
@@ -232,9 +263,10 @@ function InteractiveChat() {
         })
       }
     }
+    */
 
-    // If we found suggestions, return them; otherwise return defaults
-    const finalSuggestions = suggestions.length > 0 ? suggestions.slice(0, 6) : DEFAULT_QUICK_ACTIONS
+    // Return only the suggestions we found (no default fallback)
+    const finalSuggestions = suggestions.slice(0, 6)
     console.log('[InteractiveChat] Final suggestions:', finalSuggestions.map(s => ({
       label: s.label,
       navigateTo: s.navigateTo
@@ -242,8 +274,8 @@ function InteractiveChat() {
     return finalSuggestions
   }
 
-  const handleSend = async (messageText?: string) => {
-    const textToSend = messageText || input.trim()
+  const handleSend = useCallback(async (messageText?: string) => {
+    const textToSend = messageText || draftInput.trim()
     if (!textToSend || isLoading) return
 
     if (!isInitialized || !orchestrator) {
@@ -251,7 +283,7 @@ function InteractiveChat() {
         role: 'assistant',
         content: '⚠️ **Agent service not initialized**\n\nPlease configure your API key first by clicking the Settings icon in the header.'
       }
-      addMessage(errorMessage)
+      dispatch(addMessageToStore(errorMessage))
       return
     }
 
@@ -263,32 +295,37 @@ function InteractiveChat() {
       content: textToSend
     }
 
-    addMessage(userMessage)
-    console.log('[InteractiveChat] About to clear input, current value:', input)
-    setInput('')
-    console.log('[InteractiveChat] Called setInput(""), new value should be empty')
-    setIsLoading(true)
-    setStreamingContent('')
+    dispatch(addMessageToStore(userMessage))
+    // Clear input immediately and synchronously
+    dispatch(setDraftInputAction(''))
+    dispatch(setIsLoading(true))
+    dispatch(setStreamingContent(''))
 
     try {
+      // Include current tab context in the message
+      const tabNames: Record<TabKey, string> = {
+        [TabKey.INTERACTIVE]: 'Interactive',
+        [TabKey.BIO]: 'Bio',
+        [TabKey.JOBS]: 'Jobs',
+        [TabKey.OUTPUTS]: 'Outputs',
+        [TabKey.RESEARCH]: 'Research',
+        [TabKey.PIPELINES]: 'Pipelines',
+        [TabKey.TOOLBOX]: 'Toolbox',
+      }
+      const currentTabName = tabNames[currentTab] || 'Interactive'
+      const messageWithContext = `[SYSTEM: User is currently on the "${currentTabName}" tab (${currentTab})]\n\n${userMessage.content}`
+
       // Use streaming for real-time feedback
-      let fullResponse = ''
       const response = await orchestrator.processRequestStreaming(
-        userMessage.content,
+        messageWithContext,
         (chunk) => {
-          fullResponse += chunk
-          setStreamingContent(fullResponse)
+          dispatch(appendStreamingContent(chunk))
         }
       )
 
       // Extract suggestions from the response
       const suggestions = extractSuggestionsFromResponse(response)
-      console.log('[InteractiveChat] ===== SUGGESTIONS EXTRACTED =====')
-      console.log('[InteractiveChat] Full response length:', response.length)
-      console.log('[InteractiveChat] Response preview:', response.substring(0, 200))
-      console.log('[InteractiveChat] Number of suggestions:', suggestions.length)
-      console.log('[InteractiveChat] Suggestions detail:', JSON.stringify(suggestions, null, 2))
-      console.log('[InteractiveChat] ====================================')
+      console.log('[InteractiveChat] Extracted suggestions from response:', suggestions)
 
       // Remove metadata block from displayed content (new XML format)
       let cleanedContent = response.replace(/<metadata>[\s\S]*?<\/metadata>/gi, '')
@@ -301,9 +338,13 @@ function InteractiveChat() {
         content: cleanedContent,
         suggestions
       }
-      addMessage(assistantMessage)
-      setStreamingContent('')
+      dispatch(addMessageToStore(assistantMessage))
+      dispatch(setStreamingContent(''))
       setContextualSuggestions(suggestions)
+
+      // Mark messages as read since user is on Interactive tab (full chat visible)
+      // This prevents unread notifications when navigating to other tabs
+      dispatch(markMessagesAsRead())
 
       // Delay showing suggestions until response is complete
       setTimeout(() => {
@@ -314,84 +355,115 @@ function InteractiveChat() {
         role: 'assistant',
         content: `## ❌ Error\n\n${error instanceof Error ? error.message : 'An unknown error occurred'}\n\n**Troubleshooting:**\n- Check your API key configuration\n- Ensure you have API credits available\n- Try again in a moment`
       }
-      addMessage(errorMessage)
-      setStreamingContent('')
+      dispatch(addMessageToStore(errorMessage))
+      dispatch(setStreamingContent(''))
     } finally {
-      setIsLoading(false)
+      dispatch(setIsLoading(false))
     }
-  }
+  }, [currentTab, draftInput, isLoading, isInitialized, orchestrator, dispatch])
 
-  const handleQuickAction = (action: QuickAction) => {
-    console.log('[InteractiveChat] ========== handleQuickAction START ==========')
-    console.log('[InteractiveChat] Action details:', {
-      label: action.label,
-      query: action.query,
-      navigateTo: action.navigateTo,
-      navigate: action.navigate,
-      icon: action.icon
-    })
-    console.log('[InteractiveChat] Current context state:', {
-      currentTab,
-      setCurrentTab: typeof setCurrentTab
-    })
+  const handleQuickAction = useCallback((action: QuickAction) => {
+    console.log('[InteractiveChat] ========================================')
+    console.log('[InteractiveChat] handleQuickAction called')
+    console.log('[InteractiveChat] Action details:', JSON.stringify(action, null, 2))
+    console.log('[InteractiveChat] navigateTo value:', action.navigateTo)
+    console.log('[InteractiveChat] navigateTo type:', typeof action.navigateTo)
+    console.log('[InteractiveChat] navigateTo is undefined?', action.navigateTo === undefined)
+    console.log('[InteractiveChat] ========================================')
 
-    // Check for new navigate object first, then fall back to legacy navigateTo
-    const navigationTarget = action.navigate || (action.navigateTo !== undefined ? { tab: action.navigateTo } : null)
-    console.log('[InteractiveChat] navigationTarget computed:', navigationTarget)
+    // If this is a navigation action, navigate immediately
+    if (action.navigateTo !== undefined) {
+      console.log('[InteractiveChat] ✅ NAVIGATION ACTION DETECTED!')
+      console.log('[InteractiveChat] Target tab:', action.navigateTo)
+      console.log('[InteractiveChat] About to call setCurrentTab...')
 
-    if (navigationTarget) {
-      console.log('[InteractiveChat] *** NAVIGATION ACTION DETECTED ***')
-      console.log('[InteractiveChat] Current tab:', currentTab, '(type:', typeof currentTab, ')')
-      console.log('[InteractiveChat] Target tab:', navigationTarget.tab, '(type:', typeof navigationTarget.tab, ')')
-
-      // Only navigate if we're not already on the target tab
-      const shouldNavigate = currentTab !== navigationTarget.tab
-      console.log('[InteractiveChat] shouldNavigate:', shouldNavigate, '(', currentTab, '!==', navigationTarget.tab, ')')
-
-      if (shouldNavigate) {
-        console.log('[InteractiveChat] ✓ WILL NAVIGATE - calling setCurrentTab(', navigationTarget.tab, ')')
-
-        // Navigate immediately without sending message
-        setCurrentTab(navigationTarget.tab)
-        console.log('[InteractiveChat] ✓ setCurrentTab called')
-
-        // TODO: Handle focus field if navigationTarget.focus is provided
-        if (navigationTarget.focus) {
-          console.log('[InteractiveChat] Focus requested for:', navigationTarget.focus)
-          // This can be implemented later with a focus handler in the target tab
-        }
-      } else {
-        console.log('[InteractiveChat] ✗ ALREADY ON TARGET TAB - sending query as regular action')
-        // Already on the target tab, just send the query as a regular action
-        setInput(action.query)
-        inputRef.current?.focus()
-        setTimeout(() => {
-          handleSend(action.query)
-        }, 300)
-      }
-      console.log('[InteractiveChat] ========== handleQuickAction END (navigation) ==========')
+      // Navigate immediately - don't wait for message to send
+      dispatch(setCurrentTabAction(action.navigateTo))
+      
+      console.log('[InteractiveChat] ✅ setCurrentTab called successfully')
       return
     }
 
-    console.log('[InteractiveChat] Regular action (no navigation), processing query')
+    console.log('[InteractiveChat] ❌ Not a navigation action - processing as query')
 
     // Otherwise, it's a chat query action
-    setInput(action.query)
+    dispatch(setDraftInputAction(action.query))
     // Focus the input to show the auto-populated text
     inputRef.current?.focus()
     // Animate the send button click after a brief delay
     setTimeout(() => {
       handleSend(action.query)
     }, 300)
-    console.log('[InteractiveChat] ========== handleQuickAction END (regular) ==========')
-  }
+  }, [dispatch, handleSend])
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  // New action handler using the action dispatcher
+  const handleActionExecute = useCallback(async (actions: Action[], badgeAction: import('../models/badge-action').BadgeAction) => {
+    console.log('[InteractiveChat] handleActionExecute called with actions:', actions)
+    console.log('[InteractiveChat] badgeAction with suggested message:', badgeAction.suggestedMessage)
+
+    // Check if we're navigating away from Interactive tab with a chat action
+    const navAction = actions.find(a => a.type === 'navigate')
+    const chatAction = actions.find(a => a.type === 'chat')
+
+    if (navAction && chatAction) {
+      console.log('[InteractiveChat] Navigate + chat action combo - will expand chat on target tab')
+    }
+
+    await executeActions(actions, {
+      dispatch,
+      onSendMessage: async (message: string) => {
+        await handleSend(message)
+      },
+      // TODO: Implement file upload handler
+      onFileUpload: async (accept?: string, multiple?: boolean) => {
+        console.warn('[InteractiveChat] File upload not yet implemented', { accept, multiple })
+      },
+    })
+
+    // Handle suggested message after actions complete
+    if (badgeAction.suggestedMessage) {
+      const { role, content } = badgeAction.suggestedMessage
+      const hasNavigate = actions.some(a => a.type === 'navigate')
+      console.log('[InteractiveChat] Processing suggested message:', { role, content, hasNavigate })
+
+      // If we navigated to another tab, we need to ensure chat is expanded
+      // before sending the message (since we'll be showing CondensedChat)
+      if (hasNavigate) {
+        console.log('[InteractiveChat] Navigated to another tab - will expand CondensedChat and send message')
+        // Wait for tab transition
+        await new Promise(resolve => setTimeout(resolve, 200))
+
+        // Expand the CondensedChat
+        if (role === 'assistant') {
+          console.log('[InteractiveChat] Expanding CondensedChat before sending assistant message')
+          dispatch(setIsExpandedAction(true))
+          // Wait for expansion animation
+          await new Promise(resolve => setTimeout(resolve, 200))
+        }
+      } else {
+        // Shorter delay for same-tab actions
+        await new Promise(resolve => setTimeout(resolve, 300))
+      }
+
+      if (role === 'user') {
+        // Pre-populate input for user to review and send
+        dispatch(setDraftInputAction(content))
+        if (!hasNavigate) {
+          inputRef.current?.focus()
+        }
+      } else if (role === 'assistant') {
+        // Auto-send as assistant message (simulated agent prompt)
+        await handleSend(content)
+      }
+    }
+  }, [dispatch, handleSend])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
-  }
+  }, [handleSend])
 
   return (
     <div className="interactive-chat">
@@ -406,7 +478,7 @@ function InteractiveChat() {
         />
       )}
 
-      <div className="chat-messages">
+      <div className="chat-messages" ref={messagesContainerRef}>
         {messages.map((msg, idx) => (
           <Tile
             key={idx}
@@ -423,9 +495,10 @@ function InteractiveChat() {
                   content={msg.content}
                   suggestions={msg.suggestions}
                   onActionClick={(action) => {
-                    // Handle action clicks from inline badges
+                    // Handle action clicks from inline badges (legacy)
                     handleQuickAction(action)
                   }}
+                  onActionExecute={handleActionExecute}
                 />
               )}
             </div>
@@ -444,6 +517,7 @@ function InteractiveChat() {
                 onActionClick={(action) => {
                   handleQuickAction(action)
                 }}
+                onActionExecute={handleActionExecute}
               />
             </div>
           </Tile>
@@ -454,8 +528,6 @@ function InteractiveChat() {
             <InlineLoading description="Thinking..." />
           </Tile>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       <div className="chat-input-container">
@@ -465,9 +537,9 @@ function InteractiveChat() {
               ref={inputRef}
               labelText="Message"
               placeholder="Ask about resume generation, job analysis, learning paths..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              value={draftInput}
+              onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
+              onKeyDown={handleKeyDown}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setTimeout(() => setInputFocused(false), 200)}
               rows={3}
@@ -477,7 +549,7 @@ function InteractiveChat() {
           <Button
             renderIcon={SendAlt}
             onClick={() => handleSend()}
-            disabled={!input.trim() || isLoading || !isInitialized}
+            disabled={!draftInput.trim() || isLoading || !isInitialized}
             className="send-button"
           >
             Send

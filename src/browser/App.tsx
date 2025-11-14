@@ -10,6 +10,8 @@ import {
   Column,
 } from '@carbon/react'
 import { Asleep, Light, Settings } from '@carbon/icons-react'
+import { Provider } from 'react-redux'
+import { store } from './store'
 import { AgentProvider } from './contexts/AgentContext'
 import Dashboard from './components/Dashboard'
 import ApiKeySettings from './components/ApiKeySettings'
@@ -28,37 +30,39 @@ function App() {
   }
 
   return (
-    <AgentProvider>
-      <Theme theme={theme}>
-        <Header aria-label="CV Builder">
-          <HeaderName prefix="">CV Builder</HeaderName>
-          <HeaderGlobalBar>
-            <HeaderGlobalAction
-              aria-label="Settings"
-              tooltipAlignment="end"
-              onClick={() => setSettingsOpen(true)}
-            >
-              <Settings size={20} />
-            </HeaderGlobalAction>
-            <HeaderGlobalAction
-              aria-label="Toggle theme"
-              tooltipAlignment="end"
-              onClick={toggleTheme}
-            >
-              {theme === 'white' ? <Asleep size={20} /> : <Light size={20} />}
-            </HeaderGlobalAction>
-          </HeaderGlobalBar>
-        </Header>
-        <Content className="main-content">
-          <Dashboard />
-        </Content>
+    <Provider store={store}>
+      <AgentProvider>
+        <Theme theme={theme}>
+          <Header aria-label="CV Builder">
+            <HeaderName prefix="">CV Builder</HeaderName>
+            <HeaderGlobalBar>
+              <HeaderGlobalAction
+                aria-label="Settings"
+                tooltipAlignment="end"
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings size={20} />
+              </HeaderGlobalAction>
+              <HeaderGlobalAction
+                aria-label="Toggle theme"
+                tooltipAlignment="end"
+                onClick={toggleTheme}
+              >
+                {theme === 'white' ? <Asleep size={20} /> : <Light size={20} />}
+              </HeaderGlobalAction>
+            </HeaderGlobalBar>
+          </Header>
+          <Content className="main-content">
+            <Dashboard />
+          </Content>
 
-        <ApiKeySettings
-          open={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
-        />
-      </Theme>
-    </AgentProvider>
+          <ApiKeySettings
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+          />
+        </Theme>
+      </AgentProvider>
+    </Provider>
   )
 }
 

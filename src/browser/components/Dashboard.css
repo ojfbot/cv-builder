@@ -1,0 +1,31 @@
+/* Dashboard wrapper with specified margins */
+.dashboard-wrapper {
+  /* Flex grow to fill remaining space after header */
+  flex: 1;
+  min-height: 0;
+  margin: 36px 72px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* Tabs container */
+.dashboard-wrapper .cds--tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tab content panels */
+.dashboard-wrapper .cds--tab-content {
+  overflow-y: auto;
+  padding: 24px;
+  max-height: calc(100vh - 48px - 72px - 48px); /* viewport - header - margins - tab list */
+}
+
+/* Interactive tab has no padding (InteractiveChat handles its own layout) */
+.dashboard-wrapper .cds--tab-content:first-of-type {
+  padding: 0;
+  overflow: hidden;
+}

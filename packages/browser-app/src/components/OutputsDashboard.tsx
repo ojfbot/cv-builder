@@ -21,7 +21,7 @@ function OutputsDashboard() {
   const rows: any[] = []
 
   return (
-    <div>
+    <div className="dashboard-content">
       <Heading className="section-header">Generated Outputs</Heading>
 
       <Tile style={{ marginBottom: '2rem' }}>

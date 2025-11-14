@@ -1,17 +1,10 @@
 import { createContext, useContext, useState, useRef, ReactNode, useCallback, useMemo } from 'react'
 
-export interface NavigateAction {
-  tab: number  // Tab number to navigate to (0 = Interactive, 1 = Bio, 2 = Jobs, 3 = Outputs)
-  focus?: string  // Optional field/element ID to focus after navigation
-  context?: string  // Optional context message to send after navigation
-}
-
 export interface QuickAction {
   label: string
   query: string
   icon: string
-  navigateTo?: number  // DEPRECATED: Use navigate instead
-  navigate?: NavigateAction  // Enhanced navigation with tab, focus, and context
+  navigateTo?: number  // Optional tab number for navigation actions
 }
 
 export interface Message {
@@ -31,11 +24,7 @@ interface ChatContextType {
   requestTabChange: (tab: number, reason: string) => void
   draftInput: string
   setDraftInput: (input: string) => void
-  isLoading: boolean
-  setIsLoading: (loading: boolean) => void
-  streamingContent: string
-  setStreamingContent: (content: string) => void
-  generateChatSummary: () => string
+  chatSummary: string
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -44,25 +33,25 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `### Welcome to CV Builder 👋
-I'm your AI career assistant. Click a badge to get started:
+      content: `# Welcome to CV Builder! 👋
 
-[📄 Resume Generation](action:Generate my professional resume in markdown format) - Create professional, ATS-optimized resumes.
+[📄 Generate Resume](action:Generate my professional resume in markdown format)
 
-[🔍 Job Analysis](action:Help me analyze a job listing and see how well I match) - Evaluate listings and calculate match scores.
+[🔍 Analyze Job](action:Help me analyze a job listing and see how well I match)
 
-[✨ Resume Tailoring](action:Tailor my resume for a specific job posting) - Customize resumes for specific positions.
+[✨ Tailor Resume](action:Tailor my resume for a specific job posting)
 
-[📚 Learning Paths](action:Create a personalized learning path to help me close my skills gaps) - Build personalized skill development plans.
+[📚 Learning Path](action:Create a personalized learning path to help me close my skills gaps)
 
-[💼 Interview Prep](action:Help me prepare for an upcoming interview with practice questions) - Prepare with tailored questions and guidance.`
+[✍️ Cover Letter](action:Write a compelling cover letter for a job application)
+
+[💼 Interview Prep](action:Help me prepare for an upcoming interview with practice questions)`
     }
   ])
   const [isExpanded, setIsExpanded] = useState(true)
   const [currentTab, setCurrentTabInternal] = useState(0)
   const [draftInput, setDraftInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [streamingContent, setStreamingContent] = useState('')
+  const [chatSummary, setChatSummary] = useState('')
   const previousTabRef = useRef(0)
 
   const addMessage = useCallback((message: Message) => {
@@ -76,7 +65,7 @@ I'm your AI career assistant. Click a badge to get started:
     }])
   }, [])
 
-  // Generate a 2-3 word summary from the chat history
+  // Generate a 2-3 word summary from the chat history (memoized)
   const generateChatSummary = useCallback((): string => {
     // Look at the last few user messages to determine the topic
     const userMessages = messages
@@ -124,11 +113,23 @@ I'm your AI career assistant. Click a badge to get started:
       messagesLength: messages.length
     })
 
+    // If navigating FROM Interactive (0) TO another tab (1, 2, 3)
+    // AND there's actual chat history (more than just the welcome message)
+    // Generate a summary for the chat window header
+    if (previousTab === 0 && newTab !== 0 && messages.length > 1) {
+      const summary = generateChatSummary()
+      console.log('[ChatContext] Generated summary for header:', summary)
+      setChatSummary(summary)
+    } else if (newTab === 0) {
+      // Clear summary when going back to Interactive tab
+      setChatSummary('')
+    }
+
     // Update the ref for next time
     previousTabRef.current = newTab
     console.log('[ChatContext] Setting internal tab to:', newTab)
     setCurrentTabInternal(newTab)
-  }, [])
+  }, [draftInput, messages, generateChatSummary])
 
   const requestTabChange = useCallback((tab: number, _reason: string) => {
     // Direct navigation without confirmation
@@ -147,11 +148,7 @@ I'm your AI career assistant. Click a badge to get started:
     requestTabChange,
     draftInput,
     setDraftInput,
-    isLoading,
-    setIsLoading,
-    streamingContent,
-    setStreamingContent,
-    generateChatSummary,
+    chatSummary,
   }), [
     messages,
     addMessage,
@@ -163,17 +160,11 @@ I'm your AI career assistant. Click a badge to get started:
     requestTabChange,
     draftInput,
     setDraftInput,
-    isLoading,
-    setIsLoading,
-    streamingContent,
-    setStreamingContent,
-    generateChatSummary,
+    chatSummary,
   ])
 
   return (
-    <ChatContext.Provider
-      value={contextValue}
-    >
+    <ChatContext.Provider value={contextValue}>
       {children}
     </ChatContext.Provider>
   )

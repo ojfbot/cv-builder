@@ -5,11 +5,13 @@ import {
   Tile,
   InlineLoading,
   InlineNotification,
-  Tag,
 } from '@carbon/react'
 import { SendAlt } from '@carbon/icons-react'
 import { useAgent } from '../contexts/AgentContext'
-import { useChat } from '../contexts/ChatContext'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
+import { addMessage as addMessageToStore } from '../store/slices/chatSlice'
+import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
+import { setDraftInput as setDraftInputAction } from '../store/slices/chatSlice'
 import MarkdownMessage from './MarkdownMessage'
 import './InteractiveChat.css'
 
@@ -27,30 +29,11 @@ interface QuickAction {
 }
 
 function InteractiveChat() {
+  const dispatch = useAppDispatch()
   const { orchestrator, isInitialized } = useAgent()
-  const { currentTab, setCurrentTab, draftInput, setDraftInput } = useChat()
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: `# Welcome to CV Builder! 👋
-
-I'm your AI-powered career development assistant. Here's what I can help you with:
-
-[📄 Resume Generation](action:Generate my professional resume in markdown format) - Create professional, ATS-optimized resumes tailored to your experience and target roles.
-
-[🔍 Job Analysis](action:Help me analyze a job listing and see how well I match) - Evaluate job listings, calculate match scores, and identify key requirements.
-
-[✨ Resume Tailoring](action:Tailor my resume for a specific job posting) - Customize your resume to highlight relevant skills and experience for specific positions.
-
-[📚 Learning Paths](action:Create a personalized learning path to help me close my skills gaps) - Build personalized development plans to close skills gaps and advance your career.
-
-[✍️ Cover Letters](action:Write a compelling cover letter for a job application) - Generate compelling, customized cover letters that complement your resume.
-
-[💼 Interview Prep](action:Help me prepare for an upcoming interview with practice questions) - Prepare for interviews with tailored questions, answers, and strategic guidance.
-
-**Ready to get started? Click any badge above or type your question below!**`
-    }
-  ])
+  const currentTab = useAppSelector(state => state.navigation.currentTab)
+  const draftInput = useAppSelector(state => state.chat.draftInput)
+  const messages = useAppSelector(state => state.chat.messages)
   const [isLoading, setIsLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   // These state variables are used in JSX conditionals below - TS incorrectly flags them as unused
@@ -222,7 +205,7 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
         role: 'assistant',
         content: '⚠️ **Agent service not initialized**\n\nPlease configure your API key first by clicking the Settings icon in the header.'
       }
-      setMessages(prev => [...prev, errorMessage])
+      dispatch(addMessageToStore(errorMessage))
       return
     }
 
@@ -234,9 +217,9 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
       content: textToSend
     }
 
-    setMessages(prev => [...prev, userMessage])
+    dispatch(addMessageToStore(userMessage))
     // Clear input immediately and synchronously
-    setDraftInput('')
+    dispatch(setDraftInputAction(''))
     setIsLoading(true)
     setStreamingContent('')
 
@@ -269,7 +252,7 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
         content: cleanedContent,
         suggestions
       }
-      setMessages(prev => [...prev, assistantMessage])
+      dispatch(addMessageToStore(assistantMessage))
       setStreamingContent('')
       setContextualSuggestions(suggestions)
 
@@ -282,12 +265,12 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
         role: 'assistant',
         content: `## ❌ Error\n\n${error instanceof Error ? error.message : 'An unknown error occurred'}\n\n**Troubleshooting:**\n- Check your API key configuration\n- Ensure you have API credits available\n- Try again in a moment`
       }
-      setMessages(prev => [...prev, errorMessage])
+      dispatch(addMessageToStore(errorMessage))
       setStreamingContent('')
     } finally {
       setIsLoading(false)
     }
-  }, [currentTab, draftInput, isLoading, isInitialized, orchestrator, setDraftInput])
+  }, [currentTab, draftInput, isLoading, isInitialized, orchestrator, dispatch])
 
   const handleQuickAction = useCallback((action: QuickAction) => {
     console.log('[InteractiveChat] ========================================')
@@ -303,9 +286,9 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
       console.log('[InteractiveChat] ✅ NAVIGATION ACTION DETECTED!')
       console.log('[InteractiveChat] Target tab:', action.navigateTo)
       console.log('[InteractiveChat] About to call setCurrentTab...')
-      
+
       // Navigate immediately - don't wait for message to send
-      setCurrentTab(action.navigateTo)
+      dispatch(setCurrentTabAction(action.navigateTo))
       
       console.log('[InteractiveChat] ✅ setCurrentTab called successfully')
       return
@@ -314,14 +297,14 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
     console.log('[InteractiveChat] ❌ Not a navigation action - processing as query')
 
     // Otherwise, it's a chat query action
-    setDraftInput(action.query)
+    dispatch(setDraftInputAction(action.query))
     // Focus the input to show the auto-populated text
     inputRef.current?.focus()
     // Animate the send button click after a brief delay
     setTimeout(() => {
       handleSend(action.query)
     }, 300)
-  }, [setCurrentTab, setDraftInput, handleSend])
+  }, [dispatch, handleSend])
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -403,7 +386,7 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
               labelText="Message"
               placeholder="Ask about resume generation, job analysis, learning paths..."
               value={draftInput}
-              onChange={(e) => setDraftInput(e.target.value)}
+              onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
               onKeyPress={handleKeyPress}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setTimeout(() => setInputFocused(false), 200)}

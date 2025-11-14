@@ -9,7 +9,9 @@ import {
   Tile,
 } from '@carbon/react'
 import { SendAlt, Minimize, ChatBot } from '@carbon/icons-react'
-import { useChat } from '../contexts/ChatContext'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
+import { addMessage, setDraftInput as setDraftInputAction } from '../store/slices/chatSlice'
+import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
 import { useAgent } from '../contexts/AgentContext'
 import MarkdownMessage from './MarkdownMessage'
 import './CondensedChat.css'
@@ -22,7 +24,10 @@ interface QuickAction {
 }
 
 function CondensedChat() {
-  const { messages, addMessage, setCurrentTab, draftInput, setDraftInput, chatSummary } = useChat()
+  const dispatch = useAppDispatch()
+  const messages = useAppSelector(state => state.chat.messages)
+  const draftInput = useAppSelector(state => state.chat.draftInput)
+  const chatSummary = useAppSelector(state => state.chat.chatSummary)
   const { orchestrator, isInitialized } = useAgent()
   
   // Debug: log draftInput and chatSummary changes
@@ -42,6 +47,7 @@ function CondensedChat() {
   const inputRef = useRef<HTMLInputElement>(null)
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   // Debug: log when expansion state changes
   useEffect(() => {
@@ -49,15 +55,18 @@ function CondensedChat() {
   }, [isExpanded])
 
   // Auto-scroll to bottom when messages change
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const scrollToBottom = useCallback(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+    // Direct scrollTop - reliable for block layout
+    container.scrollTop = container.scrollHeight
+  }, [])
 
   useEffect(() => {
     if (isExpanded) {
       scrollToBottom()
     }
-  }, [messages, streamingContent, isExpanded])
+  }, [messages, streamingContent, isExpanded, scrollToBottom])
 
   // Extract suggestions from last message
   useEffect(() => {
@@ -78,12 +87,15 @@ function CondensedChat() {
       content: textToSend
     }
 
-    addMessage(userMessage)
+    dispatch(addMessage(userMessage))
     // Clear input immediately and synchronously
-    setDraftInput('')
+    dispatch(setDraftInputAction(''))
     setIsLoading(true)
     setShowSuggestions(false)
     setStreamingContent('')
+    
+    // Scroll after user message is added
+    setTimeout(() => scrollToBottom(), 0)
 
     try {
       let fullResponse = ''
@@ -111,24 +123,24 @@ function CondensedChat() {
       let cleanedContent = fullResponse.replace(/<metadata>[\s\S]*?<\/metadata>/gi, '')
       cleanedContent = cleanedContent.replace(/\[NAVIGATE_TO_TAB:\d+:[^\]]+\]/g, '').trim()
 
-      addMessage({
+      dispatch(addMessage({
         role: 'assistant',
         content: cleanedContent,
         suggestions
-      })
+      }))
 
       setContextualSuggestions(suggestions)
       setStreamingContent('')
     } catch (error) {
-      addMessage({
+      dispatch(addMessage({
         role: 'assistant',
         content: `## ❌ Error\n\n${error instanceof Error ? error.message : 'An unknown error occurred'}`
-      })
+      }))
       setStreamingContent('')
     } finally {
       setIsLoading(false)
     }
-  }, [draftInput, isLoading, orchestrator, isInitialized, addMessage, setDraftInput, isExpanded])
+  }, [draftInput, isLoading, orchestrator, isInitialized, dispatch, isExpanded, scrollToBottom])
 
   const extractSuggestionsFromResponse = (response: string): QuickAction[] => {
     const suggestions: QuickAction[] = []
@@ -192,15 +204,15 @@ function CondensedChat() {
     // If this is a navigation action, navigate directly
     if (action.navigateTo !== undefined) {
       console.log('[CondensedChat] Navigation action detected, calling setCurrentTab with:', action.navigateTo)
-      setCurrentTab(action.navigateTo)
+      dispatch(setCurrentTabAction(action.navigateTo))
       return
     }
 
     // Otherwise, it's a chat query action
     console.log('[CondensedChat] Regular action, setting input and sending')
-    setDraftInput(action.query)
+    dispatch(setDraftInputAction(action.query))
     setTimeout(() => handleSend(action.query), 200)
-  }, [setCurrentTab, setDraftInput, handleSend])
+  }, [dispatch, handleSend])
 
   const lastMessage = messages[messages.length - 1]
   const isAssistantThinking = isLoading && lastMessage?.role === 'user'
@@ -251,7 +263,7 @@ function CondensedChat() {
       </div>
 
       {isExpanded && (
-        <div className="chat-messages-container">
+        <div ref={messagesContainerRef} className="chat-messages-container">
           {messages.map((msg, idx) => (
             <Tile
               key={idx}
@@ -316,7 +328,7 @@ function CondensedChat() {
             labelText="Message"
             placeholder="Ask me anything..."
             value={draftInput}
-            onChange={(e) => setDraftInput(e.target.value)}
+            onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
             onKeyPress={handleKeyPress}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
@@ -331,7 +343,7 @@ function CondensedChat() {
             labelText=""
             placeholder="Ask me anything..."
             value={draftInput}
-            onChange={(e) => setDraftInput(e.target.value)}
+            onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault()

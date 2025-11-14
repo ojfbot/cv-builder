@@ -7,7 +7,7 @@ import { DocumentAdd, Edit } from '@carbon/icons-react'
 
 function BioDashboard() {
   return (
-    <div>
+    <div className="dashboard-content">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading className="section-header">Your Professional Bio</Heading>
         <div style={{ display: 'flex', gap: '0.5rem' }}>

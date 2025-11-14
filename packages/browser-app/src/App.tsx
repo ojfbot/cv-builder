@@ -10,6 +10,8 @@ import {
   SideNavItems,
 } from '@carbon/react'
 import { Asleep, Light, Settings } from '@carbon/icons-react'
+import { Provider } from 'react-redux'
+import { store } from './store'
 import { AgentProvider } from './contexts/AgentContext'
 import Dashboard from './components/Dashboard'
 import ApiKeySettings from './components/ApiKeySettings'
@@ -34,10 +36,11 @@ function App() {
   }
 
   return (
-    <AgentProvider>
-      <Theme theme={theme}>
+    <Provider store={store}>
+      <AgentProvider>
+        <Theme theme={theme}>
         <div className="app-container" style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <Header aria-label="CV Builder" style={{ zIndex: 9000, position: 'relative', marginLeft: sideNavExpanded ? '256px' : '0', transition: 'margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9)' }}>
+          <Header aria-label="CV Builder">
             <HeaderMenuButton
               aria-label={sideNavExpanded ? 'Close menu' : 'Open menu'}
               onClick={onClickSideNavExpand}
@@ -68,10 +71,9 @@ function App() {
               aria-label="Side navigation"
               expanded={sideNavExpanded}
               onOverlayClick={onClickSideNavExpand}
-              style={{ zIndex: 8000 }}
             >
               <SideNavItems>
-                {/* Sidebar menu items will go here */}
+                <div>{/* Sidebar menu items will go here */}</div>
               </SideNavItems>
             </SideNav>
           )}
@@ -87,6 +89,7 @@ function App() {
         />
       </Theme>
     </AgentProvider>
+    </Provider>
   )
 }
 

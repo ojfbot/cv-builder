@@ -8,8 +8,10 @@
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 0;
-  margin-bottom: 1rem;
+  overflow-x: hidden;
+  padding: 1rem;
+  margin-bottom: 0;
+  min-height: 300px; /* Prevent collapse and ensure scrollable area */
 }
 
 .message-tile {
@@ -17,23 +19,16 @@
   padding: 1rem;
   border-radius: 8px;
   transition: all 0.2s ease;
-  min-height: fit-content;
-  height: auto;
 }
 
 .message-tile.user {
-  background-color: var(--cds-background) !important;
+  background-color: var(--cds-layer-02) !important;
   border-left: 3px solid var(--cds-interactive-01);
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
 }
 
 .message-tile.assistant {
-  background-color: var(--cds-background) !important;
+  background-color: var(--cds-layer-01) !important;
   border-left: 3px solid var(--cds-support-04);
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  overflow: visible !important;
-  height: auto !important;
-  min-height: fit-content !important;
 }
 
 .message-tile.streaming {
@@ -71,9 +66,6 @@
 
 .message-content {
   color: var(--cds-text-primary);
-  overflow: visible;
-  min-height: fit-content;
-  height: auto;
 }
 
 .user-message {
@@ -83,11 +75,12 @@
 }
 
 .quick-actions {
-  margin: 1rem 0;
+  margin: 0 1rem 1rem 1rem;
   padding: 1rem;
   background-color: var(--cds-layer-01);
   border-radius: 8px;
   border: 1px solid var(--cds-border-subtle);
+  flex-shrink: 0;
 }
 
 .quick-actions-label {
@@ -129,22 +122,11 @@
 }
 
 .chat-input-container {
-  padding: 1rem 1.5rem;
+  padding: 1rem;
   background-color: var(--cds-layer-01);
   border-top: 1px solid var(--cds-border-subtle);
   position: relative;
-}
-
-/* Apply monospace font and darker background to textarea */
-.chat-input-container textarea,
-.chat-input-container .cds--text-area {
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  background-color: var(--cds-background) !important;
-}
-
-/* Ensure textarea wrapper respects the background */
-.chat-input-container .cds--text-area__wrapper {
-  background-color: var(--cds-background);
+  flex-shrink: 0;
 }
 
 .input-wrapper {
@@ -234,14 +216,6 @@
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background: var(--cds-border-strong);
-}
-
-/* Override Carbon Tile component constraints */
-.message-tile.cds--tile,
-.message-tile .cds--tile {
-  height: auto !important;
-  min-height: fit-content !important;
-  overflow: visible !important;
 }
 
 /* Responsive adjustments */

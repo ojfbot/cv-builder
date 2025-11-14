@@ -1,112 +1,47 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { CodeSnippet, Tag } from '@carbon/react'
+import { CodeSnippet } from '@carbon/react'
+import BadgeButton from './BadgeButton'
+import {
+  BadgeAction,
+  Action,
+  LegacyQuickAction,
+  convertLegacyAction,
+  createBadgeAction,
+  createChatAction,
+  createNavigateAction,
+} from '../models/badge-action'
+import { TabKey } from '../models/navigation'
 import './MarkdownMessage.css'
 
-interface NavigateAction {
-  tab: number
-  focus?: string
-  context?: string
-}
-
+// Legacy support
 interface QuickAction {
   label: string
   query: string
   icon: string
-  navigateTo?: number  // DEPRECATED: Use navigate instead
-  navigate?: NavigateAction
+  navigateTo?: number
 }
 
 interface MarkdownMessageProps {
   content: string
-  suggestions?: QuickAction[]
+  suggestions?: QuickAction[] | BadgeAction[]
   onActionClick?: (action: QuickAction) => void
-  compact?: boolean  // If true, strip descriptions after badge buttons
-  onExpandContent?: () => void  // Callback to navigate to Interactive tab to see full content
+  onActionExecute?: (actions: Action[], badgeAction: BadgeAction) => void
+  compact?: boolean
 }
 
-function MarkdownMessage({ content, suggestions, onActionClick, compact = false, onExpandContent }: MarkdownMessageProps) {
-  console.log('[MarkdownMessage] Rendering with content:', content.substring(0, 200))
-  console.log('[MarkdownMessage] onActionClick handler present:', !!onActionClick)
-  console.log('[MarkdownMessage] Compact mode:', compact)
-
-  // If compact mode, strip descriptions and line breaks between badge buttons
-  // Format: [📄 Badge](action:query) - Description text\n\n[Another Badge]...
-  // Becomes: [📄 Badge](action:query) [Another Badge]...
-  const processedContent = compact
-    ? content
-        .replace(/(\[([^\]]+)\]\(action:[^)]+\))\s*-\s*[^\n]+/g, '$1')  // Remove descriptions
-        .replace(/(\]\(action:[^)]+\))\s*\n+\s*(\[)/g, '$1 $2')  // Remove line breaks between badges
-    : content
-
-  // Function to parse and render content with action badges
-  const renderContentWithBadges = (text: string) => {
-    const parts: any[] = []
-    let lastIndex = 0
-    // Match [label](action:query) pattern
-    const regex = /\[([^\]]+)\]\(action:([^)]+)\)/g
-    let match
-
-    while ((match = regex.exec(text)) !== null) {
-      console.log('[MarkdownMessage] Found action link:', { label: match[1], query: match[2] })
-
-      // Add text before the match
-      if (match.index > lastIndex) {
-        parts.push(text.substring(lastIndex, match.index))
-      }
-
-      const label = match[1]
-      const query = match[2]
-
-      // Extract icon from label
-      const iconMatch = label.match(/^([\u{1F300}-\u{1F9FF}])\s*(.+)$/u)
-      const icon = iconMatch ? iconMatch[1] : '💡'
-      const cleanLabel = iconMatch ? iconMatch[2] : label
-
-      // Try to infer navigation from the label pattern
-      const inferredAction = findAction(cleanLabel)
-
-      const action: QuickAction = {
-        label: cleanLabel,
-        query: query,
-        icon: inferredAction?.icon || icon,
-        navigateTo: inferredAction?.navigateTo
-      }
-
-      // Add Tag component
-      if (onActionClick) {
-        parts.push(
-          <Tag
-            key={`action-${match.index}`}
-            type="purple"
-            className="action-badge inline-action"
-            onClick={(e: any) => {
-              e.preventDefault()
-              console.log('[MarkdownMessage] Action button clicked:', action)
-              onActionClick(action)
-            }}
-            title={
-              action.navigateTo !== undefined
-                ? `Navigate to tab ${action.navigateTo}: ${query}`
-                : `Ask: ${query}`
-            }
-          >
-            <span className="action-icon">{icon}</span>
-            {cleanLabel}
-          </Tag>
-        )
-      }
-
-      lastIndex = regex.lastIndex
-    }
-
-    // Add remaining text
-    if (lastIndex < text.length) {
-      parts.push(text.substring(lastIndex))
-    }
-
-    return parts.length > 0 ? parts : text
-  }
+function MarkdownMessage({ content, suggestions, onActionClick, onActionExecute, compact = false }: MarkdownMessageProps) {
+  // Normalize suggestions to BadgeAction format
+  const normalizedSuggestions: BadgeAction[] = suggestions
+    ? suggestions.map((s) => {
+        // Check if already a BadgeAction
+        if ('actions' in s) {
+          return s as BadgeAction
+        }
+        // Convert legacy QuickAction
+        return convertLegacyAction(s as LegacyQuickAction)
+      })
+    : []
 
   // Parse list items in "Next Steps" section to extract action labels
   const parseListItem = (text: string) => {
@@ -122,110 +57,119 @@ function MarkdownMessage({ content, suggestions, onActionClick, compact = false,
   }
 
   // Find matching action from suggestions
-  const findAction = (label: string): QuickAction | null => {
-    console.log('[MarkdownMessage] findAction called with label:', label)
+  const findBadgeAction = (label: string): BadgeAction | null => {
+    console.log('[MarkdownMessage] findBadgeAction called with label:', label)
+    console.log('[MarkdownMessage] normalizedSuggestions:', normalizedSuggestions)
 
-    if (suggestions) {
-      const match = suggestions.find(s => s.label === label)
-      if (match) {
-        console.log('[MarkdownMessage] Found exact match in suggestions:', match)
-        return match
+    if (normalizedSuggestions.length > 0) {
+      // First try exact match
+      const exactMatch = normalizedSuggestions.find(s => s.label === label)
+      if (exactMatch) {
+        console.log('[MarkdownMessage] Found exact match:', exactMatch)
+        return exactMatch
+      }
+
+      // Then try case-insensitive partial match
+      const lowerLabel = label.toLowerCase()
+      const partialMatch = normalizedSuggestions.find(s =>
+        s.label.toLowerCase().includes(lowerLabel) ||
+        lowerLabel.includes(s.label.toLowerCase())
+      )
+      if (partialMatch) {
+        console.log('[MarkdownMessage] Found partial match:', partialMatch)
+        return partialMatch
       }
     }
 
-    // Fallback: Infer navigation from common label patterns
+    // Fallback: Infer navigation from common label patterns and create BadgeAction
     const lowerLabel = label.toLowerCase()
-    console.log('[MarkdownMessage] Checking patterns for:', lowerLabel)
+    console.log('[MarkdownMessage] No match in suggestions, trying pattern matching for:', lowerLabel)
 
-    // Bio/Profile tab (tab 1)
+    // Bio/Profile tab
     if (lowerLabel.match(/\b(bio|profile|add.*(bio|profile)|create.*(bio|profile)|your.*(bio|profile))\b/)) {
-      console.log('[MarkdownMessage] Matched Bio/Profile pattern -> tab 1')
-      return { label, query: label, icon: '👤', navigateTo: 1 }
+      return createBadgeAction(label, [createNavigateAction(TabKey.BIO)], { icon: '👤' })
     }
 
-    // Jobs tab (tab 2)
+    // Jobs tab
     if (lowerLabel.match(/\b(job(?!.*generat)|listing|add.*job|import.*job|target)\b/)) {
-      console.log('[MarkdownMessage] Matched Jobs pattern -> tab 2')
-      return { label, query: label, icon: '💼', navigateTo: 2 }
+      return createBadgeAction(label, [createNavigateAction(TabKey.JOBS)], { icon: '💼' })
     }
 
-    // Outputs tab (tab 3)
+    // Outputs tab
     if (lowerLabel.match(/\b(output|view.*resume|check.*resume|see.*resume)\b/)) {
-      console.log('[MarkdownMessage] Matched Outputs pattern -> tab 3')
-      return { label, query: label, icon: '📄', navigateTo: 3 }
+      return createBadgeAction(label, [createNavigateAction(TabKey.OUTPUTS)], { icon: '📄' })
     }
 
-    // Research tab (tab 4)
-    if (lowerLabel.match(/\b(research|industry.*trend|salary.*data|market.*insight|best.*practice)\b/)) {
-      console.log('[MarkdownMessage] Matched Research pattern -> tab 4')
-      return { label, query: label, icon: '📊', navigateTo: 4 }
+    // Research tab
+    if (lowerLabel.match(/\b(research|view.*research|check.*research|see.*research|intelligence|analysis)\b/)) {
+      return createBadgeAction(label, [createNavigateAction(TabKey.RESEARCH)], { icon: '🔬' })
     }
 
-    // Pipelines tab (tab 5)
-    if (lowerLabel.match(/\b(pipeline|workflow|automat.*application|batch.*apply)\b/)) {
-      console.log('[MarkdownMessage] Matched Pipelines pattern -> tab 5')
-      return { label, query: label, icon: '🔄', navigateTo: 5 }
+    // Pipelines tab
+    if (lowerLabel.match(/\b(pipeline|workflow|automation|automate)\b/)) {
+      return createBadgeAction(label, [createNavigateAction(TabKey.PIPELINES)], { icon: '🔄' })
     }
 
-    // Toolbox tab (tab 6)
-    if (lowerLabel.match(/\b(toolbox|action|agent|tool|custom.*agent|configure.*agent|automation)\b/)) {
-      console.log('[MarkdownMessage] Matched Toolbox pattern -> tab 6')
-      return { label, query: label, icon: '🔧', navigateTo: 6 }
+    // Toolbox tab
+    if (lowerLabel.match(/\b(toolbox|tool|utility|utilities)\b/)) {
+      return createBadgeAction(label, [createNavigateAction(TabKey.TOOLBOX)], { icon: '🧰' })
     }
 
-    console.log('[MarkdownMessage] No pattern matched, returning null')
     return null
+  }
+
+  // Handle action execution (supports both legacy and new patterns)
+  const handleActionExecute = (actions: Action[], badgeAction: BadgeAction) => {
+    console.log('[MarkdownMessage] handleActionExecute called')
+    console.log('[MarkdownMessage] Actions:', actions)
+    console.log('[MarkdownMessage] BadgeAction:', JSON.stringify(badgeAction, null, 2))
+    console.log('[MarkdownMessage] BadgeAction.suggestedMessage:', badgeAction.suggestedMessage)
+
+    if (onActionExecute) {
+      console.log('[MarkdownMessage] Calling onActionExecute with badgeAction')
+      onActionExecute(actions, badgeAction)
+    } else if (onActionClick) {
+      // Legacy fallback: Convert first action to QuickAction and call legacy handler
+      const firstAction = actions[0]
+      if (firstAction?.type === 'chat') {
+        onActionClick({
+          label: firstAction.message,
+          query: firstAction.message,
+          icon: '💡',
+        })
+      } else if (firstAction?.type === 'navigate') {
+        // Direct mapping to avoid require()
+        const tabIndexMap: Record<TabKey, number> = {
+          [TabKey.INTERACTIVE]: 0,
+          [TabKey.BIO]: 1,
+          [TabKey.JOBS]: 2,
+          [TabKey.OUTPUTS]: 3,
+          [TabKey.RESEARCH]: 4,
+          [TabKey.PIPELINES]: 5,
+          [TabKey.TOOLBOX]: 6,
+        }
+        const tabIndex = tabIndexMap[firstAction.tab] ?? 0
+        onActionClick({
+          label: `Navigate to ${firstAction.tab}`,
+          query: '',
+          icon: '📍',
+          navigateTo: tabIndex,
+        })
+      }
+    }
   }
   return (
     <div className="markdown-message">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          // Handle paragraphs to replace action link markdown with badges
-          p({ children, ...props }: any) {
-            // Convert children to text to check for action links
-            let textContent = ''
-            if (typeof children === 'string') {
-              textContent = children
-            } else if (Array.isArray(children)) {
-              textContent = children.map(child => {
-                if (typeof child === 'string') return child
-                return ''
-              }).join('')
-            }
-
-            // Check if this paragraph contains action links
-            if (textContent.includes('](action:')) {
-              console.log('[MarkdownMessage] Paragraph with action links:', textContent.substring(0, 100))
-              const processedContent = renderContentWithBadges(textContent)
-              return <p {...props}>{processedContent}</p>
-            }
-
-            // Regular paragraph
-            return <p {...props}>{children}</p>
-          },
           // Custom code block renderer with copy functionality
           code({ node, className, children, ...props }: any) {
             const inline = !className
             const match = /language-(\w+)/.exec(className || '')
             const codeString = String(children).replace(/\n$/, '')
 
-            if (!inline && compact && onExpandContent) {
-              // Compact mode: show collapsed code block with click to expand
-              const language = match ? match[1] : 'code'
-              const lineCount = codeString.split('\n').length
-              return (
-                <Tag
-                  type="cyan"
-                  className="compact-content-indicator"
-                  onClick={() => onExpandContent()}
-                  title="Click to view full code in Interactive tab"
-                >
-                  <span className="action-icon">💻</span>
-                  {language} snippet ({lineCount} lines)
-                </Tag>
-              )
-            } else if (!inline && match) {
+            if (!inline && match) {
               // Multi-line code block with language
               return (
                 <CodeSnippet
@@ -258,7 +202,7 @@ function MarkdownMessage({ content, suggestions, onActionClick, compact = false,
               )
             }
           },
-          // Style links - convert action: links to banner buttons
+          // Style links - convert action: links to badge buttons
           a({ children, href, ...props }: any) {
             console.log('[MarkdownMessage] Link detected:', { href, children })
 
@@ -266,64 +210,35 @@ function MarkdownMessage({ content, suggestions, onActionClick, compact = false,
             if (href && href.startsWith('action:')) {
               console.log('[MarkdownMessage] Action link detected!')
               const query = href.replace('action:', '')
-
-              // Extract text from children (handle arrays, strings, etc.)
-              let label = 'Action'
-              if (typeof children === 'string') {
-                label = children
-              } else if (Array.isArray(children)) {
-                label = children.map(child => {
-                  if (typeof child === 'string') return child
-                  if (child?.props?.children) return String(child.props.children)
-                  return ''
-                }).join('')
-              } else if (children) {
-                label = String(children)
-              }
-
-              console.log('[MarkdownMessage] Extracted label:', label)
+              const label = typeof children === 'string' ? children : children?.join?.('') || 'Action'
 
               // Extract icon from label if present (e.g., "📄 Generate Resume")
               const iconMatch = label.match(/^([\u{1F300}-\u{1F9FF}])\s*(.+)$/u)
               const icon = iconMatch ? iconMatch[1] : '💡'
               const cleanLabel = iconMatch ? iconMatch[2] : label
 
-              // Try to infer navigation from the label pattern
-              const inferredAction = findAction(cleanLabel)
+              console.log('[MarkdownMessage] Creating action button:', { label, icon, cleanLabel, query })
 
-              console.log('[MarkdownMessage] Creating action button:', { label, icon, cleanLabel, query, inferredAction })
+              // Check if there's a matching navigation action in suggestions
+              const matchingBadgeAction = findBadgeAction(cleanLabel)
+              console.log('[MarkdownMessage] matchingBadgeAction result:', matchingBadgeAction)
 
-              const action: QuickAction = {
-                label: cleanLabel,
-                query: query,
-                icon: inferredAction?.icon || icon,
-                navigateTo: inferredAction?.navigateTo
-              }
+              const badgeAction: BadgeAction = matchingBadgeAction || createBadgeAction(
+                cleanLabel,
+                [createChatAction(query)],
+                { icon }
+              )
 
-              if (onActionClick) {
-                console.log('[MarkdownMessage] Rendering Tag button')
-                return (
-                  <Tag
-                    type="purple"
-                    className="action-badge inline-action"
-                    onClick={(e: any) => {
-                      e.preventDefault()
-                      console.log('[MarkdownMessage] Action button clicked:', action)
-                      onActionClick(action)
-                    }}
-                    title={
-                      action.navigateTo !== undefined
-                        ? `Navigate to tab ${action.navigateTo}: ${query}`
-                        : `Ask: ${query}`
-                    }
-                  >
-                    <span className="action-icon">{icon}</span>
-                    {cleanLabel}
-                  </Tag>
-                )
-              } else {
-                console.log('[MarkdownMessage] No onActionClick handler!')
-              }
+              console.log('[MarkdownMessage] Final badge action:', badgeAction)
+
+              return (
+                <BadgeButton
+                  badgeAction={badgeAction}
+                  onExecute={handleActionExecute}
+                  className="inline-action"
+                  size="sm"
+                />
+              )
             }
 
             // Regular link
@@ -342,51 +257,42 @@ function MarkdownMessage({ content, suggestions, onActionClick, compact = false,
           },
           // Custom list item renderer for Next Steps
           li({ children, ...props }: any) {
-            // Extract text content from React children
-            let textContent = ''
-            if (Array.isArray(children)) {
-              textContent = children.map((child: any) => {
-                if (typeof child === 'string') return child
-                if (child?.props?.children) {
-                  if (typeof child.props.children === 'string') return child.props.children
-                  if (Array.isArray(child.props.children)) {
-                    return child.props.children.join('')
-                  }
-                }
-                return ''
-              }).join('')
-            } else if (typeof children === 'string') {
-              textContent = children
+            // Recursively extract all text content from React children
+            const extractText = (node: any): string => {
+              if (typeof node === 'string') return node
+              if (typeof node === 'number') return String(node)
+              if (!node) return ''
+
+              if (Array.isArray(node)) {
+                return node.map(extractText).join('')
+              }
+
+              if (node.props?.children) {
+                return extractText(node.props.children)
+              }
+
+              return ''
             }
 
+            const textContent = extractText(children)
             const parsed = parseListItem(textContent)
 
-            if (parsed && onActionClick) {
+            if (parsed && (onActionExecute || onActionClick)) {
               // Find matching action or create a default chat action
-              const action = findAction(parsed.label) || {
-                label: parsed.label,
-                query: parsed.description,
-                icon: '💡'
-              }
+              const badgeAction = findBadgeAction(parsed.label) || createBadgeAction(
+                parsed.label,
+                [createChatAction(parsed.description)],
+                { icon: '💡' }
+              )
 
               // Render as clickable badge + description (hide description in compact mode)
               return (
                 <li className="markdown-action-item" {...props}>
-                  <Tag
-                    type="purple"
-                    className="action-badge"
-                    onClick={() => onActionClick(action)}
-                    title={
-                      action.navigate
-                        ? `Navigate to tab ${action.navigate.tab}`
-                        : action.navigateTo !== undefined
-                        ? `Navigate to tab ${action.navigateTo}`
-                        : `Ask: ${action.query}`
-                    }
-                  >
-                    {action.icon && <span className="action-icon">{action.icon}</span>}
-                    {parsed.label}
-                  </Tag>
+                  <BadgeButton
+                    badgeAction={badgeAction}
+                    onExecute={handleActionExecute}
+                    size="sm"
+                  />
                   {!compact && <span className="action-description">{parsed.description}</span>}
                 </li>
               )
@@ -401,36 +307,26 @@ function MarkdownMessage({ content, suggestions, onActionClick, compact = false,
           },
           // Style tables
           table({ children, ...props }: any) {
-            if (compact && onExpandContent) {
-              // Compact mode: show collapsed table indicator with click to expand
-              // Count rows by checking children structure
-              let rowCount = 0
-              if (Array.isArray(children)) {
-                children.forEach((child: any) => {
-                  if (child?.props?.children && Array.isArray(child.props.children)) {
-                    rowCount += child.props.children.filter((c: any) => c?.type === 'tr').length
-                  }
-                })
-              }
-
-              return (
-                <Tag
-                  type="teal"
-                  className="compact-content-indicator"
-                  onClick={() => onExpandContent()}
-                  title="Click to view full table in Interactive tab"
-                >
-                  <span className="action-icon">📊</span>
-                  Table ({rowCount > 0 ? `${rowCount} rows` : 'view details'})
-                </Tag>
-              )
-            }
             return <table className="markdown-table" {...props}>{children}</table>
           },
         }}
       >
-        {processedContent}
+        {content}
       </ReactMarkdown>
+
+      {/* Render badge action suggestions if present */}
+      {normalizedSuggestions.length > 0 && onActionExecute && (
+        <div className="markdown-suggestions" style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {normalizedSuggestions.map((badgeAction, idx) => (
+            <BadgeButton
+              key={idx}
+              badgeAction={badgeAction}
+              onExecute={handleActionExecute}
+              size="sm"
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

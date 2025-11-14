@@ -7,7 +7,9 @@ import {
   TabPanel,
   Heading,
 } from '@carbon/react'
-import { ChatProvider, useChat } from '../contexts/ChatContext'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
+import { setCurrentTab, requestTabChange } from '../store/slices/navigationSlice'
+import { generateChatSummary, setChatSummary } from '../store/slices/chatSlice'
 import { useAgent } from '../contexts/AgentContext'
 import BioDashboard from './BioDashboard'
 import JobsDashboard from './JobsDashboard'
@@ -15,17 +17,30 @@ import InteractiveChat from './InteractiveChat'
 import OutputsDashboard from './OutputsDashboard'
 import ResearchDashboard from './ResearchDashboard'
 import CondensedChat from './CondensedChat'
+import './Dashboard.css'
 
 function DashboardContent() {
-  const { currentTab, setCurrentTab, isExpanded, requestTabChange } = useChat()
+  const dispatch = useAppDispatch()
+  const currentTab = useAppSelector(state => state.navigation.currentTab)
+  const previousTab = useAppSelector(state => state.navigation.previousTab)
+  const messages = useAppSelector(state => state.chat.messages)
   const { setTabChangeHandler } = useAgent()
 
-  // Connect the tab change handler from the agent service to the chat context
+  // Connect the tab change handler from the agent service to Redux
   useEffect(() => {
     setTabChangeHandler((tab: number, reason: string) => {
-      requestTabChange(tab, reason)
+      dispatch(requestTabChange({ tab, reason }))
     })
-  }, [setTabChangeHandler, requestTabChange])
+  }, [setTabChangeHandler, dispatch])
+
+  // Generate chat summary when navigating away from Interactive tab
+  useEffect(() => {
+    if (previousTab === 0 && currentTab !== 0 && messages.length > 1) {
+      dispatch(generateChatSummary())
+    } else if (currentTab === 0) {
+      dispatch(setChatSummary(''))
+    }
+  }, [currentTab, previousTab, messages.length, dispatch])
 
   return (
     <>
@@ -34,7 +49,7 @@ function DashboardContent() {
 
         <Tabs
           selectedIndex={currentTab}
-          onChange={({ selectedIndex }) => setCurrentTab(selectedIndex)}
+          onChange={({ selectedIndex }) => dispatch(setCurrentTab(selectedIndex))}
         >
           <TabList aria-label="CV Builder sections" contained>
             <Tab>Interactive</Tab>
@@ -72,11 +87,7 @@ function DashboardContent() {
 }
 
 function Dashboard() {
-  return (
-    <ChatProvider>
-      <DashboardContent />
-    </ChatProvider>
-  )
+  return <DashboardContent />
 }
 
 export default Dashboard
