@@ -109,6 +109,29 @@ npm run docker:build
 docker-compose up
 ```
 
+## Documentation
+
+Comprehensive documentation is available in the `/docs` directory:
+
+### Getting Started
+- [Setup Guide](docs/SETUP_GUIDE.md) - Detailed setup and configuration
+- [Quick Start](docs/QUICK_START.md) - Get up and running quickly
+- [Architecture](docs/ARCHITECTURE.md) - System architecture overview
+
+### Development
+- [Agents Guide](docs/AGENTS_GUIDE.md) - Working with AI agents
+- [Badge Actions](docs/BADGE_ACTIONS_GUIDE.md) - Interactive UI actions
+- [Navigation System](docs/NAVIGATION_SYSTEM.md) - Tab navigation
+- [Browser Integration](docs/BROWSER_INTEGRATION.md) - Browser app integration
+
+### Deployment
+- [Docker Guide](docs/DOCKER_GUIDE.md) - Docker setup and deployment
+
+### Reference
+- [Technical Documentation](docs/technical/) - In-depth technical guides
+- [How-To Guides](docs/how-to/) - Step-by-step tutorials
+- [Archive](docs/archive/) - Historical documentation and migration guides
+
 ## License
 
 MIT
