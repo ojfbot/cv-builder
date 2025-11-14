@@ -95,6 +95,40 @@ function CondensedChat() {
     }
   }, [streamingContent, isExpanded, scrollToBottom])
 
+  // Helper to remove metadata from streaming content in real-time
+  const cleanStreamingContent = (content: string): { cleaned: string; isMetadataStreaming: boolean } => {
+    // CRITICAL: Strip everything from <metadata> tag onwards during streaming
+    // This prevents users from seeing partial metadata tags like "<meta", "<metadata>", or partial JSON
+
+    // First, check if we have a complete metadata block and remove it
+    let cleaned = content.replace(/<metadata>[\s\S]*?<\/metadata>/gi, '')
+
+    // Then, aggressively remove ANY incomplete metadata that's streaming in
+    // This catches cases like: "response text <meta", "response text <metadata", "response text <metadata>\n{"
+    const metadataStartIndex = cleaned.search(/<\s*metadata/i)
+    let isMetadataStreaming = false
+
+    if (metadataStartIndex !== -1) {
+      // Cut off everything from the metadata tag onwards
+      cleaned = cleaned.substring(0, metadataStartIndex).trim()
+      isMetadataStreaming = true // Metadata is currently streaming
+    }
+
+    // FALLBACK: Also remove old bracket-style navigation tags
+    cleaned = cleaned.replace(/\[NAVIGATE_TO_TAB:\d+:[^\]]+\]/g, '')
+
+    // Fix incomplete code blocks during streaming to prevent rendering issues
+    const backtickMatches = cleaned.match(/```/g)
+    const backtickCount = backtickMatches ? backtickMatches.length : 0
+
+    // If we have an odd number of ``` markers, we have an incomplete code block
+    if (backtickCount % 2 !== 0) {
+      // Add a temporary closing marker with a note
+      cleaned += '\n```\n*[Streaming...]*'
+    }
+
+    return { cleaned: cleaned.trim(), isMetadataStreaming }
+  }
 
   const handleSend = useCallback(async (messageText?: string) => {
     const textToSend = messageText || draftInput.trim()
@@ -296,15 +330,34 @@ function CondensedChat() {
       })
 
       if (role === 'user') {
-        // Pre-populate input for user to review and send
+        // User-perspective message: auto-send it as a user message
+        // This is used for actions like "Generate Resume" where clicking the badge
+        // should send a message from the user's perspective to trigger agent work
         dispatch(setDraftInputAction(messageToUse))
-        if (willBeExpanded) {
-          // Focus after a brief delay to ensure textarea is mounted
-          setTimeout(() => textAreaRef.current?.focus(), 100)
+
+        if (hasNavigate || willBeExpanded) {
+          // If we navigated or expanded, auto-send after a brief delay
+          setTimeout(async () => {
+            await handleSend(messageToUse)
+          }, 100)
+        } else {
+          // No navigation/expansion, just focus for manual sending
+          textAreaRef.current?.focus()
         }
       } else if (role === 'assistant') {
-        // Auto-send as assistant message (simulated agent prompt)
-        await handleSend(messageToUse)
+        // Assistant-perspective message: add as assistant message WITHOUT triggering agent
+        // This is used for follow-up prompts like "Please share the job description..."
+        // where the agent is asking the user for input
+        dispatch(addMessage({
+          role: 'assistant' as const,
+          content: messageToUse,
+        }))
+
+        // Focus input for user to type their response
+        // Small delay to ensure message is rendered first
+        setTimeout(() => {
+          textAreaRef.current?.focus()
+        }, 100)
       }
     }
   }, [dispatch, handleSend, isExpanded])
@@ -396,24 +449,37 @@ function CondensedChat() {
             </Tile>
           ))}
 
-          {streamingContent && (
-            <Tile className="message-tile assistant streaming">
-              <div className="message-header">
-                <strong>🤖 Assistant</strong>
-                <span className="streaming-indicator">Typing...</span>
-              </div>
-              <div className="message-content">
-                <MarkdownMessage
-                  content={streamingContent}
-                  onActionClick={(action) => {
-                    handleQuickAction(action)
-                  }}
-                  onActionExecute={handleActionExecute}
-                  compact={true}
-                />
-              </div>
-            </Tile>
-          )}
+          {streamingContent && (() => {
+            const { cleaned, isMetadataStreaming } = cleanStreamingContent(streamingContent)
+            return (
+              <Tile className="message-tile assistant streaming">
+                <div className="message-header">
+                  <strong>🤖 Assistant</strong>
+                  <span className="streaming-indicator">Typing...</span>
+                </div>
+                <div className="message-content">
+                  <MarkdownMessage
+                    content={cleaned}
+                    onActionClick={(action) => {
+                      handleQuickAction(action)
+                    }}
+                    onActionExecute={handleActionExecute}
+                    compact={true}
+                  />
+                  {isMetadataStreaming && (
+                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <InlineLoading
+                        description="Loading suggestions..."
+                        status="active"
+                        aria-live="polite"
+                        aria-label="Loading action suggestions"
+                      />
+                    </div>
+                  )}
+                </div>
+              </Tile>
+            )
+          })()}
 
           {isLoading && !streamingContent && (
             <Tile className="message-tile assistant">

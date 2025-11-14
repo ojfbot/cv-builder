@@ -117,13 +117,23 @@ function InteractiveChat() {
   }, [messages])
 
   // Helper to remove metadata from streaming content in real-time
-  const cleanStreamingContent = (content: string): string => {
-    // Remove complete metadata blocks (new XML format)
+  const cleanStreamingContent = (content: string): { cleaned: string; isMetadataStreaming: boolean } => {
+    // CRITICAL: Strip everything from <metadata> tag onwards during streaming
+    // This prevents users from seeing partial metadata tags like "<meta", "<metadata>", or partial JSON
+
+    // First, check if we have a complete metadata block and remove it
     let cleaned = content.replace(/<metadata>[\s\S]*?<\/metadata>/gi, '')
 
-    // Remove incomplete metadata blocks that might be streaming
-    // This prevents the flash when <metadata> tag starts appearing
-    cleaned = cleaned.replace(/<metadata>[\s\S]*$/gi, '')
+    // Then, aggressively remove ANY incomplete metadata that's streaming in
+    // This catches cases like: "response text <meta", "response text <metadata", "response text <metadata>\n{"
+    const metadataStartIndex = cleaned.search(/<\s*metadata/i)
+    let isMetadataStreaming = false
+
+    if (metadataStartIndex !== -1) {
+      // Cut off everything from the metadata tag onwards
+      cleaned = cleaned.substring(0, metadataStartIndex).trim()
+      isMetadataStreaming = true // Metadata is currently streaming
+    }
 
     // FALLBACK: Also remove old bracket-style navigation tags
     cleaned = cleaned.replace(/\[NAVIGATE_TO_TAB:\d+:[^\]]+\]/g, '')
@@ -139,7 +149,7 @@ function InteractiveChat() {
       cleaned += '\n```\n*[Streaming...]*'
     }
 
-    return cleaned.trim()
+    return { cleaned: cleaned.trim(), isMetadataStreaming }
   }
 
   const extractSuggestionsFromResponse = (response: string): import('../models/badge-action').BadgeAction[] => {
@@ -409,25 +419,34 @@ function InteractiveChat() {
       }
 
       if (role === 'user') {
-        // Pre-populate input for user to review and send
+        // User-perspective message: auto-send it as a user message
+        // This is used for actions like "Generate Resume" where clicking the badge
+        // should send a message from the user's perspective to trigger agent work
         dispatch(setDraftInputAction(content))
-        // Auto-send the message after navigation if navigated
+
         if (hasNavigate) {
-          // Wait for the input to be populated
+          // If we navigated, auto-send after a brief delay
           await new Promise(resolve => setTimeout(resolve, 100))
           await handleSend(content)
         } else {
-          // Just focus for manual sending if no navigation
+          // No navigation, just focus for manual sending
           inputRef.current?.focus()
         }
       } else if (role === 'assistant') {
-        // Add directly as assistant message (scoped follow-up prompt)
-        // Don't call handleSend as that would trigger another agent response
+        // Assistant-perspective message: add as assistant message WITHOUT triggering agent
+        // This is used for follow-up prompts like "Please share the job description..."
+        // where the agent is asking the user for input
         const assistantMessage: Message = {
           role: 'assistant',
           content: content,
         }
         dispatch(addMessageToStore(assistantMessage))
+
+        // Focus input for user to type their response
+        // Small delay to ensure message is rendered first
+        setTimeout(() => {
+          inputRef.current?.focus()
+        }, 100)
       }
     }
   }, [dispatch, handleSend])
@@ -479,23 +498,36 @@ function InteractiveChat() {
           </Tile>
         ))}
 
-        {streamingContent && (
-          <Tile className="message-tile assistant streaming">
-            <div className="message-header">
-              <strong>🤖 Assistant</strong>
-              <span className="streaming-indicator">Typing...</span>
-            </div>
-            <div className="message-content">
-              <MarkdownMessage
-                content={cleanStreamingContent(streamingContent)}
-                onActionClick={(action) => {
-                  handleQuickAction(action)
-                }}
-                onActionExecute={handleActionExecute}
-              />
-            </div>
-          </Tile>
-        )}
+        {streamingContent && (() => {
+          const { cleaned, isMetadataStreaming } = cleanStreamingContent(streamingContent)
+          return (
+            <Tile className="message-tile assistant streaming">
+              <div className="message-header">
+                <strong>🤖 Assistant</strong>
+                <span className="streaming-indicator">Typing...</span>
+              </div>
+              <div className="message-content">
+                <MarkdownMessage
+                  content={cleaned}
+                  onActionClick={(action) => {
+                    handleQuickAction(action)
+                  }}
+                  onActionExecute={handleActionExecute}
+                />
+                {isMetadataStreaming && (
+                  <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <InlineLoading
+                      description="Loading suggestions..."
+                      status="active"
+                      aria-live="polite"
+                      aria-label="Loading action suggestions"
+                    />
+                  </div>
+                )}
+              </div>
+            </Tile>
+          )
+        })()}
 
         {isLoading && !streamingContent && (
           <Tile className="message-tile assistant">
