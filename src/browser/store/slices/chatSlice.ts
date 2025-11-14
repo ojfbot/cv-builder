@@ -18,6 +18,8 @@ export interface ChatState {
   draftInput: string
   isExpanded: boolean
   chatSummary: string
+  unreadCount: number
+  lastReadMessageIndex: number
 }
 
 const initialWelcomeMessage: Message = {
@@ -28,6 +30,7 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
 
 ## Next Steps
 
+- **📤 Upload Resume**: Upload an existing resume to get started quickly
 - **📄 Generate Resume**: Create a professional resume in markdown format
 - **🔍 Analyze Job**: Analyze a job listing and see how well you match
 - **✨ Tailor Resume**: Customize your resume for a specific job posting
@@ -35,7 +38,16 @@ I'm your AI-powered career development assistant. Here's what I can help you wit
 - **✍️ Cover Letter**: Write a compelling cover letter for a job application
 - **💼 Interview Prep**: Prepare for an upcoming interview with practice questions
 
-**Ready to get started? Click any badge above or type your question below!**`
+**Ready to get started? Click any badge above or type your question below!**`,
+  suggestions: [
+    {
+      label: 'Upload Resume',
+      query: `Ready to upload your resume! [Click here](upload:.pdf,.docx,.txt,.md) to browse files, or drag and drop a file into the chat.\n\n**Supported formats:** PDF, Word (.docx), or text files (.txt, .md)`,
+      icon: '📤',
+      // Special marker to show this sends a message (not a direct action)
+      navigateTo: -1
+    }
+  ]
 }
 
 const initialState: ChatState = {
@@ -43,6 +55,8 @@ const initialState: ChatState = {
   draftInput: '',
   isExpanded: true,
   chatSummary: '',
+  unreadCount: 0,
+  lastReadMessageIndex: 0,
 }
 
 const chatSlice = createSlice({
@@ -51,12 +65,24 @@ const chatSlice = createSlice({
   reducers: {
     addMessage: (state, action: PayloadAction<Message>) => {
       state.messages.push(action.payload)
+      
+      // If adding an assistant message while chat is collapsed (on another tab),
+      // increment unread count
+      if (action.payload.role === 'assistant' && !state.isExpanded) {
+        state.unreadCount += 1
+      }
     },
     clearMessages: (state) => {
       state.messages = [{
         role: 'assistant',
         content: `# Welcome back! 👋\n\nHow can I help you today?`
       }]
+      state.unreadCount = 0
+      state.lastReadMessageIndex = 0
+    },
+    markMessagesAsRead: (state) => {
+      state.unreadCount = 0
+      state.lastReadMessageIndex = state.messages.length - 1
     },
     setDraftInput: (state, action: PayloadAction<string>) => {
       state.draftInput = action.payload
@@ -114,5 +140,6 @@ export const {
   setIsExpanded,
   setChatSummary,
   generateChatSummary,
+  markMessagesAsRead,
 } = chatSlice.actions
 export default chatSlice.reducer

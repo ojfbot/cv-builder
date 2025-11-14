@@ -86,6 +86,19 @@ Send a follow-up message.
 }
 ```
 
+### File Upload
+**Note:** File upload actions are typically NOT used directly in badge actions. Instead, use inline upload buttons (see below) in suggestedMessage content.
+
+If needed for advanced workflows:
+```json
+{
+  "type": "file_upload",
+  "accept": ".pdf,.docx,.txt",  // Optional file type filter
+  "multiple": false,             // Optional: allow multiple files
+  "targetTab": 1                 // Optional: navigate to this tab after upload
+}
+```
+
 ### Multi-Action
 Combine actions (execute in sequence):
 ```json
@@ -94,6 +107,43 @@ Combine actions (execute in sequence):
   { "type": "chat", "message": "Help me add my experience", "expandChat": true }
 ]
 ```
+
+## Inline Upload Buttons
+
+You can embed file upload buttons directly in your markdown responses (including in suggestedMessage content) using the special `upload:` link syntax:
+
+```markdown
+You can [click here](upload:.pdf,.docx) to browse for your resume file.
+```
+
+This renders as a clickable badge button that opens the browser file upload dialog. The text after `upload:` specifies the accepted file types (optional - defaults to `.pdf,.docx,.txt` if omitted).
+
+**Examples:**
+- `[click here](upload:)` - Default file types (.pdf, .docx, .txt)
+- `[upload resume](upload:.pdf,.docx)` - Only PDF and Word documents
+- `[browse files](upload:.pdf)` - PDF files only
+
+### Example: Upload Resume Badge Action
+
+This shows the recommended pattern - a badge that displays upload instructions with an inline upload button:
+
+```json
+{
+  "label": "Upload Resume",
+  "icon": "📄",
+  "variant": "blue",
+  "actions": [
+    { "type": "expand_chat" }
+  ],
+  "suggestedMessage": {
+    "role": "assistant",
+    "content": "Ready to upload your resume! [Click here](upload:.pdf,.docx,.txt,.md) to browse files, or drag and drop a file into the chat.\n\n**Supported formats:** PDF, Word (.docx), or text files (.txt, .md)\n\nYou can also try `/upload`",
+    "compactContent": "[Click here](upload:) to upload your resume"
+  }
+}
+```
+
+When the user clicks "Upload Resume", the chat expands and shows the assistant's message with the inline upload button. Clicking that button opens the file dialog.
 
 ## Icon and Color Guidelines
 
