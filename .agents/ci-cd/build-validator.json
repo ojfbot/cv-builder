@@ -1,0 +1,127 @@
+{
+  "name": "build-validator",
+  "version": "1.0.0",
+  "description": "Comprehensive build configuration and CI/CD validation for monorepo projects",
+  "author": "AI MCP Stack Team",
+  "category": "ci-cd",
+  "workflow": [
+    {
+      "step": "validate-packages",
+      "action": "action:validate-all-packages",
+      "description": "Validate all packages in monorepo",
+      "required": true
+    },
+    {
+      "step": "validate-ci-config",
+      "action": "action:validate-ci-configuration",
+      "description": "Check GitHub Actions CI setup",
+      "required": true
+    },
+    {
+      "step": "validate-docker",
+      "action": "action:validate-docker-config",
+      "description": "Validate Docker and docker-compose setup",
+      "required": false
+    },
+    {
+      "step": "validate-monorepo",
+      "action": "action:validate-monorepo-structure",
+      "description": "Check monorepo structure and configuration",
+      "required": true
+    },
+    {
+      "step": "generate-report",
+      "action": "action:generate-validation-report",
+      "description": "Generate comprehensive validation report",
+      "required": true
+    }
+  ],
+  "permissions": {
+    "read": [
+      "**/*",
+      ".github/**",
+      ".git/**",
+      "package.json",
+      "packages/*/package.json",
+      "tsconfig*.json",
+      "docker-compose.yml",
+      "Dockerfile"
+    ],
+    "write": [],
+    "execute": [
+      "npm",
+      "pnpm",
+      "node"
+    ]
+  },
+  "triggers": {
+    "manual": true,
+    "github_action": true,
+    "scheduled": false,
+    "pre_release": true,
+    "claude_intents": [
+      "validate build",
+      "check build",
+      "validate ci",
+      "check ci/cd",
+      "validate configuration"
+    ]
+  },
+  "configuration": {
+    "check_packages": true,
+    "check_ci": true,
+    "check_docker": true,
+    "check_monorepo": true,
+    "fail_on_warnings": false
+  },
+  "claude": {
+    "auto_execute": false,
+    "requires_user_confirmation": false,
+    "reports_progress": true,
+    "estimated_duration": "20-40 seconds",
+    "user_guidance": "This agent validates your entire build setup including packages, CI/CD, Docker, and monorepo structure.",
+    "success_message": "✅ Build validation passed! All configurations are correct.",
+    "error_guidance": "Review the validation report above for issues that need to be fixed."
+  },
+  "dependencies": {
+    "actions": [
+      "action:validate-all-packages",
+      "action:validate-ci-configuration",
+      "action:validate-docker-config",
+      "action:validate-monorepo-structure",
+      "action:generate-validation-report"
+    ]
+  },
+  "outputs": {
+    "validation_report": {
+      "type": "object",
+      "description": "Comprehensive validation results",
+      "fields": [
+        "packages_validated",
+        "successful_packages",
+        "failed_packages",
+        "ci_status",
+        "docker_status",
+        "monorepo_status"
+      ]
+    },
+    "package_details": {
+      "type": "array",
+      "description": "Details for each validated package"
+    }
+  },
+  "metadata": {
+    "created": "2025-11-14",
+    "last_updated": "2025-11-14",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-11-14",
+        "changes": "Initial portable agent definition"
+      }
+    ],
+    "tags": ["ci-cd", "validation", "build", "monorepo"],
+    "portable": true,
+    "framework_agnostic": true
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://schemas.modelcontextprotocol.org/agent-registry/v1.0.0",
+  "version": "1.0.0",
+  "name": "AI MCP Stack Agents Registry",
+  "description": "Centralized registry of AI agents for code quality and development workflow automation",
+  "repository": "ojfbot/ai-mcp-stack",
+  "agents": {
+    "pre-commit-validator": {
+      "file": "quality/pre-commit-validator.json",
+      "category": "quality",
+      "priority": "high",
+      "description": "Comprehensive pre-commit validation with intelligent commit strategy",
+      "triggers": ["commit", "pre-commit", "validate before commit", "ready to commit"],
+      "auto_execute": false
+    },
+    "code-quality-enforcer": {
+      "file": "quality/code-quality-enforcer.json",
+      "category": "quality",
+      "priority": "medium",
+      "description": "Continuous code quality monitoring and enforcement",
+      "triggers": ["check quality", "quality check", "code quality"],
+      "auto_execute": false
+    },
+    "issue-completion-validator": {
+      "file": "quality/issue-completion-validator.json",
+      "category": "quality",
+      "priority": "critical",
+      "description": "Rigorous validation of code changes against issue requirements with conservative gap detection",
+      "triggers": ["validate issue", "check issue completion", "verify requirements", "pre-merge validation", "ready to merge"],
+      "auto_execute": false
+    },
+    "issue-manager": {
+      "file": "github/issue-manager.json",
+      "category": "github",
+      "priority": "high",
+      "description": "GitHub issue lifecycle management with intelligent codebase analysis",
+      "triggers": ["create issue", "manage issue", "annotate issue", "close issue"],
+      "auto_execute": false
+    },
+    "pr-manager": {
+      "file": "github/pr-manager.json",
+      "category": "github",
+      "priority": "high",
+      "description": "Pull request workflow automation with change analysis",
+      "triggers": ["create pr", "pull request", "create pull request"],
+      "auto_execute": false
+    },
+    "release-manager": {
+      "file": "github/release-manager.json",
+      "category": "github",
+      "priority": "medium",
+      "description": "Release coordination with versioning and changelog generation",
+      "triggers": ["create release", "release", "version bump"],
+      "auto_execute": false
+    },
+    "build-validator": {
+      "file": "ci-cd/build-validator.json",
+      "category": "ci-cd",
+      "priority": "high",
+      "description": "Comprehensive build configuration validation",
+      "triggers": ["validate build", "check build", "validate ci"],
+      "auto_execute": false
+    },
+    "deployment-orchestrator": {
+      "file": "ci-cd/deployment-orchestrator.json",
+      "category": "ci-cd",
+      "priority": "medium",
+      "description": "Multi-service deployment coordination",
+      "triggers": ["deploy", "deployment", "rollout"],
+      "auto_execute": false
+    }
+  },
+  "categories": {
+    "quality": {
+      "name": "Code Quality",
+      "description": "Agents that maintain and enforce code quality standards",
+      "icon": "🎯",
+      "color": "green"
+    },
+    "github": {
+      "name": "GitHub Workflow",
+      "description": "Agents that manage GitHub issues, PRs, and releases",
+      "icon": "🐙",
+      "color": "purple"
+    },
+    "ci-cd": {
+      "name": "CI/CD",
+      "description": "Agents that handle build validation and deployment",
+      "icon": "🚀",
+      "color": "blue"
+    }
+  },
+  "global_config": {
+    "dry_run_default": true,
+    "require_confirmation": true,
+    "log_level": "info",
+    "timeout": 600,
+    "max_retries": 3
+  },
+  "integration": {
+    "claude": {
+      "enabled": true,
+      "auto_discovery": true,
+      "slash_command": "/agent",
+      "mcp_protocol_version": "1.0.0"
+    },
+    "github_actions": {
+      "enabled": true,
+      "workflow_path": ".github/workflows"
+    },
+    "npm_scripts": {
+      "enabled": true,
+      "prefix": "agent:"
+    }
+  },
+  "prerequisites": {
+    "node": {
+      "min_version": "18.0.0",
+      "command": "node --version"
+    },
+    "git": {
+      "min_version": "2.0.0",
+      "command": "git --version"
+    },
+    "gh": {
+      "min_version": "2.0.0",
+      "command": "gh --version",
+      "required_for": ["github"]
+    }
+  }
+}

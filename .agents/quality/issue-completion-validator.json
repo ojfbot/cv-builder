@@ -1,0 +1,534 @@
+{
+  "name": "issue-completion-validator",
+  "version": "1.0.0",
+  "description": "Rigorous examination of code changes to validate completeness against issue requirements with conservative gap detection",
+  "author": "AI MCP Stack Team",
+  "category": "quality",
+  "capabilities": [
+    "analyze-issue-requirements",
+    "examine-code-changes",
+    "validate-requirement-coverage",
+    "detect-implementation-gaps",
+    "generate-completion-report"
+  ],
+  "workflow": [
+    {
+      "step": "fetch-issue",
+      "command": "command:github-issue-view",
+      "description": "Fetch issue details including acceptance criteria",
+      "required": true,
+      "continue_on_error": false,
+      "user_interaction": {
+        "type": "input",
+        "prompts": [
+          {
+            "name": "issue_number",
+            "message": "Issue number to validate:",
+            "required": true,
+            "validation": "^\\d+$"
+          }
+        ]
+      }
+    },
+    {
+      "step": "analyze-git-changes",
+      "action": "action:analyze-git-diff",
+      "description": "Get all code changes in current branch vs main",
+      "required": true,
+      "continue_on_error": false,
+      "parameters": {
+        "include_context": true,
+        "show_stats": true
+      }
+    },
+    {
+      "step": "extract-requirements",
+      "action": "action:parse-issue-requirements",
+      "description": "Extract structured requirements from issue body and comments",
+      "required": true,
+      "continue_on_error": false,
+      "llm_analysis": {
+        "enabled": true,
+        "task": "Parse issue text to extract: acceptance criteria, functional requirements, non-functional requirements, edge cases, test requirements, documentation requirements. Be exhaustive and conservative - if something could be a requirement, include it."
+      }
+    },
+    {
+      "step": "map-changes-to-requirements",
+      "action": "action:map-code-to-requirements",
+      "description": "Map each code change to specific requirements it addresses",
+      "required": true,
+      "continue_on_error": false,
+      "llm_analysis": {
+        "enabled": true,
+        "task": "For each requirement, identify which code changes address it. Be conservative - only mark as 'fully addressed' if code demonstrably implements the full requirement. Use 'partially addressed' or 'not addressed' when in doubt.",
+        "validation_criteria": [
+          "Code implements the described functionality",
+          "Edge cases mentioned are handled",
+          "Error handling is present where needed",
+          "Tests exist for the functionality",
+          "Documentation is updated if required",
+          "Type safety is maintained",
+          "No obvious bugs or security issues"
+        ]
+      }
+    },
+    {
+      "step": "identify-gaps",
+      "action": "action:detect-implementation-gaps",
+      "description": "Identify requirements not fully addressed by code changes",
+      "required": true,
+      "continue_on_error": false,
+      "llm_analysis": {
+        "enabled": true,
+        "task": "Rigorously identify gaps. Err on the side of finding gaps rather than being optimistic. Check for: missing functionality, incomplete edge case handling, missing tests, missing documentation, incomplete error handling, security concerns, performance issues, accessibility issues.",
+        "gap_categories": [
+          "missing_functionality",
+          "incomplete_implementation",
+          "missing_tests",
+          "missing_documentation",
+          "missing_error_handling",
+          "missing_edge_cases",
+          "type_safety_issues",
+          "security_concerns",
+          "performance_concerns",
+          "accessibility_issues"
+        ]
+      }
+    },
+    {
+      "step": "examine-code-quality",
+      "action": "action:validate-code-quality",
+      "description": "Examine code changes for quality issues that could block merge",
+      "required": true,
+      "continue_on_error": false,
+      "checks": [
+        {
+          "name": "type-check",
+          "command": "command:type-check",
+          "blocking": true
+        },
+        {
+          "name": "lint",
+          "command": "command:lint",
+          "blocking": true
+        },
+        {
+          "name": "test",
+          "command": "command:test",
+          "blocking": true
+        },
+        {
+          "name": "build",
+          "command": "command:build",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "step": "calculate-coverage-score",
+      "action": "action:calculate-requirement-coverage",
+      "description": "Calculate conservative coverage score",
+      "required": true,
+      "continue_on_error": false,
+      "scoring": {
+        "method": "conservative",
+        "weights": {
+          "fully_addressed": 1.0,
+          "mostly_addressed": 0.6,
+          "partially_addressed": 0.3,
+          "minimally_addressed": 0.1,
+          "not_addressed": 0.0
+        },
+        "thresholds": {
+          "ready_to_merge": 0.95,
+          "needs_minor_work": 0.85,
+          "needs_major_work": 0.70,
+          "incomplete": 0.0
+        }
+      }
+    },
+    {
+      "step": "generate-report",
+      "action": "action:generate-completion-report",
+      "description": "Generate detailed completion report with recommendations",
+      "required": true,
+      "continue_on_error": false,
+      "report_sections": [
+        "executive_summary",
+        "coverage_score",
+        "requirements_matrix",
+        "identified_gaps",
+        "quality_checks",
+        "recommendation",
+        "next_steps"
+      ]
+    },
+    {
+      "step": "detect-branch-info",
+      "action": "action:get-git-context",
+      "description": "Get current branch, remote, and fork information",
+      "required": true,
+      "continue_on_error": false,
+      "git_commands": [
+        "git rev-parse --abbrev-ref HEAD",
+        "git remote -v",
+        "git rev-parse --show-toplevel",
+        "git config --get remote.origin.url"
+      ]
+    },
+    {
+      "step": "format-comment-with-metadata",
+      "action": "action:format-validation-comment",
+      "description": "Format validation report as GitHub comment with tags and metadata",
+      "required": true,
+      "continue_on_error": false,
+      "comment_structure": {
+        "header": {
+          "include_tags": true,
+          "tag_types": ["status", "trigger", "branch"],
+          "status_tags": {
+            "ready_to_merge": "ready-to-merge",
+            "needs_minor_work": "needs-work",
+            "needs_major_work": "needs-major-work",
+            "incomplete": "draft"
+          },
+          "include_metadata": true,
+          "metadata_fields": [
+            "branch_name",
+            "remote_url",
+            "fork_name",
+            "validation_timestamp",
+            "coverage_score",
+            "validator_version"
+          ]
+        },
+        "body": {
+          "sections": [
+            "executive_summary",
+            "coverage_metrics",
+            "requirements_breakdown",
+            "gap_analysis",
+            "quality_checks",
+            "recommendation",
+            "next_steps"
+          ],
+          "use_collapsible_sections": true,
+          "include_file_links": true
+        },
+        "footer": {
+          "include_revalidation_prompt": true,
+          "include_agent_attribution": true
+        }
+      }
+    },
+    {
+      "step": "request-user-confirmation",
+      "action": "action:confirm-post-comment",
+      "description": "Ask user to confirm posting validation comment to issue",
+      "required": true,
+      "continue_on_error": false,
+      "user_interaction": {
+        "type": "confirmation",
+        "prompt": "Post validation report to issue #{{issue_number}}?",
+        "details": {
+          "show_preview": true,
+          "show_tags": true,
+          "show_branch_info": true,
+          "preview_length": 500
+        },
+        "default": true,
+        "allow_edit": false
+      }
+    },
+    {
+      "step": "post-findings",
+      "command": "command:github-issue-comment",
+      "description": "Post validation findings as issue comment with tags",
+      "required": false,
+      "continue_on_error": true,
+      "only_if": "user_confirmed",
+      "comment_format": {
+        "use_markdown": true,
+        "include_metadata_table": true,
+        "tag_format": "`{{tag}}`",
+        "branch_format": "**Branch:** `{{fork}}/{{branch}}`"
+      }
+    }
+  ],
+  "permissions": {
+    "read": [
+      "**/*",
+      ".git/**",
+      "package.json",
+      "tsconfig.json",
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      "docs/**"
+    ],
+    "write": [],
+    "execute": [
+      "gh",
+      "git",
+      "npm",
+      "node"
+    ],
+    "github_api": [
+      "issues:read",
+      "issues:write",
+      "repo:read"
+    ]
+  },
+  "triggers": {
+    "manual": true,
+    "github_action": true,
+    "pre_merge_hook": true,
+    "pre_release_hook": true,
+    "scheduled": false,
+    "claude_intents": [
+      "validate issue completion",
+      "check if issue is done",
+      "verify requirements are met",
+      "validate code against issue",
+      "check issue coverage",
+      "pre-merge validation",
+      "ready to merge"
+    ]
+  },
+  "configuration": {
+    "analysis_mode": "conservative",
+    "require_all_tests_pass": true,
+    "require_documentation": true,
+    "minimum_coverage_score": 0.95,
+    "post_to_github": true,
+    "fail_on_gaps": true,
+    "require_user_approval_for_comment": true,
+    "show_comment_preview": true,
+    "include_branch_tags": true,
+    "include_status_tags": true,
+    "dry_run_default": false
+  },
+  "claude": {
+    "auto_execute": false,
+    "requires_user_confirmation": true,
+    "reports_progress": true,
+    "estimated_duration": "45-120 seconds",
+    "user_guidance": "This agent rigorously examines code changes against issue requirements. It errs on the side of finding gaps rather than being optimistic about completion. Use before merging or releasing.",
+    "success_message": "✅ Issue requirements validated. Coverage score: {{coverage_score}}%",
+    "warning_message": "⚠️ Gaps detected. Coverage score: {{coverage_score}}%. Review findings before proceeding.",
+    "error_guidance": "Address identified gaps before merging. The agent uses conservative analysis to ensure quality.",
+    "validation_philosophy": "Conservative gap detection: when in doubt, report a gap. Better to over-report than miss incomplete work."
+  },
+  "outputs": {
+    "coverage_score": {
+      "type": "number",
+      "description": "Conservative coverage score (0-100)",
+      "range": [0, 100]
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": ["ready_to_merge", "needs_minor_work", "needs_major_work", "incomplete"],
+      "description": "Overall recommendation based on coverage score"
+    },
+    "requirements_matrix": {
+      "type": "array",
+      "description": "Detailed matrix of requirements and their coverage status",
+      "items": {
+        "requirement_id": "string",
+        "requirement_text": "string",
+        "status": "enum[fully_addressed|mostly_addressed|partially_addressed|minimally_addressed|not_addressed]",
+        "evidence": "array[file_paths_and_line_numbers]",
+        "gaps": "array[string]"
+      }
+    },
+    "identified_gaps": {
+      "type": "array",
+      "description": "List of all identified gaps with severity",
+      "items": {
+        "category": "string",
+        "severity": "enum[critical|high|medium|low]",
+        "description": "string",
+        "requirement_id": "string",
+        "recommendation": "string"
+      }
+    },
+    "quality_checks": {
+      "type": "object",
+      "description": "Results from quality validation checks",
+      "properties": {
+        "type_check": "boolean",
+        "lint": "boolean",
+        "tests": "boolean",
+        "build": "boolean"
+      }
+    },
+    "next_steps": {
+      "type": "array",
+      "description": "Prioritized list of actions needed to complete the issue"
+    }
+  },
+  "dependencies": {
+    "commands": [
+      "command:github-issue-view",
+      "command:github-issue-comment",
+      "command:type-check",
+      "command:lint",
+      "command:test",
+      "command:build"
+    ],
+    "actions": [
+      "action:analyze-git-diff",
+      "action:parse-issue-requirements",
+      "action:map-code-to-requirements",
+      "action:detect-implementation-gaps",
+      "action:validate-code-quality",
+      "action:calculate-requirement-coverage",
+      "action:generate-completion-report"
+    ],
+    "tools": [
+      "gh",
+      "git"
+    ]
+  },
+  "examples": [
+    {
+      "scenario": "Pre-merge validation",
+      "user_request": "Validate that issue #42 is complete before merging",
+      "agent_workflow": [
+        "Fetches issue #42 and extracts all requirements",
+        "Analyzes git diff against main branch",
+        "Maps code changes to each requirement",
+        "Identifies gaps conservatively",
+        "Runs quality checks (type, lint, test, build)",
+        "Calculates coverage score",
+        "Generates detailed report",
+        "Posts findings to issue"
+      ],
+      "expected_output": "Coverage: 97%, Recommendation: ready_to_merge, 1 minor gap (missing doc example)"
+    },
+    {
+      "scenario": "Conservative gap detection",
+      "user_request": "Check if issue #15 is done",
+      "agent_workflow": [
+        "Extracts 12 requirements from issue",
+        "Finds code changes address 10 fully, 1 partially, 1 not at all",
+        "Identifies gaps: partial error handling, missing edge case test, incomplete documentation",
+        "Coverage: 78%",
+        "Recommendation: needs_major_work"
+      ],
+      "expected_output": "3 gaps identified, detailed next steps provided"
+    },
+    {
+      "scenario": "CI/CD pre-release check",
+      "user_request": "Pre-release validation for v1.2.0 (issues #50, #51, #52)",
+      "configuration_override": {
+        "minimum_coverage_score": 0.98
+      },
+      "agent_workflow": [
+        "Validates each issue separately",
+        "Aggregates coverage scores",
+        "Identifies any cross-issue gaps",
+        "Validates all quality checks pass",
+        "Generates release readiness report"
+      ],
+      "expected_output": "Release readiness: PASS (avg coverage 98.5%)"
+    },
+    {
+      "scenario": "Post validation comment with tags and branch info",
+      "user_request": "Validate issue #33 and post results",
+      "agent_workflow": [
+        "Validates issue #33 requirements",
+        "Detects branch: feature/add-auth, fork: userA/cv-builder",
+        "Formats comment with tags: draft, pre-merge, feature/add-auth",
+        "Shows preview to user",
+        "Asks for confirmation",
+        "Posts formatted comment to issue"
+      ],
+      "expected_comment_format": "## 🤖 Issue Completion Validation Report\n\n`draft` `pre-merge` `feature/add-auth`\n\n**Branch:** `userA/cv-builder/feature/add-auth`\n**Validated:** 2025-11-14 18:30:45 UTC\n**Coverage Score:** 68%\n**Recommendation:** needs-major-work\n\n### Validation Metadata\n| Field | Value |\n|-------|-------|\n| Branch | feature/add-auth |\n| Fork | userA/cv-builder |\n| Remote | https://github.com/userA/cv-builder.git |\n| Timestamp | 2025-11-14 18:30:45 UTC |\n| Validator Version | 1.0.0 |\n\n<details>\n<summary>Executive Summary</summary>\n\n[Detailed summary...]\n</details>\n\n<details>\n<summary>Requirements Matrix</summary>\n\n[Requirements breakdown...]\n</details>\n\n---\n\n💡 **To revalidate:** Run the issue-completion-validator agent again after addressing gaps.\n\n🤖 *Generated by issue-completion-validator v1.0.0*"
+    }
+  ],
+  "error_handling": {
+    "issue_not_found": {
+      "action": "fail_fast",
+      "message": "Issue #{{issue_number}} not found. Verify issue number."
+    },
+    "no_git_changes": {
+      "action": "warn",
+      "message": "No code changes detected. Issue may not require code changes."
+    },
+    "quality_check_failed": {
+      "action": "fail_fast",
+      "message": "Quality checks failed: {{failed_checks}}. Fix before validating completion."
+    },
+    "low_coverage_score": {
+      "action": "warn",
+      "message": "Coverage score {{coverage_score}}% is below threshold {{threshold}}%. Review gaps."
+    }
+  },
+  "ci_cd_integration": {
+    "github_actions": {
+      "trigger": "pull_request",
+      "workflow_file": ".github/workflows/validate-issue-completion.yml",
+      "required_checks": true,
+      "block_merge_on_failure": true
+    },
+    "pre_merge_hook": {
+      "enabled": true,
+      "minimum_score": 0.95,
+      "allow_override": false
+    },
+    "pre_release_hook": {
+      "enabled": true,
+      "minimum_score": 0.98,
+      "require_all_issues_validated": true
+    }
+  },
+  "analysis_guidelines": {
+    "conservative_principle": "When evaluating if a requirement is met, err on the side of caution. If there's any doubt about completeness, mark as partially addressed or not addressed.",
+    "evidence_required": "Every 'fully addressed' status must have concrete evidence (file paths, line numbers, test names).",
+    "gap_categories_priority": [
+      "missing_functionality",
+      "security_concerns",
+      "missing_tests",
+      "incomplete_error_handling",
+      "missing_edge_cases",
+      "type_safety_issues",
+      "missing_documentation",
+      "performance_concerns",
+      "accessibility_issues"
+    ],
+    "common_gaps_to_check": [
+      "Edge case handling (null, undefined, empty, overflow)",
+      "Error handling and user-facing error messages",
+      "Input validation and sanitization",
+      "Type safety and strict null checks",
+      "Unit tests for new functionality",
+      "Integration tests for workflows",
+      "Documentation updates (README, inline comments, API docs)",
+      "Accessibility (ARIA labels, keyboard navigation)",
+      "Performance considerations (N+1 queries, unnecessary re-renders)",
+      "Security (XSS, injection, authentication, authorization)",
+      "Backward compatibility",
+      "Migration path for existing data/users"
+    ]
+  },
+  "metadata": {
+    "created": "2025-11-14",
+    "last_updated": "2025-11-14",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-11-14",
+        "changes": "Initial agent definition with conservative gap detection"
+      }
+    ],
+    "tags": ["quality", "validation", "requirements", "ci-cd", "pre-merge", "conservative"],
+    "portable": true,
+    "framework_agnostic": true,
+    "designed_for": [
+      "manual pre-merge validation",
+      "automated CI/CD pipeline integration",
+      "pre-release verification",
+      "quality gate enforcement"
+    ]
+  }
+}

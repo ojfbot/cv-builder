@@ -1,0 +1,231 @@
+{
+  "name": "pre-commit-validator",
+  "version": "1.0.0",
+  "description": "Comprehensive pre-commit validation with intelligent commit strategy analysis",
+  "author": "AI MCP Stack Team",
+  "category": "quality",
+  "workflow": [
+    {
+      "step": "format-code",
+      "command": "command:format",
+      "description": "Auto-format code with Prettier",
+      "required": true,
+      "continue_on_error": false
+    },
+    {
+      "step": "verify-formatting",
+      "command": "command:format-check",
+      "description": "Verify code formatting is consistent",
+      "required": true,
+      "continue_on_error": false
+    },
+    {
+      "step": "lint-code",
+      "command": "command:lint",
+      "description": "Run ESLint to catch code issues",
+      "required": true,
+      "continue_on_error": false,
+      "auto_fix_on_error": {
+        "command": "command:lint-fix",
+        "prompt_user": true,
+        "message": "Linting found issues. Auto-fix?"
+      }
+    },
+    {
+      "step": "type-check",
+      "command": "command:type-check",
+      "description": "Run TypeScript type checking",
+      "required": true,
+      "continue_on_error": false
+    },
+    {
+      "step": "run-tests",
+      "command": "command:test",
+      "description": "Execute all unit tests",
+      "required": true,
+      "continue_on_error": false,
+      "progress_message": "Running tests (this may take 30-60 seconds)..."
+    },
+    {
+      "step": "build-check",
+      "command": "command:build",
+      "description": "Verify build succeeds",
+      "required": true,
+      "continue_on_error": false
+    },
+    {
+      "step": "analyze-changes",
+      "action": "action:analyze-changes",
+      "description": "Analyze git changes and categorize files",
+      "required": true,
+      "continue_on_error": false
+    },
+    {
+      "step": "analyze-commits",
+      "action": "action:analyze-commits",
+      "description": "Analyze existing commits on branch",
+      "required": false,
+      "continue_on_error": true
+    },
+    {
+      "step": "propose-strategy",
+      "action": "action:propose-commit-strategy",
+      "description": "Propose intelligent commit strategy based on changes",
+      "required": true,
+      "continue_on_error": false,
+      "user_interaction": {
+        "type": "review",
+        "prompt": "Review proposed commit strategy",
+        "allow_modification": true
+      }
+    }
+  ],
+  "permissions": {
+    "read": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.json",
+      "**/*.md",
+      ".git/**",
+      "package.json",
+      "tsconfig.json"
+    ],
+    "write": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.json",
+      "**/*.md"
+    ],
+    "execute": [
+      "npm",
+      "pnpm",
+      "git",
+      "node"
+    ]
+  },
+  "triggers": {
+    "manual": true,
+    "pre_commit_hook": true,
+    "github_action": false,
+    "scheduled": false,
+    "claude_intents": [
+      "want to commit",
+      "ready to commit",
+      "run pre-commit",
+      "validate before commit",
+      "commit my changes",
+      "prepare commit"
+    ]
+  },
+  "outputs": {
+    "validation_results": {
+      "type": "object",
+      "description": "Results from each validation step"
+    },
+    "commit_proposals": {
+      "type": "array",
+      "description": "Proposed commit messages and strategies"
+    },
+    "changed_files": {
+      "type": "array",
+      "description": "List of files that were changed or formatted"
+    }
+  },
+  "configuration": {
+    "auto_fix": true,
+    "auto_format": true,
+    "skip_tests": false,
+    "skip_build": false,
+    "require_user_approval": true,
+    "dry_run_default": false
+  },
+  "claude": {
+    "auto_execute": false,
+    "requires_user_confirmation": true,
+    "reports_progress": true,
+    "estimated_duration": "30-90 seconds",
+    "user_guidance": "This agent will validate your code (format, lint, type-check, test, build) and propose an intelligent commit strategy based on your changes.",
+    "success_message": "✅ Pre-commit validation passed! Your code is ready to commit.",
+    "error_guidance": "Review the validation errors above. The agent can auto-fix many issues if you approve."
+  },
+  "dependencies": {
+    "commands": [
+      "command:format",
+      "command:format-check",
+      "command:lint",
+      "command:lint-fix",
+      "command:type-check",
+      "command:test",
+      "command:build"
+    ],
+    "actions": [
+      "action:analyze-changes",
+      "action:analyze-commits",
+      "action:propose-commit-strategy"
+    ]
+  },
+  "examples": [
+    {
+      "scenario": "Standard commit preparation",
+      "user_request": "I'm ready to commit my changes",
+      "agent_workflow": [
+        "Runs all validation steps",
+        "Analyzes changes (tests, features, fixes, docs)",
+        "Proposes semantic commit messages",
+        "Waits for user approval"
+      ],
+      "expected_output": "Validation passed + 2-3 proposed commits"
+    },
+    {
+      "scenario": "Quick validation only",
+      "user_request": "Just validate my code, don't propose commits",
+      "configuration_override": {
+        "skip_commit_proposal": true
+      },
+      "agent_workflow": [
+        "Runs validation steps only",
+        "Reports pass/fail for each"
+      ]
+    }
+  ],
+  "error_handling": {
+    "format_error": {
+      "action": "auto_fix",
+      "message": "Code formatting issues found. Auto-fixing..."
+    },
+    "lint_error": {
+      "action": "prompt_user",
+      "message": "Linting errors found. Would you like to auto-fix?"
+    },
+    "type_error": {
+      "action": "fail_fast",
+      "message": "TypeScript type errors must be fixed manually."
+    },
+    "test_error": {
+      "action": "fail_fast",
+      "message": "Tests are failing. Please fix before committing."
+    },
+    "build_error": {
+      "action": "fail_fast",
+      "message": "Build failed. Please fix build errors before committing."
+    }
+  },
+  "metadata": {
+    "created": "2025-11-14",
+    "last_updated": "2025-11-14",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-11-14",
+        "changes": "Initial portable agent definition"
+      }
+    ],
+    "tags": ["quality", "validation", "pre-commit", "git", "semantic-commits"],
+    "portable": true,
+    "framework_agnostic": true
+  }
+}

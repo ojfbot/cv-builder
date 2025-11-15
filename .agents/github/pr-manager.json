@@ -1,0 +1,249 @@
+{
+  "name": "pr-manager",
+  "version": "1.0.0",
+  "description": "Pull request workflow automation with intelligent change analysis and issue linking",
+  "author": "AI MCP Stack Team",
+  "category": "github",
+  "capabilities": [
+    "create-pr",
+    "cross-reference-pr-issue",
+    "analyze-changes",
+    "link-issues"
+  ],
+  "workflows": {
+    "create": [
+      {
+        "step": "gather-pr-info",
+        "description": "Collect PR title, branch, and issue number",
+        "user_interaction": {
+          "type": "input",
+          "prompts": [
+            {
+              "name": "title",
+              "message": "PR title:",
+              "required": true
+            },
+            {
+              "name": "issue_number",
+              "message": "Related issue number (to close):",
+              "required": false
+            },
+            {
+              "name": "draft",
+              "message": "Create as draft PR?",
+              "type": "boolean",
+              "default": false
+            }
+          ]
+        }
+      },
+      {
+        "step": "detect-branch",
+        "command": "command:git-current-branch",
+        "description": "Auto-detect current branch",
+        "required": true
+      },
+      {
+        "step": "analyze-changes",
+        "action": "action:analyze-pr-changes",
+        "description": "Analyze git diff and categorize changes",
+        "required": true
+      },
+      {
+        "step": "generate-summary",
+        "action": "action:generate-pr-summary",
+        "description": "Generate PR body with change summary",
+        "required": true
+      },
+      {
+        "step": "create-pr",
+        "command": "command:github-pr-create",
+        "description": "Create formatted GitHub PR",
+        "required": true
+      },
+      {
+        "step": "cross-reference",
+        "action": "action:cross-reference-pr-issue",
+        "description": "Link PR to issue with validation",
+        "required": false,
+        "skip_if": {
+          "condition": "no_issue_number"
+        }
+      }
+    ],
+    "cross-reference": [
+      {
+        "step": "fetch-pr-details",
+        "command": "command:github-pr-view",
+        "description": "Fetch PR details and changes",
+        "required": true
+      },
+      {
+        "step": "fetch-issue-details",
+        "command": "command:github-issue-view",
+        "description": "Fetch linked issue details",
+        "required": true
+      },
+      {
+        "step": "parse-requirements",
+        "action": "action:parse-issue-requirements",
+        "description": "Extract requirements from issue LLM comments",
+        "required": true
+      },
+      {
+        "step": "analyze-pr-changes",
+        "action": "action:analyze-pr-symbols",
+        "description": "Analyze changed symbols and dependencies",
+        "required": true
+      },
+      {
+        "step": "validate-requirements",
+        "action": "action:validate-requirements",
+        "description": "Check if PR meets issue requirements",
+        "required": true
+      },
+      {
+        "step": "report-validation",
+        "action": "action:report-pr-validation",
+        "description": "Generate validation report",
+        "required": true
+      }
+    ]
+  },
+  "permissions": {
+    "read": [
+      "**/*",
+      ".git/**"
+    ],
+    "write": [],
+    "execute": [
+      "gh",
+      "git",
+      "node"
+    ],
+    "github_api": [
+      "pull_requests:read",
+      "pull_requests:write",
+      "issues:read",
+      "repo:read"
+    ]
+  },
+  "triggers": {
+    "manual": true,
+    "github_action": false,
+    "scheduled": false,
+    "claude_intents": [
+      "create pr",
+      "create pull request",
+      "open pr",
+      "make pull request",
+      "cross reference",
+      "validate pr"
+    ]
+  },
+  "configuration": {
+    "base_branch": "main",
+    "auto_push": false,
+    "enable_auto_merge": false,
+    "require_user_approval": true,
+    "dry_run_default": true
+  },
+  "claude": {
+    "auto_execute": false,
+    "requires_user_confirmation": true,
+    "reports_progress": true,
+    "estimated_duration": "15-45 seconds",
+    "user_guidance": "This agent creates well-formatted PRs with automatic change analysis and issue linking. It can also validate PRs against issue requirements.",
+    "workflow_selection": {
+      "prompt": "What would you like to do?",
+      "options": [
+        {
+          "label": "Create new PR",
+          "workflow": "create"
+        },
+        {
+          "label": "Cross-reference PR with issue",
+          "workflow": "cross-reference"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "commands": [
+      "command:github-pr-create",
+      "command:github-pr-view",
+      "command:github-issue-view",
+      "command:git-current-branch",
+      "command:git-diff"
+    ],
+    "actions": [
+      "action:analyze-pr-changes",
+      "action:generate-pr-summary",
+      "action:cross-reference-pr-issue",
+      "action:parse-issue-requirements",
+      "action:analyze-pr-symbols",
+      "action:validate-requirements",
+      "action:report-pr-validation"
+    ],
+    "tools": [
+      "gh",
+      "git"
+    ]
+  },
+  "outputs": {
+    "pr_url": {
+      "type": "string",
+      "description": "URL of created PR"
+    },
+    "pr_number": {
+      "type": "number",
+      "description": "GitHub PR number"
+    },
+    "validation_report": {
+      "type": "object",
+      "description": "PR validation results"
+    },
+    "changed_files": {
+      "type": "array",
+      "description": "List of files changed in PR"
+    }
+  },
+  "examples": [
+    {
+      "scenario": "Create PR for feature",
+      "user_request": "Create a PR for issue #33",
+      "agent_workflow": [
+        "Detects current branch",
+        "Analyzes changes (15 files: 5 components, 3 tests, 2 docs)",
+        "Generates summary with file categorization",
+        "Creates PR linking to issue #33",
+        "Cross-references requirements"
+      ]
+    },
+    {
+      "scenario": "Validate existing PR",
+      "user_request": "Validate PR #42 against issue #33",
+      "agent_workflow": [
+        "Fetches PR #42 and issue #33",
+        "Parses requirements from issue",
+        "Analyzes PR changes and symbols",
+        "Validates requirement completion",
+        "Reports validation results"
+      ]
+    }
+  ],
+  "metadata": {
+    "created": "2025-11-14",
+    "last_updated": "2025-11-14",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-11-14",
+        "changes": "Initial portable agent definition"
+      }
+    ],
+    "tags": ["github", "pull-requests", "automation", "validation"],
+    "portable": true,
+    "framework_agnostic": true
+  }
+}

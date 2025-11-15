@@ -1,0 +1,239 @@
+{
+  "name": "issue-manager",
+  "version": "1.0.0",
+  "description": "GitHub issue lifecycle management with intelligent codebase analysis and annotation",
+  "author": "AI MCP Stack Team",
+  "category": "github",
+  "capabilities": [
+    "create-issue",
+    "annotate-issue",
+    "update-issue",
+    "close-issue",
+    "bulk-update-issues"
+  ],
+  "workflows": {
+    "create": [
+      {
+        "step": "gather-requirements",
+        "description": "Collect issue title, description, labels",
+        "user_interaction": {
+          "type": "input",
+          "prompts": [
+            {
+              "name": "title",
+              "message": "Issue title:",
+              "required": true
+            },
+            {
+              "name": "labels",
+              "message": "Labels (comma-separated):",
+              "default": "enhancement",
+              "required": false
+            },
+            {
+              "name": "body_file",
+              "message": "Body file path (optional):",
+              "required": false
+            }
+          ]
+        }
+      },
+      {
+        "step": "create-issue",
+        "command": "command:github-issue-create",
+        "description": "Create GitHub issue with proper formatting",
+        "required": true
+      }
+    ],
+    "annotate": [
+      {
+        "step": "fetch-issue",
+        "command": "command:github-issue-view",
+        "description": "Fetch issue details from GitHub",
+        "required": true
+      },
+      {
+        "step": "analyze-codebase",
+        "action": "action:analyze-codebase-llm",
+        "description": "Use LLM to find relevant files for issue context",
+        "required": false,
+        "skip_if": {
+          "flag": "--no-analysis"
+        }
+      },
+      {
+        "step": "format-comment",
+        "action": "action:format-issue-comment",
+        "description": "Format comment with codebase references",
+        "required": true
+      },
+      {
+        "step": "post-comment",
+        "command": "command:github-issue-comment",
+        "description": "Post formatted comment to issue",
+        "required": true
+      }
+    ],
+    "close": [
+      {
+        "step": "add-closing-comment",
+        "command": "command:github-issue-comment",
+        "description": "Add optional closing comment",
+        "required": false
+      },
+      {
+        "step": "close-issue",
+        "command": "command:github-issue-close",
+        "description": "Close the GitHub issue",
+        "required": true
+      }
+    ],
+    "bulk-update": [
+      {
+        "step": "list-issues",
+        "command": "command:github-issue-list",
+        "description": "List open issues matching filter",
+        "required": true
+      },
+      {
+        "step": "update-each",
+        "action": "action:bulk-update-issues",
+        "description": "Apply updates to each issue",
+        "required": true
+      }
+    ]
+  },
+  "permissions": {
+    "read": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.md",
+      ".git/**"
+    ],
+    "write": [],
+    "execute": [
+      "gh",
+      "node"
+    ],
+    "github_api": [
+      "issues:read",
+      "issues:write",
+      "repo:read"
+    ]
+  },
+  "triggers": {
+    "manual": true,
+    "github_action": false,
+    "scheduled": false,
+    "claude_intents": [
+      "create issue",
+      "create github issue",
+      "open issue",
+      "annotate issue",
+      "add comment to issue",
+      "update issue",
+      "close issue"
+    ]
+  },
+  "configuration": {
+    "default_labels": ["enhancement"],
+    "enable_llm_analysis": true,
+    "require_user_approval": true,
+    "dry_run_default": true
+  },
+  "claude": {
+    "auto_execute": false,
+    "requires_user_confirmation": true,
+    "reports_progress": true,
+    "estimated_duration": "10-30 seconds",
+    "user_guidance": "This agent manages GitHub issues with intelligent codebase analysis. It can create formatted issues, add context-aware comments, and manage the issue lifecycle.",
+    "workflow_selection": {
+      "prompt": "What would you like to do?",
+      "options": [
+        {
+          "label": "Create new issue",
+          "workflow": "create"
+        },
+        {
+          "label": "Annotate existing issue",
+          "workflow": "annotate"
+        },
+        {
+          "label": "Close issue",
+          "workflow": "close"
+        },
+        {
+          "label": "Bulk update issues",
+          "workflow": "bulk-update"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "commands": [
+      "command:github-issue-create",
+      "command:github-issue-view",
+      "command:github-issue-comment",
+      "command:github-issue-close",
+      "command:github-issue-list"
+    ],
+    "actions": [
+      "action:analyze-codebase-llm",
+      "action:format-issue-comment",
+      "action:bulk-update-issues"
+    ],
+    "tools": [
+      "gh"
+    ]
+  },
+  "examples": [
+    {
+      "scenario": "Create issue for new feature",
+      "user_request": "Create an issue for adding dark mode",
+      "agent_workflow": [
+        "Prompts for title: 'Add dark mode toggle'",
+        "Suggests labels: enhancement, frontend",
+        "Creates formatted issue with template"
+      ]
+    },
+    {
+      "scenario": "Annotate issue with analysis",
+      "user_request": "Add implementation notes to issue #33",
+      "agent_workflow": [
+        "Fetches issue #33 details",
+        "Analyzes codebase for relevant files",
+        "Adds comment with file references and suggestions"
+      ]
+    }
+  ],
+  "outputs": {
+    "issue_url": {
+      "type": "string",
+      "description": "URL of created/updated issue"
+    },
+    "issue_number": {
+      "type": "number",
+      "description": "GitHub issue number"
+    },
+    "relevant_files": {
+      "type": "array",
+      "description": "Files identified as relevant to issue"
+    }
+  },
+  "metadata": {
+    "created": "2025-11-14",
+    "last_updated": "2025-11-14",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-11-14",
+        "changes": "Initial portable agent definition"
+      }
+    ],
+    "tags": ["github", "issues", "automation", "llm-analysis"],
+    "portable": true,
+    "framework_agnostic": true
+  }
+}
