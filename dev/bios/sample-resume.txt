@@ -1,0 +1,71 @@
+JOHN DOE
+Senior Software Engineer
+
+Contact Information:
+Email: john.doe@example.com
+Phone: (555) 123-4567
+Location: San Francisco, CA
+LinkedIn: linkedin.com/in/johndoe
+GitHub: github.com/johndoe
+
+PROFESSIONAL SUMMARY
+
+Experienced full-stack software engineer with 8+ years of expertise in building scalable web applications and cloud infrastructure. Passionate about clean code, developer productivity, and mentoring junior engineers. Strong background in React, Node.js, TypeScript, and AWS.
+
+WORK EXPERIENCE
+
+Senior Software Engineer | TechCorp Inc. | San Francisco, CA | 2020 - Present
+- Lead development of customer-facing web applications serving 500K+ monthly active users
+- Architected and implemented microservices architecture reducing deployment time by 60%
+- Mentored team of 5 junior engineers, improving code quality and team velocity
+- Technologies: React, TypeScript, Node.js, GraphQL, AWS, Docker, Kubernetes
+
+Software Engineer | StartupXYZ | Palo Alto, CA | 2018 - 2020
+- Built real-time collaboration features used by 10K+ enterprise customers
+- Reduced API response times by 40% through database optimization and caching
+- Implemented CI/CD pipeline reducing release cycle from 2 weeks to 2 days
+- Technologies: React, Redux, Express.js, PostgreSQL, Redis, CircleCI
+
+Full Stack Developer | WebAgency Co. | San Jose, CA | 2016 - 2018
+- Developed e-commerce platforms for Fortune 500 clients
+- Created reusable component library adopted across 15+ client projects
+- Improved site performance achieving 95+ Lighthouse scores
+- Technologies: JavaScript, Vue.js, PHP, MySQL, WordPress
+
+EDUCATION
+
+Bachelor of Science in Computer Science
+Stanford University | 2012 - 2016
+GPA: 3.8/4.0
+
+TECHNICAL SKILLS
+
+Languages: TypeScript, JavaScript, Python, Go, SQL
+Frontend: React, Vue.js, Next.js, HTML/CSS, Tailwind CSS
+Backend: Node.js, Express, GraphQL, REST APIs, Microservices
+Databases: PostgreSQL, MongoDB, Redis, DynamoDB
+Cloud & DevOps: AWS (EC2, S3, Lambda, RDS), Docker, Kubernetes, Terraform, GitHub Actions
+Tools: Git, VS Code, Figma, Jira, Slack
+
+CERTIFICATIONS
+
+- AWS Certified Solutions Architect - Associate (2022)
+- Google Cloud Professional Cloud Architect (2021)
+
+PROJECTS
+
+Open Source Contributions
+- Contributor to React and TypeScript projects on GitHub
+- Created popular npm package for form validation (5K+ weekly downloads)
+- Active maintainer of developer tooling libraries
+
+Personal Projects
+- Built AI-powered resume builder helping 1K+ job seekers
+- Developed real-time chat application using WebSockets and Redis
+- Created developer blog with 10K+ monthly readers
+
+AWARDS & RECOGNITION
+
+- Employee of the Year, TechCorp Inc. (2022)
+- Hackathon Winner, Tech Innovators Conference (2021)
+- Dean's List, Stanford University (2014-2016)

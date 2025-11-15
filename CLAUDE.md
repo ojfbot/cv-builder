@@ -74,12 +74,24 @@ The app uses the Claude Sonnet 4 model (`claude-sonnet-4-20250514`) by default.
 
 ### Data Directories
 
-Create local data directories (gitignored):
-- `bio/` - Personal bio data
-- `jobs/` - Job listings
-- `output/` - Generated resumes and outputs
+The application uses a **three-tier storage structure** for organized data management:
 
-Example data is in `public/examples/`.
+1. **`personal/`** - User data (gitignored, private)
+   - `bios/` - Uploaded resumes and bio data
+   - `jobs/` - Job listings
+   - `output/` - Generated resumes and documents
+   - `research/` - Research data
+
+2. **`dev/`** - Mock data for development (tracked in git)
+   - Contains sample files with the same structure as `personal/`
+   - Used for consistent testing and development
+   - See `dev/README.md` for details
+
+3. **`temp/`** - Ephemeral test files (gitignored)
+   - Same structure as `personal/` and `dev/`
+   - Used for temporary testing and experiments
+
+Example data is in `public/examples/` and `dev/` directories.
 
 ## Architecture
 
