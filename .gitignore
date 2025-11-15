@@ -11,6 +11,7 @@ env.json
 /research/
 /pipelines/
 /toolbox/
+personal/
 
 # Temporary working directory
 /temp/
