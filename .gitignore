@@ -5,7 +5,7 @@
 env.json
 
 # Private data directories
-/bio/
+/bios/
 /jobs/
 /output/
 /research/
