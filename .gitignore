@@ -4,7 +4,7 @@
 .env.*.local
 env.json
 
-# Private data directories
+# Private data directories (legacy - being migrated to personal/)
 /bios/
 /jobs/
 /output/
@@ -12,8 +12,14 @@ env.json
 /pipelines/
 /toolbox/
 
-# Temporary working directory
+# Three-tier storage structure
+# personal/ - User data (gitignored, never committed)
+/personal/
+
+# temp/ - Ephemeral development/test files (gitignored)
 /temp/
+
+# dev/ - Mock data for development (tracked in git)
 
 # Dependencies
 node_modules/

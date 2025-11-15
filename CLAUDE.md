@@ -74,12 +74,24 @@ The app uses the Claude Sonnet 4 model (`claude-sonnet-4-20250514`) by default.
 
 ### Data Directories
 
-Create local data directories (gitignored):
-- `bio/` - Personal bio data
-- `jobs/` - Job listings
-- `output/` - Generated resumes and outputs
+The application uses a **three-tier storage structure**:
 
-Example data is in `public/examples/`.
+1. **personal/** - User data (gitignored, private)
+   - `personal/bios/` - Uploaded resumes and bio data
+   - `personal/jobs/` - Job listings
+   - `personal/output/` - Generated resumes and documents
+   - `personal/research/` - Research data
+
+2. **dev/** - Mock data for development (tracked in git)
+   - `dev/bios/` - Sample resume data
+   - `dev/jobs/` - Sample job listings
+   - `dev/output/` - Example outputs
+   - `dev/research/` - Example research
+
+3. **temp/** - Ephemeral test files (gitignored)
+   - Matching subdirectory structure for testing
+
+Example data is in `public/examples/` and `dev/`.
 
 ## Architecture
 
@@ -177,6 +189,24 @@ The `OrchestratorAgent` coordinates all agents, loads data, and manages workflow
 - Common workflows (job application package, learning path generation)
 - Code examples
 - Best practices for system prompts, streaming, and error handling
+
+## Resume Upload Feature
+
+The application supports uploading existing resume files through the chat interface:
+
+**Supported Formats**: PDF, DOCX, TXT, MD
+**Maximum File Size**: 10MB
+**Storage Location**: `personal/bios/`
+
+**Key Components**:
+- **Resume Parser**: `packages/agent-core/src/utils/resume-parser.ts` - Extracts text from various formats
+- **Upload API Route**: `packages/api/src/routes/upload.ts` - POST /api/upload/resume endpoint
+- **API Client**: `packages/browser-app/src/api/client.ts` - `uploadResume()` method
+- **Chat Integration**: File upload handler in `packages/browser-app/src/components/InteractiveChat.tsx`
+
+**Usage**: Click the "Upload Resume" badge in the chat interface to select and upload a resume file. The system will automatically parse the content, extract metadata (word count, page count), and store the file in `personal/bios/`.
+
+**For detailed documentation, see `docs/UPLOAD_FEATURE.md`**
 
 ## Adding New Agents
 

@@ -11,6 +11,7 @@ import chatRouter from './routes/chat.js';
 import resumeRouter from './routes/resume.js';
 import jobRouter from './routes/job.js';
 import interviewRouter from './routes/interview.js';
+import uploadRouter from './routes/upload.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -55,6 +56,7 @@ app.use('/api/chat', chatRouter);
 app.use('/api/resume', resumeRouter);
 app.use('/api/job', jobRouter);
 app.use('/api/interview', interviewRouter);
+app.use('/api/upload', uploadRouter);
 
 // Error handling
 app.use(notFoundHandler);

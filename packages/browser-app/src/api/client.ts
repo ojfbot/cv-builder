@@ -275,6 +275,45 @@ export class ApiClient {
 
     return this.parseResponse(response);
   }
+
+  /**
+   * Upload and parse a resume file
+   */
+  async uploadResume(file: File): Promise<{
+    text: string;
+    metadata: {
+      fileType: string;
+      originalFilename: string;
+      uploadDate: string;
+      pageCount?: number;
+      wordCount: number;
+    };
+    storedPath: string;
+  }> {
+    const formData = new FormData();
+    formData.append('resume', file);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds for file upload
+
+    try {
+      const response = await fetch(`${this.baseUrl}/upload/resume`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+        // Don't set Content-Type header - let browser set it with boundary for multipart/form-data
+      });
+
+      clearTimeout(timeoutId);
+      return this.parseResponse(response);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Upload timeout - file may be too large or connection is slow');
+      }
+      throw error;
+    }
+  }
 }
 
 /**

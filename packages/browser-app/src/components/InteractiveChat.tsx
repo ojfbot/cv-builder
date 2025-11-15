@@ -23,6 +23,7 @@ import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigation
 import { TabKey } from '../models/navigation'
 import { Action } from '../models/badge-action'
 import { executeActions } from '../utils/action-dispatcher'
+import { apiClient } from '../api/client'
 import MarkdownMessage from './MarkdownMessage'
 import './InteractiveChat.css'
 
@@ -365,14 +366,48 @@ function InteractiveChat() {
 
       console.log('[InteractiveChat] Files selected:', files.length)
 
-      // TODO: Implement actual file processing
-      // For now, just show a message
-      const fileNames = Array.from(files).map(f => f.name).join(', ')
-      const message: Message = {
+      // Show upload in progress message
+      const uploadingMessage: Message = {
         role: 'assistant',
-        content: `📎 **Files selected:** ${fileNames}\n\n_File processing will be implemented soon. For now, please manually add your resume information to your Bio._`
+        content: `Uploading and processing your resume...`
       }
-      dispatch(addMessageToStore({ message, markAsRead: true }))
+      dispatch(addMessageToStore({ message: uploadingMessage, markAsRead: true }))
+
+      try {
+        // Process the first file (for now, we only handle single resume uploads)
+        const file = files[0]
+        console.log('[InteractiveChat] Uploading file:', file.name)
+
+        // Upload and parse the resume
+        const result = await apiClient.uploadResume(file)
+
+        console.log('[InteractiveChat] Upload successful:', result.metadata)
+
+        // Show success message with metadata
+        const pageInfo = result.metadata.pageCount ? `, ${result.metadata.pageCount} pages` : ''
+        const successMessage: Message = {
+          role: 'assistant',
+          content: `Resume uploaded successfully! Saved **${result.metadata.originalFilename}** (${result.metadata.fileType.toUpperCase()}, ${result.metadata.wordCount} words${pageInfo}) to \`${result.storedPath}\`
+
+**Preview:**
+\`\`\`
+${result.text.substring(0, 400)}${result.text.length > 400 ? '...' : ''}
+\`\`\`
+
+You can now ask me to analyze this resume, tailor it to a specific job, or generate cover letters.`
+        }
+        dispatch(addMessageToStore({ message: successMessage, markAsRead: true }))
+      } catch (error) {
+        console.error('[InteractiveChat] Upload failed:', error)
+
+        const errorMessage: Message = {
+          role: 'assistant',
+          content: `Upload failed: ${error instanceof Error ? error.message : 'An unknown error occurred'}
+
+Please ensure your file is a supported format (PDF, DOCX, TXT, or MD) under 10MB, and that the API server is running.`
+        }
+        dispatch(addMessageToStore({ message: errorMessage, markAsRead: true }))
+      }
     }
 
     // Trigger the file dialog
