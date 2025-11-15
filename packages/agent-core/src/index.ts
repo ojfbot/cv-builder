@@ -23,7 +23,16 @@ export { InterviewCoachAgent } from './agents/interview-coach-agent.js'
 //   import { OrchestratorAgent } from '@cv-builder/agent-core/agents/orchestrator-agent'
 
 // Models
-export { BioSchema, type Bio } from './models/bio.js'
+export {
+  BioSchema,
+  type Bio,
+  BioFileSchema,
+  type BioFile,
+  FileUploadRequestSchema,
+  type FileUploadRequest,
+  FileListQuerySchema,
+  type FileListQuery,
+} from './models/bio.js'
 export { JobListingSchema, type JobListing } from './models/job.js'
 export { ResearchEntrySchema, type ResearchEntry } from './models/research.js'
 
