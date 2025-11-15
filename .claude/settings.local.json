@@ -12,7 +12,8 @@
       "Bash(npx tsc:*)",
       "Bash(curl:*)",
       "Bash(npx tsx:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git rev-parse:*)"
     ],
     "deny": [],
     "ask": []
