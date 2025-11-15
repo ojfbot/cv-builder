@@ -13,7 +13,14 @@
       "Bash(curl:*)",
       "Bash(npx tsx:*)",
       "Bash(git commit:*)",
-      "Bash(git rev-parse:*)"
+      "Bash(git rev-parse:*)",
+      "Bash(for agent in build-validator issue-manager pr-manager issue-completion-validator pre-commit-validator)",
+      "Bash(do echo \"=== $agent ===\")",
+      "Bash(cat:*)",
+      "Bash(jq -r \".agents.\"\"$agent\"\" | \"\"Priority: \\(.priority) | Category: \\(.category) | Description: \\(.description)\"\"\")",
+      "Bash(done)",
+      "Bash(git check-ignore:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

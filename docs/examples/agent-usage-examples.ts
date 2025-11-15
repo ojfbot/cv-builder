@@ -5,13 +5,13 @@
  * Run these examples with: tsx docs/examples/agent-usage-examples.ts
  */
 
-import { OrchestratorAgent } from '../../src/agents/orchestrator-agent.js'
-import { ResumeGeneratorAgent } from '../../src/agents/resume-generator-agent.js'
-import { JobAnalysisAgent } from '../../src/agents/job-analysis-agent.js'
-import { TailoringAgent } from '../../src/agents/tailoring-agent.js'
-import { SkillsGapAgent } from '../../src/agents/skills-gap-agent.js'
-import { InterviewCoachAgent } from '../../src/agents/interview-coach-agent.js'
-import { getConfig } from '../../src/utils/config.js'
+import { OrchestratorAgent } from '@cv-builder/agent-core/agents/orchestrator-agent'
+import { ResumeGeneratorAgent } from '@cv-builder/agent-core/agents/resume-generator-agent'
+import { JobAnalysisAgent } from '@cv-builder/agent-core/agents/job-analysis-agent'
+import { TailoringAgent } from '@cv-builder/agent-core/agents/tailoring-agent'
+import { SkillsGapAgent } from '@cv-builder/agent-core/agents/skills-gap-agent'
+import { InterviewCoachAgent } from '@cv-builder/agent-core/agents/interview-coach-agent'
+import { getConfig } from '@cv-builder/agent-core/utils/config'
 
 const apiKey = process.env.ANTHROPIC_API_KEY!
 

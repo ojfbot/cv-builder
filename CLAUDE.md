@@ -87,7 +87,7 @@ Example data is in `public/examples/`.
 
 The codebase uses a **multi-agent architecture** where specialized Claude agents coordinate to handle different tasks:
 
-1. **Orchestrator Agent** (`src/agents/orchestrator-agent.ts`): Coordinates other agents, parses requests, and manages workflow
+1. **Orchestrator Agent** (`packages/agent-core/src/agents/orchestrator-agent.ts`): Coordinates other agents, parses requests, and manages workflow
 2. **Resume Generator Agent**: Creates and formats resumes
 3. **Job Analysis Agent**: Extracts requirements from job descriptions
 4. **Tailoring Agent**: Customizes resumes for specific jobs
@@ -95,11 +95,11 @@ The codebase uses a **multi-agent architecture** where specialized Claude agents
 6. **Interview Coach Agent**: Prepares cover letters and interview guidance
 7. **Research Agent**: Finds best practices and industry trends
 
-Currently only the base agent and orchestrator are implemented. Other agents are planned.
+All specialized agents are fully implemented in the agent-core package.
 
 ### Agent Communication Flow
 ```
-User Request → Orchestrator Agent → Specialized Agents (parallel execution)
+Browser App → API Server → Orchestrator Agent → Specialized Agents (parallel execution)
 ```
 
 All agents extend `BaseAgent` class which provides:
@@ -108,31 +108,57 @@ All agents extend `BaseAgent` class which provides:
 - Streaming and non-streaming chat methods
 - System prompt abstraction
 
-### Code Structure
+### Monorepo Structure
+
+This project uses a monorepo structure with npm workspaces:
 
 ```
-src/
-├── agents/          # Agent implementations (BaseAgent + OrchestratorAgent)
-├── browser/         # React web UI (Carbon Design System)
-│   └── components/  # Dashboard components for Bio, Jobs, Outputs, Chat
-├── cli/            # Command-line interface
-├── models/         # Zod schemas and TypeScript types (Bio, Job, Output)
-└── utils/          # Config and file storage utilities
+packages/
+├── agent-core/          # @cv-builder/agent-core
+│   ├── src/
+│   │   ├── agents/      # Agent implementations (BaseAgent, specialized agents)
+│   │   ├── cli/         # Command-line interface
+│   │   ├── models/      # Zod schemas and TypeScript types (Bio, Job, Output, Research)
+│   │   └── utils/       # Config and file storage utilities (Node.js only)
+│   └── package.json
+├── api/                 # @cv-builder/api
+│   ├── src/
+│   │   ├── routes/      # Express API routes for agent operations
+│   │   ├── middleware/  # Auth, validation, error handling
+│   │   └── services/    # Agent manager for server-side execution
+│   └── package.json
+└── browser-app/         # @cv-builder/browser-app
+    ├── src/
+    │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat
+    │   ├── api/         # API client for server communication
+    │   ├── services/    # Browser orchestrator
+    │   └── store/       # Redux state management
+    └── package.json
 ```
 
 ### Data Models
 
-All models use **Zod** for runtime validation and type inference:
+All models use **Zod** for runtime validation and type inference, located in `packages/agent-core/src/models/`:
 
-- **Bio** (`src/models/bio.ts`): Personal info, experiences, education, skills, projects, certifications, publications
-- **JobListing** (`src/models/job.ts`): Job details, requirements, company info
-- **Output** (`src/models/output.ts`): Generated resumes, analyses, learning paths
+- **Bio**: Personal info, experiences, education, skills, projects, certifications, publications
+- **JobListing**: Job details, requirements, company info
+- **Output**: Generated resumes, analyses, learning paths
+- **ResearchEntry**: Research findings, industry analysis, company intelligence
 
-Data stored as JSON files in respective directories.
+Data stored as JSON files in respective directories (CLI/API) or browser localStorage (browser app).
 
-### Path Alias
+### Package Imports
 
-The project uses `@/` as an alias for `src/` directory (configured in `vite.config.ts` and `tsconfig.json`).
+The monorepo uses package references for cross-package imports:
+
+```typescript
+// Import from agent-core (main exports)
+import { BaseAgent, Bio, JobListing } from '@cv-builder/agent-core'
+
+// Import Node.js-only utilities (server-side)
+import { FileStorage } from '@cv-builder/agent-core/utils/file-storage'
+import { OrchestratorAgent } from '@cv-builder/agent-core/agents/orchestrator-agent'
+```
 
 ## Agent System
 
@@ -156,12 +182,14 @@ The `OrchestratorAgent` coordinates all agents, loads data, and manages workflow
 
 When creating a new agent:
 
-1. Create a new file in `src/agents/` extending `BaseAgent`
+1. Create a new file in `packages/agent-core/src/agents/` extending `BaseAgent`
 2. Implement `getSystemPrompt()` with the agent's role and responsibilities
 3. Add public methods for the agent's functionality (use `chat()` or `streamChat()`)
-4. Define input/output types in `src/models/` with Zod schemas
-5. Integrate with `OrchestratorAgent` for coordination
-6. Update `docs/AGENTS_GUIDE.md` with usage examples
+4. Define input/output types in `packages/agent-core/src/models/` with Zod schemas
+5. Export the agent from `packages/agent-core/src/index.ts` (if browser-compatible)
+6. Integrate with `OrchestratorAgent` for coordination
+7. Add API routes in `packages/api/src/routes/` for server-side execution
+8. Update `docs/AGENTS_GUIDE.md` with usage examples
 
 See `docs/how-to/01-building-features.md` and `docs/AGENTS_GUIDE.md` for detailed walkthroughs.
 

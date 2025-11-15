@@ -296,29 +296,37 @@ await storage.writeText(`quick-wins-${job.id}.md`, quickWins)
 
 When adding a new specialized agent:
 
-1. **Create the agent file** in `src/agents/`
+1. **Create the agent file** in `packages/agent-core/src/agents/`
    - Extend `BaseAgent` class
    - Implement `getSystemPrompt()` method
    - Add public methods for agent functionality
 
-2. **Define data models** in `src/models/`
+2. **Define data models** in `packages/agent-core/src/models/`
    - Use Zod schemas for validation
    - Export TypeScript types
 
-3. **Integrate with Orchestrator**
-   - Import the new agent
+3. **Export from agent-core** in `packages/agent-core/src/index.ts`
+   - Add to exports if browser-compatible
+   - Document if Node.js-only
+
+4. **Integrate with Orchestrator**
+   - Import the new agent in `packages/agent-core/src/agents/orchestrator-agent.ts`
    - Initialize in constructor
    - Add getter method
    - Update system prompt with new agent capabilities
 
-4. **Add to documentation**
+5. **Add API routes** in `packages/api/src/routes/`
+   - Create REST endpoint for the agent
+   - Add to server routes
+
+6. **Add to documentation**
    - Update this guide
    - Add examples to `docs/how-to/`
 
 ### Example: Adding a Salary Negotiation Agent
 
 ```typescript
-// src/agents/salary-negotiation-agent.ts
+// packages/agent-core/src/agents/salary-negotiation-agent.ts
 import { BaseAgent } from './base-agent.js'
 
 export class SalaryNegotiationAgent extends BaseAgent {
@@ -502,4 +510,4 @@ When working with agents, always:
 For more details, see:
 - `docs/technical/02-agent-architecture.md` - Architecture overview
 - `docs/how-to/01-building-features.md` - Development guide
-- Source code in `src/agents/` - Implementation details
+- Source code in `packages/agent-core/src/agents/` - Implementation details

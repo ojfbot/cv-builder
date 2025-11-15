@@ -81,16 +81,16 @@ CV Builder now uses a secure **client-server architecture** with proper separati
 **Purpose**: Core agent implementations and shared models
 
 **Key Files**:
-- `src/agents/base-agent.ts` - Base class for all agents
-- `src/agents/orchestrator-agent.ts` - Main coordinator agent (Node.js only)
-- `src/agents/resume-generator-agent.ts` - Resume generation
-- `src/agents/job-analysis-agent.ts` - Job matching and analysis
-- `src/agents/tailoring-agent.ts` - Resume customization
-- `src/agents/skills-gap-agent.ts` - Learning path generation
-- `src/agents/interview-coach-agent.ts` - Interview preparation
-- `src/models/` - Zod schemas for Bio, JobListing, etc.
-- `src/utils/config.ts` - Loads `env.json` (Node.js only)
-- `src/utils/file-storage.ts` - File system storage (Node.js only)
+- `packages/agent-core/src/agents/base-agent.ts` - Base class for all agents
+- `packages/agent-core/src/agents/orchestrator-agent.ts` - Main coordinator agent (Node.js only)
+- `packages/agent-core/src/agents/resume-generator-agent.ts` - Resume generation
+- `packages/agent-core/src/agents/job-analysis-agent.ts` - Job matching and analysis
+- `packages/agent-core/src/agents/tailoring-agent.ts` - Resume customization
+- `packages/agent-core/src/agents/skills-gap-agent.ts` - Learning path generation
+- `packages/agent-core/src/agents/interview-coach-agent.ts` - Interview preparation
+- `packages/agent-core/src/models/` - Zod schemas for Bio, JobListing, etc.
+- `packages/agent-core/src/utils/config.ts` - Loads `env.json` (Node.js only)
+- `packages/agent-core/src/utils/file-storage.ts` - File system storage (Node.js only)
 
 **Security**:
 - Agents NO LONGER use `dangerouslyAllowBrowser`
@@ -138,13 +138,13 @@ GET  /api/health            - Health check
 **Purpose**: User interface for CV Builder
 
 **Key Changes**:
-- `src/api/client.ts` - NEW: REST API client with timeout handling
-- `src/services/browser-orchestrator.ts` - UPDATED: Now uses API client instead of direct agents
-- `src/services/agent-service.ts` - UPDATED: No longer requires API key
-- `src/contexts/AgentContext.tsx` - UPDATED: Removed API key management
-- `src/store/slices/agentSlice.ts` - UPDATED: Removed API key state
-- `src/components/ApiKeySettings.tsx` - UPDATED: Now shows connection status
-- `src/utils/browser-storage.ts` - Unchanged: LocalStorage for user data
+- `packages/browser-app/src/api/client.ts` - NEW: REST API client with timeout handling
+- `packages/browser-app/src/services/browser-orchestrator.ts` - UPDATED: Now uses API client instead of direct agents
+- `packages/browser-app/src/services/agent-service.ts` - UPDATED: No longer requires API key
+- `packages/browser-app/src/contexts/AgentContext.tsx` - UPDATED: Removed API key management
+- `packages/browser-app/src/store/slices/agentSlice.ts` - UPDATED: Removed API key state
+- `packages/browser-app/src/components/ApiKeySettings.tsx` - UPDATED: Now shows connection status
+- `packages/browser-app/src/utils/browser-storage.ts` - Unchanged: LocalStorage for user data
 
 **Data Flow**:
 1. User interacts with UI components

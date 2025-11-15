@@ -25,6 +25,7 @@ export { InterviewCoachAgent } from './agents/interview-coach-agent.js'
 // Models
 export { BioSchema, type Bio } from './models/bio.js'
 export { JobListingSchema, type JobListing } from './models/job.js'
+export { ResearchEntrySchema, type ResearchEntry } from './models/research.js'
 
 // NOTE: FileStorage and getConfig are NOT exported here to maintain browser compatibility
 // They use Node.js fs module and should only be imported in Node.js environments
