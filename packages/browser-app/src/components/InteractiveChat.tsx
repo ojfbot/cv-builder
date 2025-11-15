@@ -24,6 +24,8 @@ import { TabKey } from '../models/navigation'
 import { Action } from '../models/badge-action'
 import { executeActions } from '../utils/action-dispatcher'
 import MarkdownMessage from './MarkdownMessage'
+import { bioFilesApi } from '../api/bioFilesApi'
+import { navigateToTab } from '../store/slices/navigationSlice'
 import './InteractiveChat.css'
 
 interface Message {
@@ -365,14 +367,79 @@ function InteractiveChat() {
 
       console.log('[InteractiveChat] Files selected:', files.length)
 
-      // TODO: Implement actual file processing
-      // For now, just show a message
-      const fileNames = Array.from(files).map(f => f.name).join(', ')
-      const message: Message = {
-        role: 'assistant',
-        content: `📎 **Files selected:** ${fileNames}\n\n_File processing will be implemented soon. For now, please manually add your resume information to your Bio._`
+      // Upload files to Bio Files API
+      const fileArray = Array.from(files)
+
+      try {
+        // Show uploading message
+        const uploadingMessage: Message = {
+          role: 'assistant',
+          content: `📤 Uploading ${fileArray.length} file${fileArray.length > 1 ? 's' : ''}: ${fileArray.map(f => f.name).join(', ')}...`
+        }
+        dispatch(addMessageToStore({ message: uploadingMessage, markAsRead: true }))
+
+        // Upload each file
+        const uploadResults = await Promise.all(
+          fileArray.map(async (file) => {
+            try {
+              const result = await bioFilesApi.uploadFile(file)
+              return { success: true, file, result }
+            } catch (error) {
+              console.error('[InteractiveChat] Error uploading file:', file.name, error)
+              return { success: false, file, error }
+            }
+          })
+        )
+
+        // Count successes and failures
+        const successful = uploadResults.filter(r => r.success)
+        const failed = uploadResults.filter(r => !r.success)
+
+        // Show result message
+        let resultContent = ''
+        if (successful.length > 0) {
+          resultContent += `✅ **Successfully uploaded ${successful.length} file${successful.length > 1 ? 's' : ''}:**\n`
+          successful.forEach(r => {
+            if (r.success && r.result) {
+              resultContent += `- ${r.file.name} (${r.result.sizeFormatted})\n`
+            }
+          })
+        }
+
+        if (failed.length > 0) {
+          resultContent += `\n❌ **Failed to upload ${failed.length} file${failed.length > 1 ? 's' : ''}:**\n`
+          failed.forEach(r => {
+            if (!r.success) {
+              const errorMsg = r.error instanceof Error ? r.error.message : 'Unknown error'
+              resultContent += `- ${r.file.name}: ${errorMsg}\n`
+            }
+          })
+        }
+
+        if (successful.length > 0) {
+          resultContent += `\n📁 Your files are now stored in the Bio section. [Go to Bio](action:view bio files)`
+        }
+
+        const resultMessage: Message = {
+          role: 'assistant',
+          content: resultContent
+        }
+        dispatch(addMessageToStore({ message: resultMessage, markAsRead: true }))
+
+        // Navigate to Bio tab after successful upload
+        if (successful.length > 0) {
+          setTimeout(() => {
+            dispatch(navigateToTab(TabKey.BIO))
+          }, 1000)
+        }
+      } catch (error) {
+        console.error('[InteractiveChat] Error during file upload:', error)
+        const errorMessage: Message = {
+          role: 'assistant',
+          content: `❌ **Upload failed:** ${error instanceof Error ? error.message : 'Unknown error occurred'}`
+        }
+        dispatch(addMessageToStore({ message: errorMessage, markAsRead: true }))
       }
-      dispatch(addMessageToStore({ message, markAsRead: true }))
     }
 
     // Trigger the file dialog
