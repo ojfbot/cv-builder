@@ -81,3 +81,34 @@ export type Certification = z.infer<typeof CertificationSchema>
 export type Publication = z.infer<typeof PublicationSchema>
 export type SkillCategory = z.infer<typeof SkillCategorySchema>
 export type Bio = z.infer<typeof BioSchema>
+
+// File management schemas
+export const BioFileSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  originalName: z.string(),
+  type: z.string(), // MIME type
+  extension: z.string(),
+  size: z.number(), // bytes
+  sizeFormatted: z.string(), // human-readable (e.g., "245 KB")
+  path: z.string(),
+  modified: z.date(),
+  created: z.date(),
+  metadata: z.record(z.any()).optional(),
+})
+
+export const FileUploadRequestSchema = z.object({
+  overwrite: z.boolean().optional().default(false),
+})
+
+export const FileListQuerySchema = z.object({
+  type: z.string().optional(), // filter by MIME type or extension
+  sortBy: z.enum(['name', 'date', 'size']).optional(),
+  order: z.enum(['asc', 'desc']).optional(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+})
+
+export type BioFile = z.infer<typeof BioFileSchema>
+export type FileUploadRequest = z.infer<typeof FileUploadRequestSchema>
+export type FileListQuery = z.infer<typeof FileListQuerySchema>
