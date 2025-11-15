@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import {
   Heading,
   Tile,
@@ -15,6 +16,7 @@ import {
 import { DocumentAdd, Edit, Upload, ChatBot, DataTable, Connect, ViewFilled, Folder, TrashCan, Download } from '@carbon/icons-react'
 import { BioFile } from '@cv-builder/agent-core'
 import { bioFilesApi } from '../api/bioFilesApi'
+import { setIsExpanded } from '../store/slices/chatSlice'
 
 interface StatItem {
   value: number
@@ -29,6 +31,7 @@ interface StatGroup {
 type ViewMode = 'landing' | 'tiles' | 'files'
 
 function BioDashboard() {
+  const dispatch = useDispatch()
   const [viewMode, setViewMode] = useState<ViewMode>('landing')
   const [bioEntries] = useState<any[]>([]) // TODO: Replace with actual bio entries from state/API
   const [bioFiles, setBioFiles] = useState<BioFile[]>([])
@@ -501,7 +504,10 @@ function BioDashboard() {
           <Button
             renderIcon={Folder}
             kind="tertiary"
-            onClick={() => setViewMode('files')}
+            onClick={() => {
+              setViewMode('files')
+              dispatch(setIsExpanded(false))
+            }}
           >
             View Files
           </Button>
