@@ -165,6 +165,20 @@ When creating a new agent:
 
 See `docs/how-to/01-building-features.md` and `docs/AGENTS_GUIDE.md` for detailed walkthroughs.
 
+## Supporting Agents
+## Available Agents
+
+Claude can load and execute specialized agents from `.agents/` directory:
+
+- `agent:pre-commit` - Run pre-commit validation
+- `agent:issue-manager` - Manage GitHub issues
+- `agent:pr-manager` - Handle pull requests
+- `agent:quality-check` - Run quality validation
+- `agent:build-validator` - Validate build configuration
+
+To use an agent, simply say: "Run the pre-commit validator agent"
+or "Use the issue manager agent to create a new issue"
+
 ## Key Technologies
 
 - **TypeScript**: Strict mode enabled with ES2022 target
