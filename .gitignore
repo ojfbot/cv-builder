@@ -15,8 +15,9 @@ personal/
 
 # Temporary working directory
 # temp/pr-*/ directories are committed for PR screenshot documentation
-# temp/screenshots/ and other temp subdirectories are gitignored
-/temp/screenshots/
+# All other temp files and subdirectories are gitignored
+temp/
+!temp/pr-*/
 packages/browser-automation/temp/screenshots/
 
 # Dependencies
