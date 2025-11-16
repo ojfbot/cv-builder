@@ -135,17 +135,57 @@ npm run type-check
 npm run build
 ```
 
-### Testing Connectivity
+### Testing
+
+### Test Scripts
+
+**Test with Example.com:**
+```bash
+cd packages/browser-automation
+npm run build
+./test-workflow.sh
+```
+
+This tests basic functionality:
+- Navigate to example.com
+- Query for elements
+- Capture screenshots
+
+**Test with CV Builder App:**
+```bash
+# Terminal 1: Start dev services
+npm run dev:all
+
+# Terminal 2: Run browser automation tests
+cd packages/browser-automation
+npm run build
+./test-cv-builder.sh
+```
+
+This tests integration with the actual CV Builder application:
+- Navigate to CV Builder dashboard
+- Query for app components (Bio, Jobs, etc.)
+- Capture dashboard screenshots
+- Verify component presence
+
+### Manual Testing
 
 ```bash
 # From host machine
 curl http://localhost:3002/health
 
-# From within Docker network
-docker exec cv-builder-browser-automation curl http://localhost:3002/health
+# Navigate to a page
+curl -X POST http://localhost:3002/api/navigate \
+  -H "Content-Type: application/json" \
+  -d '{"url": "http://localhost:3000"}'
 
-# Test connection to browser-app
-docker exec cv-builder-browser-automation curl http://browser-app:3000
+# Query for element
+curl "http://localhost:3002/api/element/exists?selector=h1"
+
+# Capture screenshot
+curl -X POST http://localhost:3002/api/screenshot \
+  -H "Content-Type: application/json" \
+  -d '{"name": "test", "fullPage": true}'
 ```
 
 ## Implementation Status
