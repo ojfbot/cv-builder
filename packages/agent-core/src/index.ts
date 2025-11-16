@@ -28,6 +28,8 @@ export {
   type Bio,
   BioFileSchema,
   type BioFile,
+  ParsedResumeContentSchema,
+  type ParsedResumeContent,
   FileUploadRequestSchema,
   type FileUploadRequest,
   FileListQuerySchema,

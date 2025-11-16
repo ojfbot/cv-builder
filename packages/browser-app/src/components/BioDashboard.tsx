@@ -38,6 +38,7 @@ function BioDashboard() {
   const [isLoadingFiles, setIsLoadingFiles] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadingFile, setUploadingFile] = useState(false)
+  const [carouselIndex, setCarouselIndex] = useState(0)
 
   // Define rotating stat groups - each tile cycles through its own stats
   const statGroups: StatGroup[] = [
@@ -132,6 +133,22 @@ function BioDashboard() {
       loadFiles()
     }
   }, [viewMode])
+
+  // Keyboard navigation for carousel
+  useEffect(() => {
+    if (viewMode !== 'tiles' || bioEntries.length > 0) return
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        setCarouselIndex((prev) => (prev - 1 + 4) % 4)
+      } else if (e.key === 'ArrowRight') {
+        setCarouselIndex((prev) => (prev + 1) % 4)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [viewMode, bioEntries.length])
 
   useEffect(() => {
     // Rotate stats every 4 seconds with staggered timing
@@ -324,148 +341,124 @@ function BioDashboard() {
 
   const renderTilesView = () => {
     if (bioEntries.length === 0) {
-      // Empty state: Show action tiles for new users
+      // Empty state: Show action tiles in a carousel (4 tiles, one per page)
+      const tiles = [
+        {
+          icon: Upload,
+          title: 'Upload Resume',
+          description: 'Upload your existing resume or CV. AI will extract and organize your information.',
+          onClick: () => {
+            // TODO: Open file upload dialog
+            console.log('Upload resume clicked')
+          }
+        },
+        {
+          icon: ChatBot,
+          title: 'Chat About Experiences',
+          description: 'Have a conversation with AI about your career, goals, and achievements.',
+          onClick: () => {
+            // TODO: Open chat interface
+            console.log('Chat about experiences clicked')
+          }
+        },
+        {
+          icon: DataTable,
+          title: 'Fill In Form',
+          description: 'Enter your information directly using structured forms for precision.',
+          onClick: () => {
+            // TODO: Open manual entry form
+            console.log('Fill in form clicked')
+          }
+        },
+        {
+          icon: Connect,
+          title: 'Connect Sources',
+          description: 'Link your LinkedIn, GitHub, portfolio, blog, or other professional profiles.',
+          onClick: () => {
+            // TODO: Open source connection interface
+            console.log('Connect sources clicked')
+          }
+        }
+      ]
+
+      const currentTile = tiles[carouselIndex]
+      const Icon = currentTile.icon
+
+      const goToSlide = (index: number) => {
+        setCarouselIndex(index)
+      }
+
       return (
         <>
           <Heading style={{ fontSize: '1rem', marginBottom: '1rem' }}>
             Choose how to build your bio
           </Heading>
-          <div className="card-container" style={{ marginBottom: '2rem' }}>
-            <Tile
-              style={{
-                minHeight: '200px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                border: '2px solid transparent',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--cds-border-interactive)'
-                e.currentTarget.style.transform = 'translateY(-4px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'transparent'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-              onClick={() => {
-                // TODO: Open file upload dialog
-                console.log('Upload resume clicked')
-              }}
-            >
-              <Upload size={48} style={{ marginBottom: '1rem', color: 'var(--cds-icon-primary)' }} />
-              <Heading style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-                Upload Resume
-              </Heading>
-              <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem' }}>
-                Upload your existing resume or CV. AI will extract and organize your information.
-              </p>
-            </Tile>
+          <div style={{ position: 'relative', marginBottom: '2rem' }}>
+            {/* Carousel container */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <Tile
+                style={{
+                  minHeight: '200px',
+                  maxWidth: '400px',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  border: '2px solid transparent',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--cds-border-interactive)'
+                  e.currentTarget.style.transform = 'translateY(-4px)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'transparent'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                }}
+                onClick={currentTile.onClick}
+              >
+                <Icon size={48} style={{ marginBottom: '1rem', color: 'var(--cds-icon-primary)' }} />
+                <Heading style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+                  {currentTile.title}
+                </Heading>
+                <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem' }}>
+                  {currentTile.description}
+                </p>
+              </Tile>
+            </div>
 
-            <Tile
-              style={{
-                minHeight: '200px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                border: '2px solid transparent',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--cds-border-interactive)'
-                e.currentTarget.style.transform = 'translateY(-4px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'transparent'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-              onClick={() => {
-                // TODO: Open chat interface
-                console.log('Chat about experiences clicked')
-              }}
-            >
-              <ChatBot size={48} style={{ marginBottom: '1rem', color: 'var(--cds-icon-primary)' }} />
-              <Heading style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-                Chat About Experiences
-              </Heading>
-              <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem' }}>
-                Have a conversation with AI about your career, goals, and achievements.
-              </p>
-            </Tile>
-
-            <Tile
-              style={{
-                minHeight: '200px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                border: '2px solid transparent',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--cds-border-interactive)'
-                e.currentTarget.style.transform = 'translateY(-4px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'transparent'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-              onClick={() => {
-                // TODO: Open manual entry form
-                console.log('Fill in form clicked')
-              }}
-            >
-              <DataTable size={48} style={{ marginBottom: '1rem', color: 'var(--cds-icon-primary)' }} />
-              <Heading style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-                Fill In Form
-              </Heading>
-              <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem' }}>
-                Enter your information directly using structured forms for precision.
-              </p>
-            </Tile>
-
-            <Tile
-              style={{
-                minHeight: '200px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                border: '2px solid transparent',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--cds-border-interactive)'
-                e.currentTarget.style.transform = 'translateY(-4px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'transparent'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-              onClick={() => {
-                // TODO: Open source connection interface
-                console.log('Connect sources clicked')
-              }}
-            >
-              <Connect size={48} style={{ marginBottom: '1rem', color: 'var(--cds-icon-primary)' }} />
-              <Heading style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-                Connect Sources
-              </Heading>
-              <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem' }}>
-                Link your LinkedIn, GitHub, portfolio, blog, or other professional profiles.
-              </p>
-            </Tile>
+            {/* Carbon Design System style pagination dots */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              marginTop: '1rem'
+            }}>
+              {tiles.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    backgroundColor: index === carouselIndex
+                      ? 'var(--cds-icon-primary)'
+                      : 'var(--cds-icon-secondary)',
+                    transition: 'background-color 0.2s ease, transform 0.2s ease',
+                    transform: index === carouselIndex ? 'scale(1.2)' : 'scale(1)',
+                  }}
+                  aria-label={`Go to slide ${index + 1}`}
+                  aria-current={index === carouselIndex ? 'true' : 'false'}
+                />
+              ))}
+            </div>
           </div>
         </>
       )
