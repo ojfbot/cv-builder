@@ -1,2 +1,27 @@
-# Test screenshots (gitignored)
-*.png
+# Ignore all files by default
+*
+
+# But track these specific items
+!.gitignore
+!README.md
+!.gitkeep
+
+# Track PR screenshot directories
+!pr-*/
+!pr-*/**
+
+# Track subdirectory structure
+!outputs/
+!outputs/.gitkeep
+!pipelines/
+!pipelines/.gitkeep
+!research/
+!research/.gitkeep
+!toolbox/
+!toolbox/.gitkeep
+!bios/
+!bios/.gitkeep
+!jobs/
+!jobs/.gitkeep
+!screenshots/
+!screenshots/.gitkeep
