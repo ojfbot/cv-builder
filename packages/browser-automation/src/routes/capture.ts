@@ -6,7 +6,8 @@
 
 import { Router, Request, Response } from 'express';
 import { browserManager } from '../automation/browser.js';
-import { captureScreenshot, listSessions, listScreenshotsInSession } from '../automation/screenshots.js';
+import { captureScreenshot, listSessions, listScreenshotsInSession, ImageFormat } from '../automation/screenshots.js';
+import { ViewportPreset, ViewportSize } from '../automation/viewport.js';
 
 const router = Router();
 
@@ -15,6 +16,9 @@ interface CaptureRequest {
   fullPage?: boolean;
   selector?: string;
   sessionDir?: string;
+  viewport?: ViewportPreset | ViewportSize;
+  format?: ImageFormat;
+  quality?: number;
 }
 
 /**
@@ -23,12 +27,21 @@ interface CaptureRequest {
  */
 router.post('/screenshot', async (req: Request, res: Response) => {
   try {
-    const { name, fullPage = true, selector, sessionDir }: CaptureRequest = req.body;
+    const { name, fullPage = true, selector, sessionDir, viewport, format, quality }: CaptureRequest = req.body;
 
     if (!name) {
       res.status(400).json({
         success: false,
         error: 'Screenshot name is required',
+      });
+      return;
+    }
+
+    // Validate quality if provided
+    if (quality !== undefined && (quality < 0 || quality > 100)) {
+      res.status(400).json({
+        success: false,
+        error: 'Quality must be between 0 and 100',
       });
       return;
     }
@@ -49,6 +62,12 @@ router.post('/screenshot', async (req: Request, res: Response) => {
       console.log(`  Element: ${selector}`);
     }
     console.log(`  Full page: ${fullPage}`);
+    if (viewport) {
+      console.log(`  Viewport: ${typeof viewport === 'string' ? viewport : `${viewport.width}x${viewport.height}`}`);
+    }
+    if (format) {
+      console.log(`  Format: ${format}`);
+    }
     console.log(`  Current URL: ${currentUrl}`);
 
     const result = await captureScreenshot(page, {
@@ -56,6 +75,9 @@ router.post('/screenshot', async (req: Request, res: Response) => {
       fullPage,
       selector,
       path: sessionDir,
+      viewport,
+      format,
+      quality,
     });
 
     res.json(result);

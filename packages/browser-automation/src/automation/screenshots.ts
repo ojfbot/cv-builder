@@ -7,14 +7,20 @@
 import { Page } from 'playwright';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { ViewportSize, ViewportPreset, getViewport, getViewportSuffix } from './viewport.js';
 
 const SCREENSHOTS_DIR = process.env.SCREENSHOTS_DIR || '/app/screenshots';
+
+export type ImageFormat = 'png' | 'jpeg';
 
 export interface ScreenshotOptions {
   name: string;
   fullPage?: boolean;
   selector?: string;
   path?: string;
+  viewport?: ViewportPreset | ViewportSize;
+  format?: ImageFormat;
+  quality?: number; // 0-100, only for JPEG
 }
 
 export interface ScreenshotResult {
@@ -27,6 +33,9 @@ export interface ScreenshotResult {
     width: number;
     height: number;
   };
+  viewport?: ViewportSize;
+  format?: ImageFormat;
+  fileSize?: number;
 }
 
 /**
@@ -59,17 +68,43 @@ export async function captureScreenshot(
 
   const sessionDir = options.path || await createSessionDir();
   const timestamp = new Date().toISOString();
-  const filename = `${options.name}.png`;
+
+  // Determine file format
+  const format = options.format || 'png';
+  const extension = format === 'jpeg' ? 'jpg' : 'png';
+
+  // Add viewport suffix if provided
+  const viewportSuffix = options.viewport ? getViewportSuffix(options.viewport) : '';
+  const filename = `${options.name}${viewportSuffix}.${extension}`;
   const filepath = path.join(sessionDir, filename);
 
   console.log(`Capturing screenshot: ${filepath}`);
 
+  // Set viewport if provided
+  let currentViewport: ViewportSize | undefined;
+  if (options.viewport) {
+    currentViewport = getViewport(options.viewport);
+    await page.setViewportSize({
+      width: currentViewport.width,
+      height: currentViewport.height,
+    });
+    console.log(`  Viewport: ${currentViewport.width}x${currentViewport.height}`);
+  }
+
+  // Build screenshot options
+  const screenshotOpts: any = {
+    path: filepath,
+    type: format,
+  };
+
+  if (format === 'jpeg' && options.quality !== undefined) {
+    screenshotOpts.quality = Math.max(0, Math.min(100, options.quality));
+  }
+
   // Capture full page screenshot
   if (options.fullPage || !options.selector) {
-    await page.screenshot({
-      path: filepath,
-      fullPage: options.fullPage !== false,
-    });
+    screenshotOpts.fullPage = options.fullPage !== false;
+    await page.screenshot(screenshotOpts);
   }
   // Capture element screenshot
   else if (options.selector) {
@@ -80,9 +115,7 @@ export async function captureScreenshot(
       throw new Error(`Element not found: ${options.selector}`);
     }
 
-    await element.screenshot({
-      path: filepath,
-    });
+    await element.screenshot(screenshotOpts);
   }
 
   // Get file stats
@@ -96,6 +129,9 @@ export async function captureScreenshot(
     filename,
     timestamp,
     url: page.url(),
+    viewport: currentViewport,
+    format,
+    fileSize: stats.size,
   };
 }
 
