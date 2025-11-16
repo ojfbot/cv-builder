@@ -11,6 +11,8 @@ import cors from 'cors';
 import navigateRoutes from './routes/navigate.js';
 import queryRoutes from './routes/query.js';
 import captureRoutes from './routes/capture.js';
+import interactRoutes from './routes/interact.js';
+import waitRoutes from './routes/wait.js';
 import { browserManager } from './automation/browser.js';
 
 const app = express();
@@ -34,6 +36,8 @@ app.use((req, _res, next) => {
 app.use('/api', navigateRoutes);
 app.use('/api', queryRoutes);
 app.use('/api', captureRoutes);
+app.use('/api', interactRoutes);
+app.use('/api', waitRoutes);
 
 /**
  * Health check endpoint
@@ -63,7 +67,7 @@ app.get('/health', async (_req: Request, res: Response) => {
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({
     name: 'CV Builder Browser Automation Service',
-    version: '0.2.0',
+    version: '0.3.0',
     description: 'Playwright-based browser automation for UI testing and screenshot capture',
     endpoints: {
       health: 'GET /health',
@@ -71,6 +75,20 @@ app.get('/', (_req: Request, res: Response) => {
       query: 'GET /api/element/exists',
       screenshot: 'POST /api/screenshot',
       sessions: 'GET /api/screenshot/sessions',
+      interactions: {
+        click: 'POST /api/interact/click',
+        type: 'POST /api/interact/type',
+        fill: 'POST /api/interact/fill',
+        hover: 'POST /api/interact/hover',
+        press: 'POST /api/interact/press',
+        select: 'POST /api/interact/select',
+        check: 'POST /api/interact/check',
+      },
+      waiting: {
+        wait: 'POST /api/wait',
+        waitLoad: 'POST /api/wait/load',
+        waitElement: 'POST /api/wait/element',
+      },
       docs: 'Coming in Phase 4',
     },
     playwright: {
