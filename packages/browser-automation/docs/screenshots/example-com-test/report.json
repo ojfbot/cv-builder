@@ -1,0 +1,54 @@
+{
+  "testName": "example-com-test",
+  "testDate": "2025-11-16",
+  "testScript": "test-workflow.sh",
+  "targetUrl": "http://example.com",
+  "purpose": "Basic functionality verification",
+  "browser": {
+    "name": "Chromium",
+    "engine": "Playwright",
+    "headless": true
+  },
+  "viewport": {
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1
+  },
+  "phase": "1-2",
+  "features": [
+    "navigation",
+    "element-query",
+    "screenshot-capture"
+  ],
+  "screenshots": [
+    {
+      "filename": "example-homepage.png",
+      "size": "21KB",
+      "description": "Full homepage screenshot",
+      "captureType": "fullPage"
+    },
+    {
+      "filename": "example-h1.png",
+      "size": "21KB",
+      "description": "H1 element screenshot",
+      "captureType": "element",
+      "selector": "h1"
+    }
+  ],
+  "status": "passed",
+  "errors": [],
+  "annotations": [
+    {
+      "type": "test-purpose",
+      "content": "This is the foundational test run that validates the core browser automation infrastructure. It uses a simple, stable target (example.com) to verify that Playwright can launch in headless mode, navigate to a URL, wait for page load, query for elements, and capture screenshots both of full pages and specific elements."
+    },
+    {
+      "type": "architectural-note",
+      "content": "This test establishes the baseline for all subsequent testing. The choice of example.com is deliberate - it's a minimal, stable page maintained by IANA that will not change, making it ideal for regression testing of the automation system itself rather than the CV Builder application."
+    },
+    {
+      "type": "implementation-detail",
+      "content": "The test demonstrates two screenshot modes: full-page capture (scrolling through entire document) and element-specific capture (targeting a single DOM element by selector). Both modes work correctly in headless mode without requiring a visible browser window."
+    }
+  ]
+}
