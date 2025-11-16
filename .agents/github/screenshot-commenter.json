@@ -7,6 +7,9 @@
   "capabilities": [
     "attach-screenshots",
     "find-images",
+    "extract-metadata",
+    "generate-context",
+    "intelligent-descriptions",
     "generate-comment",
     "upload-comment"
   ],
@@ -58,9 +61,21 @@
         "required": true
       },
       {
+        "step": "extract-metadata",
+        "action": "action:extract-screenshot-metadata",
+        "description": "Extract capture time, file size, and session info from screenshots",
+        "required": true
+      },
+      {
+        "step": "generate-context",
+        "action": "action:generate-intelligent-context",
+        "description": "Generate What/Why/When context based on filename patterns",
+        "required": true
+      },
+      {
         "step": "generate-comment-body",
         "action": "action:generate-screenshot-comment",
-        "description": "Generate markdown comment with image embeds using raw GitHub URLs",
+        "description": "Generate rich markdown comment with images, context, and metadata",
         "required": true
       },
       {
@@ -122,7 +137,7 @@
     "requires_user_confirmation": true,
     "reports_progress": true,
     "estimated_duration": "20-60 seconds",
-    "user_guidance": "This agent attaches screenshots to PR or issue comments by committing images to the repo and using raw GitHub URLs. It handles the full workflow: find images, copy to docs, commit, generate comment with embeds, and post.",
+    "user_guidance": "This agent attaches screenshots to PR or issue comments with rich context and metadata. It intelligently describes each screenshot (what/why/when), extracts timestamps and file info, commits to temp/pr-<number>/, and posts detailed comments. Perfect for documenting visual changes, test results, and UI states.",
     "workflow_instructions": {
       "attach-screenshots": {
         "steps": [
@@ -188,9 +203,15 @@
       "user_request": "Attach screenshots from temp/screenshots to PR #22",
       "agent_workflow": [
         "Finds 4 PNG files in packages/browser-automation/temp/screenshots/",
-        "Copies to packages/browser-automation/docs/images/",
-        "Commits files: cv-builder-dashboard.png, cv-builder-header.png, example-homepage.png, example-h1.png",
-        "Generates comment with raw GitHub URLs for each image",
+        "Extracts metadata: capture times (2025-11-16 07:29:46), file sizes (78.3 KB), session IDs",
+        "Generates intelligent context for each screenshot:",
+        "  - cv-builder-dashboard.png: 'Complete dashboard interface' (integration testing)",
+        "  - cv-builder-header.png: 'Navigation header' (selector-based feature demo)",
+        "  - example-homepage.png: 'Example.com test page' (validates full-page capture)",
+        "  - example-h1.png: 'H1 element' (demonstrates CSS selector querying)",
+        "Copies to packages/browser-automation/temp/pr-22/",
+        "Commits files with descriptive message",
+        "Generates rich markdown comment with What/Why/When context and metadata",
         "Posts comment to PR #22",
         "Returns comment URL: https://github.com/ojfbot/cv-builder/pull/22#issuecomment-..."
       ]

@@ -218,16 +218,38 @@ Simply ask Claude Code to attach screenshots:
 
 The agent uses a Node.js script that:
 1. Finds all image files (`.png`, `.jpg`, `.jpeg`, `.gif`) in the specified directory
-2. Copies them to `packages/*/docs/images/` for permanent storage
-3. Commits and pushes the files to the current branch
-4. Generates a markdown comment with raw GitHub URLs
-5. Posts the comment using `gh pr comment` or `gh issue comment`
+2. Extracts metadata (capture time, file size, session info)
+3. Generates intelligent context based on filename patterns
+4. Copies files to `packages/*/temp/pr-<number>/` for PR-specific documentation
+5. Commits and pushes the files to the current branch
+6. Generates a rich markdown comment with:
+   - Screenshot image embeds (GitHub blob URLs)
+   - **What:** Description of what the screenshot shows
+   - **Why:** Reason for including this screenshot
+   - **When:** Development phase when it was captured
+   - **Captured:** Timestamp from session directory
+   - **Size:** File size and session identifier
+7. Posts the comment using `gh pr comment` or `gh issue comment`
+
+**Context Generation:**
+
+The agent intelligently generates context based on filename patterns:
+- `*dashboard*` → Describes complete interface layout
+- `*header*` → Explains navigation and element-specific capture
+- `*example*homepage*` → Validates full-page functionality
+- `*example*h1*` → Demonstrates element selector capability
+- `*error*` / `*fail*` → Documents error states for debugging
+- `*test*` → Explains test results or validation
+- `*before*` / `*after*` → Visual comparison for change validation
+- Generic fallback for other patterns
 
 **Why This Approach:**
 - GitHub doesn't have an official API for uploading images to comments
-- Committing images makes them version-controlled and permanent
-- Raw GitHub URLs work reliably in PR/issue comments
-- Temporary screenshots in `temp/` remain gitignored
+- Committing images to `temp/pr-<number>/` makes them accessible via GitHub URLs
+- PR-specific directories organize screenshots by pull request
+- Rich context helps reviewers understand each screenshot's purpose
+- Metadata provides traceability (when captured, file size, session)
+- Temporary test screenshots in `temp/screenshots/` remain gitignored
 
 **Example Usage:**
 
