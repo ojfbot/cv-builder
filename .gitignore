@@ -13,8 +13,11 @@ env.json
 /toolbox/
 personal/
 
-# Temporary working directory
-/temp/
+# Temporary working directory (ignore contents but keep directory)
+/temp/*
+!/temp/.gitkeep
+packages/browser-automation/temp/*
+!packages/browser-automation/temp/.gitkeep
 
 # Dependencies
 node_modules/
