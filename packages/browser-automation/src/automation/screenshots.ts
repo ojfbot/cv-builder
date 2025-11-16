@@ -9,7 +9,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { ViewportSize, ViewportPreset, getViewport, getViewportSuffix } from './viewport.js';
 
-const SCREENSHOTS_DIR = process.env.SCREENSHOTS_DIR || '/app/screenshots';
+const SCREENSHOTS_DIR = process.env.SCREENSHOTS_DIR || './temp/screenshots';
 
 export type ImageFormat = 'png' | 'jpeg';
 
