@@ -22,14 +22,99 @@ const { execSync } = require('child_process');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-if (args.length < 2) {
-  console.error('Usage: node upload-screenshots.js <pr-number> <screenshot-dir>');
+if (args.length < 1) {
+  console.error('Usage: node upload-screenshots.js <pr-number> [screenshot-dir]');
   console.error('Example: node upload-screenshots.js 22 packages/browser-automation/temp/screenshots');
+  console.error('         node upload-screenshots.js 23 auto-detect');
+  console.error('');
+  console.error('If screenshot-dir is omitted or "auto-detect", will search common locations');
   process.exit(1);
 }
 
 const prNumber = args[0];
-const screenshotDir = args[1];
+let screenshotDir = args[1] || 'auto-detect';
+
+/**
+ * Auto-detect screenshot directories by searching common locations
+ */
+const autoDetectScreenshotDirs = () => {
+  const searchLocations = [
+    'packages/browser-automation/temp/screenshots',
+    'packages/browser-automation/docs/screenshots',
+    'temp/screenshots',
+    'docs/screenshots'
+  ];
+
+  const foundDirs = [];
+
+  for (const location of searchLocations) {
+    if (fs.existsSync(location)) {
+      const entries = fs.readdirSync(location, { withFileTypes: true });
+
+      // Check if this directory has subdirectories with screenshots
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const fullPath = path.join(location, entry.name);
+          const hasImages = fs.readdirSync(fullPath).some(file =>
+            ['.png', '.jpg', '.jpeg', '.gif'].includes(path.extname(file).toLowerCase())
+          );
+
+          if (hasImages) {
+            const stats = fs.statSync(fullPath);
+            foundDirs.push({
+              path: fullPath,
+              name: entry.name,
+              mtime: stats.mtime
+            });
+          }
+        }
+      }
+
+      // Also check if the location itself has images
+      const hasImages = fs.readdirSync(location).some(file =>
+        ['.png', '.jpg', '.jpeg', '.gif'].includes(path.extname(file).toLowerCase())
+      );
+
+      if (hasImages) {
+        const stats = fs.statSync(location);
+        foundDirs.push({
+          path: location,
+          name: path.basename(location),
+          mtime: stats.mtime
+        });
+      }
+    }
+  }
+
+  // Sort by modification time, most recent first
+  foundDirs.sort((a, b) => b.mtime - a.mtime);
+
+  return foundDirs;
+};
+
+// Auto-detect screenshot directory if requested
+if (screenshotDir === 'auto-detect') {
+  console.log('🔍 Auto-detecting screenshot directories...\n');
+
+  const foundDirs = autoDetectScreenshotDirs();
+
+  if (foundDirs.length === 0) {
+    console.error('Error: No screenshot directories found in common locations');
+    console.error('Searched: temp/screenshots/*, docs/screenshots/*, packages/*/temp/screenshots/*, packages/*/docs/screenshots/*');
+    process.exit(1);
+  }
+
+  // Use the most recently modified directory
+  screenshotDir = foundDirs[0].path;
+
+  console.log(`Found ${foundDirs.length} screenshot location(s):`);
+  foundDirs.slice(0, 5).forEach((dir, index) => {
+    const indicator = index === 0 ? '→' : ' ';
+    console.log(`  ${indicator} ${dir.path} (${dir.mtime.toISOString().replace('T', ' ').substring(0, 19)})`);
+  });
+
+  console.log(`\n✓ Selected most recent: ${screenshotDir}\n`);
+}
 
 // Validate inputs
 if (!fs.existsSync(screenshotDir)) {
