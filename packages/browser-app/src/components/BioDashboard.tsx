@@ -12,6 +12,8 @@ import {
   TableCell,
   Loading,
   InlineNotification,
+  Grid,
+  Column,
 } from '@carbon/react'
 import { DocumentAdd, Edit, Upload, ChatBot, DataTable, Connect, ViewFilled, Folder, TrashCan, Download } from '@carbon/icons-react'
 import { BioFile } from '@cv-builder/agent-core'
@@ -185,16 +187,20 @@ function BioDashboard() {
 
   const renderLandingView = () => (
     <>
-      <Tile style={{ marginBottom: '2rem' }}>
-        <p style={{ color: 'var(--cds-text-secondary)' }}>
-          Your professional bio is securely stored in private storage. Build your profile from multiple
-          sources and let AI help you showcase your best self.
-        </p>
-        <p style={{ marginTop: '1rem', color: 'var(--cds-text-secondary)' }}>
-          Click "Edit Bio" below to start creating entries. You can upload your resume, chat about your
-          experiences, or fill out structured forms. Each entry becomes a tile you can edit and refine.
-        </p>
-      </Tile>
+      <Grid narrow>
+        <Column lg={10} md={6} sm={4}>
+          <Tile style={{ marginBottom: '2rem' }}>
+            <p style={{ color: 'var(--cds-text-secondary)' }}>
+              Your professional bio is securely stored in private storage. Build your profile from multiple
+              sources and let AI help you showcase your best self.
+            </p>
+            <p style={{ marginTop: '1rem', color: 'var(--cds-text-secondary)' }}>
+              Click "Edit Bio" below to start creating entries. You can upload your resume, chat about your
+              experiences, or fill out structured forms. Each entry becomes a tile you can edit and refine.
+            </p>
+          </Tile>
+        </Column>
+      </Grid>
 
       <Heading style={{ fontSize: '1rem', marginBottom: '1rem' }}>Quick Stats</Heading>
       <div className="card-container">
@@ -651,7 +657,16 @@ function BioDashboard() {
           <Button
             renderIcon={viewMode === 'landing' ? Edit : ViewFilled}
             kind="tertiary"
-            onClick={() => setViewMode(viewMode === 'landing' ? 'tiles' : 'landing')}
+            onClick={() => {
+              if (viewMode === 'landing') {
+                // Navigating FROM landing/summary TO tiles - collapse chat
+                setViewMode('tiles')
+                dispatch(setIsExpanded(false))
+              } else {
+                // Navigating back TO landing/summary - don't change chat state
+                setViewMode('landing')
+              }
+            }}
           >
             {viewMode === 'landing' ? 'Edit Bio' : 'Summarize'}
           </Button>
@@ -660,10 +675,14 @@ function BioDashboard() {
             kind="tertiary"
             onClick={() => {
               if (viewMode === 'files') {
+                // Navigating FROM files back to tiles - don't change chat state
                 setViewMode('tiles')
               } else {
+                // Navigating FROM landing/tiles TO files - collapse chat only if from landing
+                if (viewMode === 'landing') {
+                  dispatch(setIsExpanded(false))
+                }
                 setViewMode('files')
-                dispatch(setIsExpanded(false))
               }
             }}
           >
@@ -672,7 +691,13 @@ function BioDashboard() {
           <Button
             renderIcon={DocumentAdd}
             kind="primary"
-            onClick={() => setViewMode('tiles')}
+            onClick={() => {
+              // Navigating to tiles from anywhere - collapse only if from landing
+              if (viewMode === 'landing') {
+                dispatch(setIsExpanded(false))
+              }
+              setViewMode('tiles')
+            }}
           >
             Create New Bio
           </Button>
