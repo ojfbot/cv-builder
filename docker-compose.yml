@@ -41,9 +41,32 @@ services:
     networks:
       - cv-builder-network
 
+  # Browser Automation - Playwright service for UI testing and screenshots
+  browser-automation:
+    build:
+      context: ./packages/browser-automation
+      dockerfile: Dockerfile
+    container_name: cv-builder-browser-automation
+    volumes:
+      - ./packages/browser-automation:/app
+      - ./temp/screenshots:/app/screenshots
+      - automation-node-modules:/app/node_modules
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - HEADLESS=true
+      - BROWSER_APP_URL=http://browser-app:3000
+    depends_on:
+      - browser-app
+    networks:
+      - cv-builder-network
+
 volumes:
   agent-node-modules:
   browser-node-modules:
+  automation-node-modules:
 
 networks:
   cv-builder-network:
