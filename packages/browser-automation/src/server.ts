@@ -8,6 +8,10 @@
 
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import navigateRoutes from './routes/navigate.js';
+import queryRoutes from './routes/query.js';
+import captureRoutes from './routes/capture.js';
+import { browserManager } from './automation/browser.js';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -26,16 +30,23 @@ app.use((req, _res, next) => {
   next();
 });
 
+// API Routes
+app.use('/api', navigateRoutes);
+app.use('/api', queryRoutes);
+app.use('/api', captureRoutes);
+
 /**
  * Health check endpoint
  * Returns service status and configuration
  */
-app.get('/health', (_req: Request, res: Response) => {
+app.get('/health', async (_req: Request, res: Response) => {
+  const browserStatus = browserManager.getStatus();
   res.status(200).json({
-    status: 'ready',
+    status: browserStatus.running ? 'ready' : 'idle',
     service: 'browser-automation',
-    version: '0.1.0',
+    version: '0.2.0',
     environment: NODE_ENV,
+    browser: browserStatus,
     config: {
       browserAppUrl: BROWSER_APP_URL,
       headless: HEADLESS,
@@ -52,10 +63,14 @@ app.get('/health', (_req: Request, res: Response) => {
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({
     name: 'CV Builder Browser Automation Service',
-    version: '0.1.0',
+    version: '0.2.0',
     description: 'Playwright-based browser automation for UI testing and screenshot capture',
     endpoints: {
       health: 'GET /health',
+      navigate: 'POST /api/navigate',
+      query: 'GET /api/element/exists',
+      screenshot: 'POST /api/screenshot',
+      sessions: 'GET /api/screenshot/sessions',
       docs: 'Coming in Phase 4',
     },
     playwright: {
@@ -104,12 +119,14 @@ app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully...');
+  await browserManager.close();
   process.exit(0);
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\nSIGINT received, shutting down gracefully...');
+  await browserManager.close();
   process.exit(0);
 });
