@@ -1,0 +1,916 @@
+openapi: 3.0.0
+info:
+  title: Browser Automation API
+  version: 0.3.0
+  description: |
+    Playwright-based browser automation service for UI testing and screenshot capture.
+    Enables AI dev tools (like Claude Code) to interact with web applications programmatically.
+
+    ## Features
+    - Browser automation (navigate, interact, query elements)
+    - Screenshot capture (full-page, element-specific, multi-viewport)
+    - User interactions (click, type, hover, fill, press, select, check)
+    - Waiting strategies (selector, text, network, timeout, url, function)
+    - Session management with auto-cleanup
+
+  contact:
+    name: CV Builder Team
+    url: https://github.com/ojfbot/cv-builder
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3002
+    description: Development server
+  - url: http://localhost:3002/api
+    description: API endpoints
+
+tags:
+  - name: System
+    description: Health checks and service status
+  - name: Navigation
+    description: Page navigation and URL management
+  - name: Element Query
+    description: Query and inspect page elements
+  - name: Screenshots
+    description: Capture page and element screenshots
+  - name: Interactions
+    description: Simulate user interactions
+  - name: Waiting
+    description: Wait for various conditions
+  - name: GitHub
+    description: GitHub integration for screenshot uploads
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Check if the browser automation service is running and get status information
+      tags: [System]
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: 'ready'
+                timestamp: '2025-11-16T14:30:00.000Z'
+                browser:
+                  connected: true
+                  currentUrl: 'http://localhost:3000'
+                session:
+                  id: 'session-1731768600000'
+                  created: '2025-11-16T14:30:00.000Z'
+                  lastActivity: '2025-11-16T14:35:00.000Z'
+
+  /:
+    get:
+      summary: API information
+      description: Get API version and available endpoints
+      tags: [System]
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiInfo'
+
+  /api/navigate:
+    post:
+      summary: Navigate to URL
+      description: Navigate the browser to a specified URL with optional wait strategies
+      tags: [Navigation]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NavigateRequest'
+            example:
+              url: 'http://localhost:3000'
+              waitFor: 'load'
+              timeout: 30000
+      responses:
+        '200':
+          description: Navigation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigateResponse'
+              example:
+                success: true
+                currentUrl: 'http://localhost:3000/'
+                title: 'CV Builder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/navigate/current:
+    get:
+      summary: Get current URL
+      description: Get the current URL and page title
+      tags: [Navigation]
+      responses:
+        '200':
+          description: Current page information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigateResponse'
+
+  /api/navigate/back:
+    post:
+      summary: Navigate back
+      description: Navigate back in browser history
+      tags: [Navigation]
+      responses:
+        '200':
+          description: Navigation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigateResponse'
+
+  /api/navigate/reload:
+    post:
+      summary: Reload page
+      description: Reload the current page
+      tags: [Navigation]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                waitFor:
+                  type: string
+                  enum: [load, networkidle, domcontentloaded]
+                  default: load
+      responses:
+        '200':
+          description: Reload successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigateResponse'
+
+  /api/element/exists:
+    get:
+      summary: Check element existence
+      description: Check if an element exists on the page and get its state
+      tags: [Element Query]
+      parameters:
+        - name: selector
+          in: query
+          description: CSS selector, text content, or ARIA role
+          required: false
+          schema:
+            type: string
+            example: '.bio-component'
+        - name: text
+          in: query
+          description: Text content to search for
+          required: false
+          schema:
+            type: string
+        - name: role
+          in: query
+          description: ARIA role to search for
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Element query result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElementExistsResponse'
+              example:
+                exists: true
+                visible: true
+                enabled: true
+                count: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/element/text:
+    get:
+      summary: Get element text
+      description: Get the text content of an element
+      tags: [Element Query]
+      parameters:
+        - name: selector
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Element text content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  text:
+                    type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/element/attribute:
+    get:
+      summary: Get element attribute
+      description: Get the value of an element's attribute
+      tags: [Element Query]
+      parameters:
+        - name: selector
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: attribute
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Attribute value
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  value:
+                    type: string
+
+  /api/screenshot:
+    post:
+      summary: Capture screenshot
+      description: Capture a full-page or element-specific screenshot
+      tags: [Screenshots]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenshotRequest'
+            example:
+              name: 'dashboard'
+              viewport: 'desktop'
+              format: 'png'
+              fullPage: true
+              sessionDir: 'temp/screenshots/test-session'
+      responses:
+        '200':
+          description: Screenshot captured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenshotResponse'
+              example:
+                success: true
+                path: 'temp/screenshots/test-session/dashboard-desktop.png'
+                filename: 'dashboard-desktop.png'
+                timestamp: '2025-11-16T14:30:00.000Z'
+                url: 'http://localhost:3000/'
+                viewport:
+                  width: 1920
+                  height: 1080
+                fileSize: 78234
+                format: 'png'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/screenshot/sessions:
+    get:
+      summary: List screenshot sessions
+      description: Get a list of all screenshot session directories
+      tags: [Screenshots]
+      responses:
+        '200':
+          description: List of screenshot sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  sessions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        path:
+                          type: string
+                        created:
+                          type: string
+                          format: date-time
+
+  /api/screenshot/sessions/{id}:
+    get:
+      summary: List screenshots in session
+      description: Get all screenshots from a specific session
+      tags: [Screenshots]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session screenshots
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  sessionId:
+                    type: string
+                  screenshots:
+                    type: array
+                    items:
+                      type: object
+
+  /api/interact/click:
+    post:
+      summary: Click element
+      description: Click on an element with optional position and modifier options
+      tags: [Interactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClickRequest'
+            example:
+              selector: 'button:has-text("Add Job")'
+              options:
+                timeout: 10000
+                force: false
+      responses:
+        '200':
+          description: Click successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/interact/type:
+    post:
+      summary: Type text
+      description: Type text into an element with configurable delay
+      tags: [Interactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypeRequest'
+            example:
+              selector: 'input[name="search"]'
+              text: 'Software Engineer'
+              options:
+                delay: 50
+                clear: true
+      responses:
+        '200':
+          description: Type successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionResult'
+
+  /api/interact/fill:
+    post:
+      summary: Fill input
+      description: Fill an input field quickly (faster than typing)
+      tags: [Interactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [selector, text]
+              properties:
+                selector:
+                  type: string
+                text:
+                  type: string
+                timeout:
+                  type: number
+      responses:
+        '200':
+          description: Fill successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionResult'
+
+  /api/interact/hover:
+    post:
+      summary: Hover over element
+      description: Hover the mouse over an element
+      tags: [Interactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [selector]
+              properties:
+                selector:
+                  type: string
+                options:
+                  type: object
+                  properties:
+                    timeout:
+                      type: number
+                    force:
+                      type: boolean
+      responses:
+        '200':
+          description: Hover successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionResult'
+
+  /api/interact/press:
+    post:
+      summary: Press key
+      description: Press a keyboard key or key combination
+      tags: [Interactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key]
+              properties:
+                key:
+                  type: string
+                  example: 'Enter'
+                delay:
+                  type: number
+      responses:
+        '200':
+          description: Key press successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionResult'
+
+  /api/interact/select:
+    post:
+      summary: Select dropdown option
+      description: Select an option from a dropdown element
+      tags: [Interactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [selector, value]
+              properties:
+                selector:
+                  type: string
+                value:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                timeout:
+                  type: number
+      responses:
+        '200':
+          description: Selection successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionResult'
+
+  /api/interact/check:
+    post:
+      summary: Check/uncheck checkbox
+      description: Set the checked state of a checkbox or radio button
+      tags: [Interactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [selector, checked]
+              properties:
+                selector:
+                  type: string
+                checked:
+                  type: boolean
+                timeout:
+                  type: number
+                force:
+                  type: boolean
+      responses:
+        '200':
+          description: Check state updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionResult'
+
+  /api/wait:
+    post:
+      summary: Wait for condition
+      description: Wait for a specific condition to be met
+      tags: [Waiting]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaitRequest'
+            example:
+              condition: 'selector'
+              value: '.dashboard-loaded'
+              timeout: 30000
+              state: 'visible'
+      responses:
+        '200':
+          description: Condition met
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaitResult'
+        '408':
+          description: Timeout - condition not met
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaitResult'
+
+  /api/wait/load:
+    post:
+      summary: Wait for page load
+      description: Wait for specific page load state
+      tags: [Waiting]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                  enum: [load, networkidle, domcontentloaded]
+                  default: load
+                timeout:
+                  type: number
+                  default: 30000
+      responses:
+        '200':
+          description: Page loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaitResult'
+
+  /api/wait/element:
+    post:
+      summary: Wait for element state
+      description: Wait for an element to reach a specific state
+      tags: [Waiting]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [selector]
+              properties:
+                selector:
+                  type: string
+                state:
+                  type: string
+                  enum: [visible, hidden, attached, detached]
+                  default: visible
+                timeout:
+                  type: number
+                  default: 30000
+      responses:
+        '200':
+          description: Element state reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaitResult'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ready, busy, error]
+        timestamp:
+          type: string
+          format: date-time
+        browser:
+          type: object
+          properties:
+            connected:
+              type: boolean
+            currentUrl:
+              type: string
+        session:
+          type: object
+          properties:
+            id:
+              type: string
+            created:
+              type: string
+              format: date-time
+            lastActivity:
+              type: string
+              format: date-time
+
+    ApiInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        endpoints:
+          type: array
+          items:
+            type: string
+
+    NavigateRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+          example: 'http://localhost:3000'
+        waitFor:
+          type: string
+          enum: [load, networkidle, domcontentloaded]
+          default: load
+        timeout:
+          type: number
+          default: 30000
+          minimum: 0
+          maximum: 120000
+
+    NavigateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        currentUrl:
+          type: string
+        title:
+          type: string
+
+    ElementExistsResponse:
+      type: object
+      properties:
+        exists:
+          type: boolean
+        visible:
+          type: boolean
+        enabled:
+          type: boolean
+        count:
+          type: integer
+
+    ScreenshotRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: Name for the screenshot file (without extension)
+        selector:
+          type: string
+          description: CSS selector for element-specific screenshot
+        viewport:
+          oneOf:
+            - type: string
+              enum: [desktop, tablet, mobile, mobile-landscape]
+            - $ref: '#/components/schemas/ViewportSize'
+        format:
+          type: string
+          enum: [png, jpeg]
+          default: png
+        quality:
+          type: number
+          minimum: 0
+          maximum: 100
+          default: 90
+          description: JPEG quality (only for jpeg format)
+        fullPage:
+          type: boolean
+          default: true
+        sessionDir:
+          type: string
+          description: Directory to save screenshot (relative to project root)
+
+    ScreenshotResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        path:
+          type: string
+        filename:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        url:
+          type: string
+        viewport:
+          $ref: '#/components/schemas/ViewportSize'
+        fileSize:
+          type: number
+        format:
+          type: string
+
+    ViewportSize:
+      type: object
+      properties:
+        width:
+          type: integer
+          minimum: 320
+          maximum: 3840
+        height:
+          type: integer
+          minimum: 240
+          maximum: 2160
+        deviceScaleFactor:
+          type: number
+          default: 1
+        isMobile:
+          type: boolean
+          default: false
+        hasTouch:
+          type: boolean
+          default: false
+
+    ClickRequest:
+      type: object
+      required: [selector]
+      properties:
+        selector:
+          type: string
+        options:
+          type: object
+          properties:
+            timeout:
+              type: number
+            force:
+              type: boolean
+            position:
+              type: object
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+            button:
+              type: string
+              enum: [left, right, middle]
+            clickCount:
+              type: number
+            delay:
+              type: number
+
+    TypeRequest:
+      type: object
+      required: [selector, text]
+      properties:
+        selector:
+          type: string
+        text:
+          type: string
+        options:
+          type: object
+          properties:
+            timeout:
+              type: number
+            delay:
+              type: number
+              description: Delay between keystrokes in milliseconds
+            clear:
+              type: boolean
+              description: Clear existing text before typing
+
+    InteractionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        elementFound:
+          type: boolean
+        error:
+          type: string
+
+    WaitRequest:
+      type: object
+      required: [condition]
+      properties:
+        condition:
+          type: string
+          enum: [selector, text, network, timeout, url, function]
+        value:
+          type: string
+          description: Value for the condition (selector, text, timeout ms, URL pattern, or JS function)
+        timeout:
+          type: number
+          default: 30000
+        state:
+          type: string
+          enum: [visible, hidden, attached, detached]
+          description: Element state for selector/text conditions
+
+    WaitResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        timeElapsed:
+          type: number
+        error:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: 'Invalid request parameters'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: 'Element not found'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: 'Internal server error'

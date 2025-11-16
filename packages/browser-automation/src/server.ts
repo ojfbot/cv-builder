@@ -13,7 +13,10 @@ import queryRoutes from './routes/query.js';
 import captureRoutes from './routes/capture.js';
 import interactRoutes from './routes/interact.js';
 import waitRoutes from './routes/wait.js';
+import docsRoutes from './routes/docs.js';
+import githubRoutes from './routes/github.js';
 import { browserManager } from './automation/browser.js';
+import { scheduleCleanup } from './automation/cleanup.js';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -32,12 +35,16 @@ app.use((req, _res, next) => {
   next();
 });
 
+// API Documentation Routes
+app.use('/', docsRoutes); // Swagger UI at /api-docs
+
 // API Routes
 app.use('/api', navigateRoutes);
 app.use('/api', queryRoutes);
 app.use('/api', captureRoutes);
 app.use('/api', interactRoutes);
 app.use('/api', waitRoutes);
+app.use('/api/github', githubRoutes);
 
 /**
  * Health check endpoint
@@ -89,7 +96,8 @@ app.get('/', (_req: Request, res: Response) => {
         waitLoad: 'POST /api/wait/load',
         waitElement: 'POST /api/wait/element',
       },
-      docs: 'Coming in Phase 4',
+      docs: 'GET /api-docs (Swagger UI)',
+      openapi: 'GET /openapi.yaml, GET /openapi.json',
     },
     playwright: {
       version: '1.40.0',
@@ -126,6 +134,9 @@ app.listen(PORT, () => {
   console.log('═══════════════════════════════════════════════════════');
   console.log('  Browser Automation Service');
   console.log('═══════════════════════════════════════════════════════');
+
+  // Start cleanup scheduler
+  scheduleCleanup();
   console.log(`  Environment:     ${NODE_ENV}`);
   console.log(`  Port:            ${PORT}`);
   console.log(`  Browser App:     ${BROWSER_APP_URL}`);
