@@ -43,6 +43,15 @@
         }
       },
       {
+        "step": "detect-current-branch",
+        "action": "action:get-git-branch",
+        "description": "Detect current branch for raw.githubusercontent.com URLs",
+        "required": true,
+        "git_commands": [
+          "git rev-parse --abbrev-ref HEAD"
+        ]
+      },
+      {
         "step": "find-screenshots",
         "action": "action:find-screenshot-files",
         "description": "Locate all screenshot files in directory",
@@ -141,20 +150,23 @@
     "workflow_instructions": {
       "attach-screenshots": {
         "steps": [
-          "1. Find all screenshot files in the specified directory (default: temp/screenshots)",
-          "2. Copy screenshots to permanent docs location (docs/images or packages/*/docs/images)",
-          "3. Commit the screenshot files to the current branch",
-          "4. Generate markdown comment body with image embeds using raw.githubusercontent.com URLs",
-          "5. Post the comment to the specified PR or issue",
-          "6. Report success with comment URL"
+          "1. Detect current git branch using `git rev-parse --abbrev-ref HEAD`",
+          "2. Find all screenshot files in the specified directory (default: temp/screenshots)",
+          "3. Copy screenshots to permanent docs location (docs/images or packages/*/docs/images)",
+          "4. Commit the screenshot files to the current branch",
+          "5. Generate markdown comment body with image embeds using raw.githubusercontent.com URLs with detected branch name",
+          "6. Post the comment to the specified PR or issue",
+          "7. Report success with comment URL"
         ],
         "error_handling": {
           "no_screenshots_found": "Warn user and ask for alternative directory",
           "commit_failed": "Report error and suggest manual commit",
           "comment_post_failed": "Show generated markdown and suggest manual posting"
         },
-        "url_format": "https://raw.githubusercontent.com/OWNER/REPO/BRANCH/path/to/image.png",
-        "markdown_template": "## 📸 Screenshots\n\n### [Title]\n![Alt Text](image-url)\n\n[Description]"
+        "url_format": "https://raw.githubusercontent.com/OWNER/REPO/{detected-branch}/path/to/image.png",
+        "branch_detection": "Uses `git rev-parse --abbrev-ref HEAD` to automatically detect current branch",
+        "markdown_template": "## 📸 Screenshots\n\n### [Title]\n![Alt Text](image-url)\n\n[Description]",
+        "critical_fix": "Always use detected branch name in URLs, not hardcoded branch names"
       }
     }
   },
@@ -167,6 +179,7 @@
       "command:git-push"
     ],
     "actions": [
+      "action:get-git-branch",
       "action:find-screenshot-files",
       "action:copy-screenshots-to-docs",
       "action:commit-screenshot-files",
@@ -232,6 +245,11 @@
     "created": "2025-11-16",
     "last_updated": "2025-11-16",
     "version_history": [
+      {
+        "version": "1.1.0",
+        "date": "2025-11-16",
+        "changes": "Added automatic git branch detection to fix URL generation issues. Now uses `git rev-parse --abbrev-ref HEAD` to detect current branch and generate correct raw.githubusercontent.com URLs."
+      },
       {
         "version": "1.0.0",
         "date": "2025-11-16",
