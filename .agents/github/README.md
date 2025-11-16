@@ -128,6 +128,69 @@ All configuration is embedded in `issue-manager.json`:
 
 ---
 
+### pr-manager
+
+**Purpose:** Pull request workflow automation with intelligent change analysis and issue linking.
+
+**Key Features:**
+- **Create PRs** with automatic change analysis
+- **Cross-reference** PRs with issues
+- **Analyze changes** and categorize files
+- **Generate summaries** with proper formatting
+- **Validate PRs** against issue requirements
+
+**When to Use:**
+- Creating new pull requests
+- Linking PRs to issues
+- Validating PR completeness
+
+**How to Invoke:**
+Simply ask Claude Code to work with pull requests:
+- "Create a PR for issue #33"
+- "Make a pull request for this feature"
+- "Cross-reference PR #22 with issue #18"
+
+**Image Embedding in PR Descriptions:**
+
+When creating PRs that include screenshots or images, follow these guidelines:
+
+**Option 1: Commit images to repository (Recommended for documentation)**
+1. Store images in appropriate directory (e.g., `docs/images/`, `packages/*/docs/images/`)
+2. Commit images to the branch
+3. Use raw GitHub URLs in PR description:
+   ```markdown
+   ![Description](https://raw.githubusercontent.com/OWNER/REPO/BRANCH/path/to/image.png)
+   ```
+
+**Option 2: Upload via GitHub web UI**
+1. Edit PR description on GitHub
+2. Drag and drop images into the text area
+3. GitHub will generate URLs like: `https://github.com/user-attachments/assets/...`
+4. Copy the generated markdown
+
+**Best Practices:**
+- Use descriptive alt text for accessibility
+- For temporary screenshots (in `temp/`), copy to a permanent location first
+- Prefer Option 1 for documentation screenshots that should be version-controlled
+- Use relative paths for images that might be viewed locally: `![Alt](./docs/images/screenshot.png)`
+
+**Example:**
+```markdown
+## Screenshots
+
+### Dashboard View
+![CV Builder Dashboard](https://raw.githubusercontent.com/ojfbot/cv-builder/main/packages/browser-automation/docs/images/cv-builder-dashboard.png)
+
+The automation captured the complete dashboard showing all navigation elements.
+```
+
+**Permissions Required:**
+- GitHub CLI (`gh`) installed and authenticated
+- Repository write access
+- Branch push permissions
+
+---
+
 ## Adding New GitHub Agents
 
 When creating new GitHub agents:
