@@ -14,10 +14,7 @@ env.json
 personal/
 
 # Temporary working directory
-# temp/pr-*/ directories are committed for PR screenshot documentation
-# All other temp files and subdirectories are gitignored
-temp/
-!temp/pr-*/
+# See temp/.gitignore for what's tracked vs ignored within temp/
 packages/browser-automation/temp/screenshots/
 
 # Dependencies
