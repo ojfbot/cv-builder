@@ -1,11 +1,13 @@
 {
   "name": "issue-manager",
-  "version": "1.0.0",
-  "description": "GitHub issue lifecycle management with intelligent codebase analysis and annotation",
-  "author": "AI MCP Stack Team",
+  "version": "2.0.0",
+  "description": "GitHub issue lifecycle management with intelligent codebase analysis, annotation, and automatic label validation",
+  "author": "CV Builder Team",
   "category": "github",
   "capabilities": [
     "create-issue",
+    "validate-labels",
+    "create-labels",
     "annotate-issue",
     "update-issue",
     "close-issue",
@@ -39,9 +41,46 @@
         }
       },
       {
+        "step": "fetch-existing-labels",
+        "command": "gh label list --json name,description,color --limit 100",
+        "description": "Get all existing repository labels for validation",
+        "required": true
+      },
+      {
+        "step": "validate-labels",
+        "description": "Identify which requested labels exist and which are missing",
+        "required": true,
+        "skip_if": {
+          "condition": "no labels requested"
+        }
+      },
+      {
+        "step": "prompt-for-missing-labels",
+        "tool": "AskUserQuestion",
+        "description": "For each missing label, ask user if they want to create it with suggested color and description",
+        "required": true,
+        "skip_if": {
+          "condition": "all labels exist"
+        }
+      },
+      {
+        "step": "create-approved-labels",
+        "command": "gh label create \"<name>\" --color \"<hex>\" --description \"<description>\"",
+        "description": "Create labels that user approved",
+        "required": false,
+        "skip_if": {
+          "condition": "no labels to create"
+        }
+      },
+      {
         "step": "create-issue",
-        "command": "command:github-issue-create",
-        "description": "Create GitHub issue with proper formatting",
+        "command": "gh issue create --title \"<title>\" --body \"<body>\" --label \"<validated-labels>\"",
+        "description": "Create GitHub issue with validated labels",
+        "required": true
+      },
+      {
+        "step": "report-results",
+        "description": "Report issue URL and summary of labels created",
         "required": true
       }
     ],
@@ -103,6 +142,7 @@
       }
     ]
   },
+  "system_prompt_guidance": "## Label Validation & Creation\n\nWhen creating issues with labels:\n\n1. **Always validate labels first** using `gh label list --json name,description,color`\n2. **For missing labels**, suggest appropriate colors based on these conventions:\n\n**Type Labels:**\n- bug: #d73a4a | enhancement: #a2eeef | feature: #0e8a16 | documentation: #0075ca | refactor: #fbca04\n\n**Priority Labels:**\n- priority:high/critical: #b60205 | priority:medium: #fbca04 | priority:low: #c5def5\n\n**Category Labels:**\n- tooling: #1d76db | testing: #bfe5bf | ci-cd: #5319e7 | docker: #0db7ed | security: #ee0701\n- performance: #f9d0c4 | ui: #e99695 | api: #d4c5f9 | agent: #c2e0c6\n\n**Status Labels:**\n- in-progress: #fbca04 | blocked: #d93f0b | ready: #0e8a16 | needs-review: #ededed\n\n**Size Labels:**\n- size:small: #c2e0c6 (<1d) | size:medium: #fbca04 (1-2d) | size:large: #f9d0c4 (3-5d) | size:xl: #e99695 (>5d)\n\n3. **Use AskUserQuestion** to confirm label creation, showing suggested color and description\n4. **Never create labels without user approval**\n5. **Match label names to conventions** - suggest appropriate descriptions\n6. **Report all actions** - which labels were created, final issue URL\n\n## Workflow for Label Handling\n\n```\nUser requests: labels: enhancement,tooling,docker\n↓\nFetch existing labels → enhancement exists, tooling and docker missing\n↓\nAsk user: \"Create 'tooling' with color #1d76db and description 'Development tools'?\"\n↓\nCreate approved labels\n↓\nCreate issue with validated labels\n↓\nReport: \"Issue #X created. New labels: tooling, docker\"\n```",
   "permissions": {
     "read": [
       "**/*.ts",
@@ -120,7 +160,8 @@
     "github_api": [
       "issues:read",
       "issues:write",
-      "repo:read"
+      "repo:read",
+      "labels:write"
     ]
   },
   "triggers": {
@@ -141,6 +182,9 @@
     "default_labels": ["enhancement"],
     "enable_llm_analysis": true,
     "require_user_approval": true,
+    "require_label_approval": true,
+    "validate_labels_before_creation": true,
+    "suggest_label_colors": true,
     "dry_run_default": true
   },
   "claude": {
@@ -148,7 +192,7 @@
     "requires_user_confirmation": true,
     "reports_progress": true,
     "estimated_duration": "10-30 seconds",
-    "user_guidance": "This agent manages GitHub issues with intelligent codebase analysis. It can create formatted issues, add context-aware comments, and manage the issue lifecycle.",
+    "user_guidance": "This agent manages GitHub issues with intelligent codebase analysis and automatic label validation. It can create formatted issues with validated labels, add context-aware comments, and manage the issue lifecycle. When creating issues, it will validate labels and offer to create missing ones with appropriate colors and descriptions.",
     "workflow_selection": {
       "prompt": "What would you like to do?",
       "options": [
@@ -190,12 +234,26 @@
   },
   "examples": [
     {
-      "scenario": "Create issue for new feature",
-      "user_request": "Create an issue for adding dark mode",
+      "scenario": "Create issue with new labels",
+      "user_request": "Create an issue titled 'Add browser automation' with labels: enhancement, tooling, docker",
       "agent_workflow": [
-        "Prompts for title: 'Add dark mode toggle'",
-        "Suggests labels: enhancement, frontend",
-        "Creates formatted issue with template"
+        "Fetch existing labels from repository",
+        "Find that 'tooling' and 'docker' don't exist",
+        "Ask user: 'Create label tooling with color #1d76db and description Development tools?'",
+        "Ask user: 'Create label docker with color #0db7ed and description Docker and containerization?'",
+        "Create approved labels",
+        "Create issue with all validated labels",
+        "Report: 'Issue #16 created. New labels created: tooling, docker'"
+      ]
+    },
+    {
+      "scenario": "Create issue with existing labels",
+      "user_request": "Create bug report with labels: bug, documentation",
+      "agent_workflow": [
+        "Fetch existing labels",
+        "Verify both labels exist",
+        "Create issue directly with labels",
+        "Report: 'Issue created at https://...'"
       ]
     },
     {
@@ -217,6 +275,14 @@
       "type": "number",
       "description": "GitHub issue number"
     },
+    "labels_created": {
+      "type": "array",
+      "description": "List of new labels that were created"
+    },
+    "labels_validated": {
+      "type": "array",
+      "description": "List of all labels used on the issue"
+    },
     "relevant_files": {
       "type": "array",
       "description": "Files identified as relevant to issue"
@@ -224,15 +290,20 @@
   },
   "metadata": {
     "created": "2025-11-14",
-    "last_updated": "2025-11-14",
+    "last_updated": "2025-11-16",
     "version_history": [
       {
         "version": "1.0.0",
         "date": "2025-11-14",
         "changes": "Initial portable agent definition"
+      },
+      {
+        "version": "2.0.0",
+        "date": "2025-11-16",
+        "changes": "Added automatic label validation and creation workflow with color conventions and user approval"
       }
     ],
-    "tags": ["github", "issues", "automation", "llm-analysis"],
+    "tags": ["github", "issues", "automation", "llm-analysis", "labels"],
     "portable": true,
     "framework_agnostic": true
   }
