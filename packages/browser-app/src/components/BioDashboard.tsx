@@ -505,11 +505,15 @@ function BioDashboard() {
             renderIcon={Folder}
             kind="tertiary"
             onClick={() => {
-              setViewMode('files')
-              dispatch(setIsExpanded(false))
+              if (viewMode === 'files') {
+                setViewMode('tiles')
+              } else {
+                setViewMode('files')
+                dispatch(setIsExpanded(false))
+              }
             }}
           >
-            View Files
+            {viewMode === 'files' ? 'Library' : 'View Files'}
           </Button>
           <Button
             renderIcon={DocumentAdd}
