@@ -115,3 +115,29 @@ if [ -f "$SCREENSHOT_PATH" ]; then
 else
   echo "⚠️  Screenshot file not found"
 fi
+
+echo ""
+echo "=== Generating Test Report ==="
+SESSION_DIR=$(find ./temp/screenshots -maxdepth 1 -type d -name "session-*" | sort -r | head -1)
+if [ -n "$SESSION_DIR" ]; then
+  METADATA=$(cat <<EOF
+{
+  "testScript": "test-cv-builder.sh",
+  "targetUrl": "$APP_URL",
+  "purpose": "CV Builder app component verification",
+  "browser": {
+    "name": "Chromium",
+    "engine": "Playwright",
+    "headless": false
+  },
+  "phase": "2",
+  "features": ["local-app-navigation", "component-verification", "element-screenshot", "wait-for-load"],
+  "prerequisites": ["CV Builder app running on port 3000", "Browser automation service running on port 3002"]
+}
+EOF
+)
+  ./generate-report.sh "cv-builder-test" "$SESSION_DIR" "$METADATA"
+  echo "Report: $SESSION_DIR/report.json"
+else
+  echo "⚠️  No session directory found"
+fi

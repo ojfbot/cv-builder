@@ -74,3 +74,28 @@ echo ""
 echo "✅ Test workflow complete!"
 echo "Screenshots saved to: ./temp/screenshots/"
 ls -lh ./temp/screenshots/*/
+
+echo ""
+echo "=== Generating Test Report ==="
+SESSION_DIR=$(find ./temp/screenshots -maxdepth 1 -type d -name "session-*" | sort -r | head -1)
+if [ -n "$SESSION_DIR" ]; then
+  METADATA=$(cat <<EOF
+{
+  "testScript": "test-workflow.sh",
+  "targetUrl": "https://example.com",
+  "purpose": "Basic functionality verification",
+  "browser": {
+    "name": "Chromium",
+    "engine": "Playwright",
+    "headless": false
+  },
+  "phase": "1-2",
+  "features": ["navigation", "element-query", "screenshot-capture"]
+}
+EOF
+)
+  ./generate-report.sh "example-com-test" "$SESSION_DIR" "$METADATA"
+  echo "Report: $SESSION_DIR/report.json"
+else
+  echo "⚠️  No session directory found"
+fi
