@@ -83,6 +83,13 @@ export type SkillCategory = z.infer<typeof SkillCategorySchema>
 export type Bio = z.infer<typeof BioSchema>
 
 // File management schemas
+export const ParsedResumeContentSchema = z.object({
+  text: z.string(),
+  wordCount: z.number(),
+  pageCount: z.number().optional(),
+  extractedAt: z.string(), // ISO date string
+})
+
 export const BioFileSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -95,6 +102,7 @@ export const BioFileSchema = z.object({
   modified: z.date(),
   created: z.date(),
   metadata: z.record(z.any()).optional(),
+  parsedContent: ParsedResumeContentSchema.optional(), // Extracted resume text
 })
 
 export const FileUploadRequestSchema = z.object({
@@ -109,6 +117,7 @@ export const FileListQuerySchema = z.object({
   offset: z.number().optional(),
 })
 
+export type ParsedResumeContent = z.infer<typeof ParsedResumeContentSchema>
 export type BioFile = z.infer<typeof BioFileSchema>
 export type FileUploadRequest = z.infer<typeof FileUploadRequestSchema>
 export type FileListQuery = z.infer<typeof FileListQuerySchema>
