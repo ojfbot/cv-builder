@@ -1,7 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import crypto from 'crypto'
 import path from 'path'
-import { FileListQuerySchema } from '@cv-builder/agent-core'
+import fs from 'fs/promises'
+import { FileListQuerySchema, ParsedResumeContent } from '@cv-builder/agent-core'
+import { parseResume } from '@cv-builder/agent-core/utils/resume-parser'
 import { bioFileManager } from '../services/bio-file-manager'
 import { upload, validateFileContent } from '../middleware/file-upload'
 import { authenticate } from '../middleware/auth'
@@ -93,13 +95,40 @@ router.post(
       // Extract file ID from stored filename (UUID)
       const fileId = path.basename(req.file.filename, path.extname(req.file.filename))
 
-      // Add file to metadata
+      // Parse resume content for supported formats (PDF, DOCX, TXT, MD)
+      let parsedContent: ParsedResumeContent | undefined
+      const resumeFormats = ['.pdf', '.docx', '.txt', '.md']
+      const fileExt = path.extname(req.file.originalname).toLowerCase()
+
+      if (resumeFormats.includes(fileExt)) {
+        try {
+          // Read the uploaded file buffer
+          const buffer = await fs.readFile(req.file.path)
+
+          // Parse the resume
+          const parsed = await parseResume(buffer, req.file.originalname, req.file.mimetype)
+
+          // Convert to our schema format
+          parsedContent = {
+            text: parsed.text,
+            wordCount: parsed.metadata.wordCount,
+            pageCount: parsed.metadata.pageCount,
+            extractedAt: parsed.metadata.uploadDate,
+          }
+        } catch (parseError) {
+          // Log parsing error but don't fail the upload
+          console.warn(`Failed to parse resume ${req.file.originalname}:`, parseError)
+        }
+      }
+
+      // Add file to metadata with parsed content
       const bioFile = await bioFileManager.addFile(
         fileId,
         req.file.originalname,
         req.file.filename,
         req.file.mimetype,
-        req.file.size
+        req.file.size,
+        parsedContent ? { parsedContent } : undefined
       )
 
       res.status(201).json({
@@ -107,6 +136,7 @@ router.post(
           ...bioFile,
           modified: bioFile.modified.toISOString(),
           created: bioFile.created.toISOString(),
+          parsedContent, // Include parsed content in response
         },
       })
     } catch (error) {

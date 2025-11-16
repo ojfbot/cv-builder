@@ -3,7 +3,7 @@ import path from 'path'
 import crypto from 'crypto'
 import mime from 'mime-types'
 import sharp from 'sharp'
-import { BioFile, FileListQuery } from '@cv-builder/agent-core'
+import { BioFile, FileListQuery, ParsedResumeContent } from '@cv-builder/agent-core'
 import { formatFileSize, sanitizeFilename, BIOS_DIR } from '../middleware/file-upload'
 
 interface FileMetadata {
@@ -32,6 +32,7 @@ export class BioFileManager {
           ...fileData,
           modified: new Date(fileData.modified),
           created: new Date(fileData.created),
+          parsedContent: fileData.parsedContent, // Preserve parsed content if it exists
         })
       }
 
@@ -125,7 +126,7 @@ export class BioFileManager {
     storedName: string,
     mimeType: string,
     size: number,
-    additionalMetadata?: FileMetadata
+    additionalMetadata?: FileMetadata & { parsedContent?: ParsedResumeContent }
   ): Promise<BioFile> {
     const metadata = await this.loadMetadata()
 
@@ -143,7 +144,10 @@ export class BioFileManager {
       path: path.join(this.biosDir, storedName),
       modified: now,
       created: now,
-      metadata: additionalMetadata,
+      metadata: additionalMetadata && Object.keys(additionalMetadata).length > 1
+        ? Object.fromEntries(Object.entries(additionalMetadata).filter(([k]) => k !== 'parsedContent'))
+        : undefined,
+      parsedContent: additionalMetadata?.parsedContent,
     }
 
     metadata.set(fileId, bioFile)
