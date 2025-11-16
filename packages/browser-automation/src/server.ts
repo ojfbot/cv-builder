@@ -68,6 +68,27 @@ app.get('/health', async (_req: Request, res: Response) => {
 });
 
 /**
+ * Close browser endpoint
+ * Closes the browser and cleans up resources
+ */
+app.post('/api/close', async (_req: Request, res: Response) => {
+  try {
+    await browserManager.close();
+    res.status(200).json({
+      success: true,
+      message: 'Browser closed successfully',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error closing browser:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
  * Root endpoint
  * Provides API information
  */
@@ -82,6 +103,7 @@ app.get('/', (_req: Request, res: Response) => {
       query: 'GET /api/element/exists',
       screenshot: 'POST /api/screenshot',
       sessions: 'GET /api/screenshot/sessions',
+      close: 'POST /api/close',
       interactions: {
         click: 'POST /api/interact/click',
         type: 'POST /api/interact/type',
