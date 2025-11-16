@@ -123,6 +123,20 @@ export async function captureScreenshot(
 
   console.log(`Screenshot saved: ${filepath} (${stats.size} bytes)`);
 
+  // Update manifest
+  try {
+    const { updateManifest } = await import('./manifest.js');
+    await updateManifest(sessionDir, {
+      filename,
+      path: filepath,
+      fileSize: stats.size,
+      viewport: viewportSuffix.substring(1) || undefined, // Remove leading dash
+      format,
+    });
+  } catch (error) {
+    console.error('Failed to update manifest:', error);
+  }
+
   return {
     success: true,
     path: filepath,
