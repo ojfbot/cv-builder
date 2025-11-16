@@ -45,6 +45,14 @@
       "triggers": ["create pr", "pull request", "create pull request"],
       "auto_execute": false
     },
+    "screenshot-commenter": {
+      "file": "github/screenshot-commenter.json",
+      "category": "github",
+      "priority": "medium",
+      "description": "Attach screenshots from temp directories to PR/issue comments using raw GitHub URLs",
+      "triggers": ["attach screenshots", "add screenshots", "upload screenshots", "post screenshots to pr"],
+      "auto_execute": false
+    },
     "release-manager": {
       "file": "github/release-manager.json",
       "category": "github",

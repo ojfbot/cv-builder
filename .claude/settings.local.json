@@ -24,7 +24,14 @@
       "Bash(gh pr view:*)",
       "Bash(gh issue view:*)",
       "Bash(git -C /Users/yuri/ojfbot/cv-builder show bio-dash:packages/agent-core/package.json)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(gh label list:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(gh issue create:*)",
+      "Bash(npx playwright install chromium)",
+      "Bash(./test-workflow.sh:*)",
+      "Bash(./test-cv-builder.sh:*)",
+      "Bash(gh pr edit:*)"
     ],
     "deny": [],
     "ask": []
