@@ -1,12 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { TabKey, convertIndexToKey, convertKeyToIndex } from '../../models/navigation'
 
+export type BioViewMode = 'landing' | 'tiles' | 'files'
+
 export interface NavigationState {
   currentTab: TabKey
   previousTab: TabKey
   // Legacy index-based access for backward compatibility
   currentTabIndex: number
   previousTabIndex: number
+  // Bio panel view mode persistence
+  bioViewMode: BioViewMode
 }
 
 const initialState: NavigationState = {
@@ -14,6 +18,7 @@ const initialState: NavigationState = {
   previousTab: TabKey.INTERACTIVE,
   currentTabIndex: 0,
   previousTabIndex: 0,
+  bioViewMode: 'landing',
 }
 
 const navigationSlice = createSlice({
@@ -54,8 +59,13 @@ const navigationSlice = createSlice({
       state.previousTabIndex = state.currentTabIndex
       state.currentTabIndex = convertKeyToIndex(key)
     },
+
+    // Set Bio panel view mode
+    setBioViewMode: (state, action: PayloadAction<BioViewMode>) => {
+      state.bioViewMode = action.payload
+    },
   },
 })
 
-export const { navigateToTab, setCurrentTab, requestTabChange } = navigationSlice.actions
+export const { navigateToTab, setCurrentTab, requestTabChange, setBioViewMode } = navigationSlice.actions
 export default navigationSlice.reducer

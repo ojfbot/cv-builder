@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from '../store'
 import {
   Heading,
   Tile,
@@ -19,6 +20,7 @@ import { DocumentAdd, Edit, Upload, ChatBot, DataTable, Connect, ViewFilled, Fol
 import { BioFile } from '@cv-builder/agent-core'
 import { bioFilesApi } from '../api/bioFilesApi'
 import { setIsExpanded } from '../store/slices/chatSlice'
+import { setBioViewMode, type BioViewMode } from '../store/slices/navigationSlice'
 
 interface StatItem {
   value: number
@@ -30,11 +32,11 @@ interface StatGroup {
   stats: StatItem[]
 }
 
-type ViewMode = 'landing' | 'tiles' | 'files'
-
 function BioDashboard() {
   const dispatch = useDispatch()
-  const [viewMode, setViewMode] = useState<ViewMode>('landing')
+  const viewMode = useSelector((state: RootState) => state.navigation.bioViewMode)
+  const currentTab = useSelector((state: RootState) => state.navigation.currentTab)
+  const setViewMode = (mode: BioViewMode) => dispatch(setBioViewMode(mode))
   const [bioEntries] = useState<any[]>([]) // TODO: Replace with actual bio entries from state/API
   const [bioFiles, setBioFiles] = useState<BioFile[]>([])
   const [isLoadingFiles, setIsLoadingFiles] = useState(false)
@@ -129,6 +131,14 @@ function BioDashboard() {
     }
   }
 
+  // Collapse chat when navigating to Bio panel if on files/tiles view
+  useEffect(() => {
+    // When currentTab changes to Bio and we're not on landing view, collapse chat
+    if (viewMode !== 'landing') {
+      dispatch(setIsExpanded(false))
+    }
+  }, [currentTab, viewMode, dispatch]) // Run when navigating to Bio tab or view changes
+
   // Load files when switching to files view
   useEffect(() => {
     if (viewMode === 'files') {
@@ -188,7 +198,7 @@ function BioDashboard() {
   const renderLandingView = () => (
     <>
       <Grid narrow>
-        <Column lg={10} md={6} sm={4}>
+        <Column lg={12} md={7} sm={4}>
           <Tile style={{ marginBottom: '2rem' }}>
             <p style={{ color: 'var(--cds-text-secondary)' }}>
               Your professional bio is securely stored in private storage. Build your profile from multiple
