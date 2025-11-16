@@ -20,7 +20,10 @@
       "Bash(jq -r \".agents.\"\"$agent\"\" | \"\"Priority: \\(.priority) | Category: \\(.category) | Description: \\(.description)\"\"\")",
       "Bash(done)",
       "Bash(git check-ignore:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh issue view:*)",
+      "Bash(git -C /Users/yuri/ojfbot/cv-builder show bio-dash:packages/agent-core/package.json)"
     ],
     "deny": [],
     "ask": []
