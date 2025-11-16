@@ -134,14 +134,16 @@ function BioDashboard() {
     }
   }, [viewMode])
 
-  // Keyboard navigation for carousel
+  // Keyboard navigation for carousel (only when no bios exist)
   useEffect(() => {
     if (viewMode !== 'tiles' || bioEntries.length > 0) return
 
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault()
         setCarouselIndex((prev) => (prev - 1 + 4) % 4)
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault()
         setCarouselIndex((prev) => (prev + 1) % 4)
       }
     }
@@ -381,9 +383,6 @@ function BioDashboard() {
         }
       ]
 
-      const currentTile = tiles[carouselIndex]
-      const Icon = currentTile.icon
-
       const goToSlide = (index: number) => {
         setCarouselIndex(index)
       }
@@ -394,40 +393,60 @@ function BioDashboard() {
             Choose how to build your bio
           </Heading>
           <div style={{ position: 'relative', marginBottom: '2rem' }}>
-            {/* Carousel container */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-              <Tile
-                style={{
-                  minHeight: '200px',
-                  maxWidth: '400px',
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  border: '2px solid transparent',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--cds-border-interactive)'
-                  e.currentTarget.style.transform = 'translateY(-4px)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'transparent'
-                  e.currentTarget.style.transform = 'translateY(0)'
-                }}
-                onClick={currentTile.onClick}
-              >
-                <Icon size={48} style={{ marginBottom: '1rem', color: 'var(--cds-icon-primary)' }} />
-                <Heading style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-                  {currentTile.title}
-                </Heading>
-                <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem' }}>
-                  {currentTile.description}
-                </p>
-              </Tile>
+            {/* Carousel container - shows all 4 tiles in grid */}
+            <div className="card-container" style={{ marginBottom: '1rem' }}>
+              {tiles.map((tile, index) => {
+                const TileIcon = tile.icon
+                return (
+                  <Tile
+                    key={index}
+                    style={{
+                      minHeight: '200px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      border: index === carouselIndex
+                        ? '2px solid var(--cds-border-interactive)'
+                        : '2px solid transparent',
+                      outline: 'none',
+                      boxShadow: index === carouselIndex
+                        ? '0 0 0 2px var(--cds-focus)'
+                        : 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--cds-border-interactive)'
+                      e.currentTarget.style.transform = 'translateY(-4px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      if (index !== carouselIndex) {
+                        e.currentTarget.style.borderColor = 'transparent'
+                      }
+                      e.currentTarget.style.transform = 'translateY(0)'
+                    }}
+                    onClick={() => {
+                      // Set focus to this tile when clicked
+                      setCarouselIndex(index)
+                      tile.onClick()
+                    }}
+                    onFocus={() => setCarouselIndex(index)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={tile.title}
+                  >
+                    <TileIcon size={48} style={{ marginBottom: '1rem', color: 'var(--cds-icon-primary)' }} />
+                    <Heading style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+                      {tile.title}
+                    </Heading>
+                    <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem' }}>
+                      {tile.description}
+                    </p>
+                  </Tile>
+                )
+              })}
             </div>
 
             {/* Carbon Design System style pagination dots */}
@@ -454,7 +473,7 @@ function BioDashboard() {
                     transition: 'background-color 0.2s ease, transform 0.2s ease',
                     transform: index === carouselIndex ? 'scale(1.2)' : 'scale(1)',
                   }}
-                  aria-label={`Go to slide ${index + 1}`}
+                  aria-label={`Highlight ${tiles[index].title}`}
                   aria-current={index === carouselIndex ? 'true' : 'false'}
                 />
               ))}
@@ -464,19 +483,161 @@ function BioDashboard() {
       )
     }
 
-    // When there are entries, show them as tiles
+    // When there are entries, show them as tiles with template interface
     return (
       <>
-        <Heading style={{ fontSize: '1rem', marginBottom: '1rem' }}>
-          Your Bio Entries ({bioEntries.length})
-        </Heading>
-        <div className="card-container">
-          {bioEntries.map((_entry, index) => (
-            <Tile key={index}>
-              {/* TODO: Render actual bio entry tiles */}
-              <p>Bio entry {index + 1}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <Heading style={{ fontSize: '1rem' }}>
+            Your Bio Library ({bioEntries.length})
+          </Heading>
+          <Button
+            renderIcon={DocumentAdd}
+            kind="primary"
+            size="sm"
+            onClick={() => {
+              // TODO: Open new bio template selector
+              console.log('Create new bio from template')
+            }}
+          >
+            New from Template
+          </Button>
+        </div>
+
+        <div className="card-container" style={{ marginBottom: '2rem' }}>
+          {bioEntries.map((entry, index) => (
+            <Tile
+              key={index}
+              style={{
+                minHeight: '180px',
+                display: 'flex',
+                flexDirection: 'column',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                border: '2px solid transparent',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--cds-border-interactive)'
+                e.currentTarget.style.transform = 'translateY(-4px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'transparent'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
+              onClick={() => {
+                // TODO: Open bio detail view
+                console.log('View bio entry:', entry)
+              }}
+            >
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '1rem'
+              }}>
+                <Heading style={{ fontSize: '1.125rem' }}>
+                  Bio {index + 1}
+                </Heading>
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  <Button
+                    size="sm"
+                    kind="ghost"
+                    renderIcon={Edit}
+                    iconDescription="Edit"
+                    hasIconOnly
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      console.log('Edit bio:', entry)
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    kind="ghost"
+                    renderIcon={Download}
+                    iconDescription="Export"
+                    hasIconOnly
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      console.log('Export bio:', entry)
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <p style={{
+                  color: 'var(--cds-text-secondary)',
+                  fontSize: '0.875rem',
+                  marginBottom: '0.5rem'
+                }}>
+                  Created: {new Date().toLocaleDateString()}
+                </p>
+                <p style={{
+                  color: 'var(--cds-text-secondary)',
+                  fontSize: '0.875rem',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                }}>
+                  {/* TODO: Show actual bio summary */}
+                  Professional bio entry with experience, education, and skills...
+                </p>
+              </div>
+
+              <div style={{
+                marginTop: 'auto',
+                paddingTop: '1rem',
+                borderTop: '1px solid var(--cds-border-subtle)',
+                fontSize: '0.75rem',
+                color: 'var(--cds-text-secondary)'
+              }}>
+                Last updated: {new Date().toLocaleDateString()}
+              </div>
             </Tile>
           ))}
+        </div>
+
+        {/* Template Quick Actions */}
+        <div style={{ marginTop: '2rem' }}>
+          <Heading style={{ fontSize: '0.875rem', marginBottom: '0.75rem', color: 'var(--cds-text-secondary)' }}>
+            Quick Create
+          </Heading>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <Button
+              size="sm"
+              kind="tertiary"
+              renderIcon={Upload}
+              onClick={() => {
+                // TODO: Open upload dialog
+                console.log('Upload resume')
+              }}
+            >
+              From Resume
+            </Button>
+            <Button
+              size="sm"
+              kind="tertiary"
+              renderIcon={ChatBot}
+              onClick={() => {
+                // TODO: Open chat
+                console.log('Chat to create')
+              }}
+            >
+              Chat to Create
+            </Button>
+            <Button
+              size="sm"
+              kind="tertiary"
+              renderIcon={DataTable}
+              onClick={() => {
+                // TODO: Open form
+                console.log('Manual entry')
+              }}
+            >
+              Manual Entry
+            </Button>
+          </div>
         </div>
       </>
     )
