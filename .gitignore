@@ -13,11 +13,11 @@ env.json
 /toolbox/
 personal/
 
-# Temporary working directory (ignore contents but keep directory)
-/temp/*
-!/temp/.gitkeep
-packages/browser-automation/temp/*
-!packages/browser-automation/temp/.gitkeep
+# Temporary working directory
+# temp/pr-*/ directories are committed for PR screenshot documentation
+# temp/screenshots/ and other temp subdirectories are gitignored
+/temp/screenshots/
+packages/browser-automation/temp/screenshots/
 
 # Dependencies
 node_modules/

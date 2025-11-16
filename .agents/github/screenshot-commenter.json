@@ -1,0 +1,224 @@
+{
+  "name": "screenshot-commenter",
+  "version": "1.0.0",
+  "description": "Attach screenshots to GitHub PR or issue comments using committed images",
+  "author": "AI MCP Stack Team",
+  "category": "github",
+  "capabilities": [
+    "attach-screenshots",
+    "find-images",
+    "generate-comment",
+    "upload-comment"
+  ],
+  "workflows": {
+    "attach-screenshots": [
+      {
+        "step": "gather-info",
+        "description": "Get PR/issue number and screenshot directory",
+        "user_interaction": {
+          "type": "input",
+          "prompts": [
+            {
+              "name": "pr_or_issue_number",
+              "message": "PR or issue number:",
+              "required": true
+            },
+            {
+              "name": "screenshot_dir",
+              "message": "Screenshot directory path (relative to repo root):",
+              "required": false,
+              "default": "temp/screenshots"
+            },
+            {
+              "name": "target_type",
+              "message": "Target type (pr or issue):",
+              "type": "choice",
+              "choices": ["pr", "issue"],
+              "default": "pr"
+            }
+          ]
+        }
+      },
+      {
+        "step": "find-screenshots",
+        "action": "action:find-screenshot-files",
+        "description": "Locate all screenshot files in directory",
+        "required": true
+      },
+      {
+        "step": "copy-to-docs",
+        "action": "action:copy-screenshots-to-docs",
+        "description": "Copy screenshots from temp to permanent docs location",
+        "required": true
+      },
+      {
+        "step": "commit-screenshots",
+        "action": "action:commit-screenshot-files",
+        "description": "Commit screenshot files to current branch",
+        "required": true
+      },
+      {
+        "step": "generate-comment-body",
+        "action": "action:generate-screenshot-comment",
+        "description": "Generate markdown comment with image embeds using raw GitHub URLs",
+        "required": true
+      },
+      {
+        "step": "post-comment",
+        "command": "command:github-comment-create",
+        "description": "Post comment to PR or issue",
+        "required": true
+      }
+    ]
+  },
+  "permissions": {
+    "read": [
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.gif",
+      "temp/**",
+      "docs/**"
+    ],
+    "write": [
+      "docs/images/**",
+      "packages/*/docs/images/**"
+    ],
+    "execute": [
+      "gh",
+      "git",
+      "find",
+      "cp"
+    ],
+    "github_api": [
+      "pull_requests:write",
+      "issues:write",
+      "repo:read"
+    ]
+  },
+  "triggers": {
+    "manual": true,
+    "github_action": false,
+    "scheduled": false,
+    "claude_intents": [
+      "attach screenshots",
+      "add screenshots to pr",
+      "upload images to issue",
+      "post screenshots",
+      "comment with images"
+    ]
+  },
+  "configuration": {
+    "screenshot_extensions": [".png", ".jpg", ".jpeg", ".gif"],
+    "max_images_per_comment": 10,
+    "docs_image_path": "docs/images",
+    "package_docs_pattern": "packages/*/docs/images",
+    "commit_screenshots": true,
+    "auto_push": true,
+    "use_raw_github_urls": true
+  },
+  "claude": {
+    "auto_execute": false,
+    "requires_user_confirmation": true,
+    "reports_progress": true,
+    "estimated_duration": "20-60 seconds",
+    "user_guidance": "This agent attaches screenshots to PR or issue comments by committing images to the repo and using raw GitHub URLs. It handles the full workflow: find images, copy to docs, commit, generate comment with embeds, and post.",
+    "workflow_instructions": {
+      "attach-screenshots": {
+        "steps": [
+          "1. Find all screenshot files in the specified directory (default: temp/screenshots)",
+          "2. Copy screenshots to permanent docs location (docs/images or packages/*/docs/images)",
+          "3. Commit the screenshot files to the current branch",
+          "4. Generate markdown comment body with image embeds using raw.githubusercontent.com URLs",
+          "5. Post the comment to the specified PR or issue",
+          "6. Report success with comment URL"
+        ],
+        "error_handling": {
+          "no_screenshots_found": "Warn user and ask for alternative directory",
+          "commit_failed": "Report error and suggest manual commit",
+          "comment_post_failed": "Show generated markdown and suggest manual posting"
+        },
+        "url_format": "https://raw.githubusercontent.com/OWNER/REPO/BRANCH/path/to/image.png",
+        "markdown_template": "## 📸 Screenshots\n\n### [Title]\n![Alt Text](image-url)\n\n[Description]"
+      }
+    }
+  },
+  "dependencies": {
+    "commands": [
+      "command:github-comment-create",
+      "command:git-current-branch",
+      "command:git-add",
+      "command:git-commit",
+      "command:git-push"
+    ],
+    "actions": [
+      "action:find-screenshot-files",
+      "action:copy-screenshots-to-docs",
+      "action:commit-screenshot-files",
+      "action:generate-screenshot-comment"
+    ],
+    "tools": [
+      "gh",
+      "git",
+      "find",
+      "cp"
+    ]
+  },
+  "outputs": {
+    "comment_url": {
+      "type": "string",
+      "description": "URL of created comment"
+    },
+    "images_attached": {
+      "type": "number",
+      "description": "Number of images attached"
+    },
+    "screenshot_paths": {
+      "type": "array",
+      "description": "List of committed screenshot paths"
+    },
+    "comment_markdown": {
+      "type": "string",
+      "description": "Generated markdown for the comment"
+    }
+  },
+  "examples": [
+    {
+      "scenario": "Attach browser automation screenshots to PR",
+      "user_request": "Attach screenshots from temp/screenshots to PR #22",
+      "agent_workflow": [
+        "Finds 4 PNG files in packages/browser-automation/temp/screenshots/",
+        "Copies to packages/browser-automation/docs/images/",
+        "Commits files: cv-builder-dashboard.png, cv-builder-header.png, example-homepage.png, example-h1.png",
+        "Generates comment with raw GitHub URLs for each image",
+        "Posts comment to PR #22",
+        "Returns comment URL: https://github.com/ojfbot/cv-builder/pull/22#issuecomment-..."
+      ]
+    },
+    {
+      "scenario": "Attach test results screenshots to issue",
+      "user_request": "Add test screenshots to issue #18",
+      "agent_workflow": [
+        "Finds screenshots in temp/test-results/",
+        "Copies to docs/images/tests/",
+        "Commits screenshot files",
+        "Generates comment with organized image layout",
+        "Posts to issue #18"
+      ]
+    }
+  ],
+  "metadata": {
+    "created": "2025-11-16",
+    "last_updated": "2025-11-16",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-11-16",
+        "changes": "Initial screenshot commenter agent for PR/issue image attachments"
+      }
+    ],
+    "tags": ["github", "screenshots", "images", "pull-requests", "issues", "attachments"],
+    "portable": true,
+    "framework_agnostic": true
+  }
+}

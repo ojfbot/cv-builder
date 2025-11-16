@@ -191,6 +191,69 @@ The automation captured the complete dashboard showing all navigation elements.
 
 ---
 
+### screenshot-commenter
+
+**Purpose:** Attach screenshots from temporary directories to GitHub PR or issue comments.
+
+**Key Features:**
+- **Find screenshots** in temp directories (gitignored files)
+- **Copy to docs** for permanent storage
+- **Commit and push** screenshot files automatically
+- **Generate markdown** with raw GitHub URLs
+- **Post comment** with embedded images to PR or issue
+
+**When to Use:**
+- Documenting visual changes in PRs
+- Attaching test screenshots to issues
+- Adding browser automation captures
+- Including UI screenshots for review
+
+**How to Invoke:**
+Simply ask Claude Code to attach screenshots:
+- "Attach screenshots from temp to PR #22"
+- "Add screenshots to issue #18"
+- "Post browser automation screenshots to PR"
+
+**How It Works:**
+
+The agent uses a Node.js script that:
+1. Finds all image files (`.png`, `.jpg`, `.jpeg`, `.gif`) in the specified directory
+2. Copies them to `packages/*/docs/images/` for permanent storage
+3. Commits and pushes the files to the current branch
+4. Generates a markdown comment with raw GitHub URLs
+5. Posts the comment using `gh pr comment` or `gh issue comment`
+
+**Why This Approach:**
+- GitHub doesn't have an official API for uploading images to comments
+- Committing images makes them version-controlled and permanent
+- Raw GitHub URLs work reliably in PR/issue comments
+- Temporary screenshots in `temp/` remain gitignored
+
+**Example Usage:**
+
+```bash
+# Using the script directly
+node .agents/github/scripts/upload-screenshots.cjs 22 packages/browser-automation/temp/screenshots
+
+# Or ask Claude Code
+"Attach screenshots from packages/browser-automation/temp/screenshots to PR #22"
+```
+
+**Output:**
+- Creates comment with embedded images
+- Returns comment URL: `https://github.com/OWNER/REPO/pull/22#issuecomment-...`
+- Lists all attached screenshots
+
+**Script Location:**
+`.agents/github/scripts/upload-screenshots.cjs`
+
+**Permissions Required:**
+- GitHub CLI (`gh`) installed and authenticated
+- Git push access to repository
+- Write access to `docs/images/` directories
+
+---
+
 ## Adding New GitHub Agents
 
 When creating new GitHub agents:
