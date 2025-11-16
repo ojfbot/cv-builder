@@ -96,21 +96,104 @@ if (!fs.existsSync(prTempDir)) {
   console.log(`Created directory: ${prTempDir}`);
 }
 
+// Extract metadata from screenshot files
+const extractMetadata = (imgPath) => {
+  const filename = path.basename(imgPath);
+  const stats = fs.statSync(imgPath);
+  const sessionDir = path.basename(path.dirname(imgPath));
+
+  // Parse timestamp from session directory (format: 2025-11-16T07-29-46)
+  const timestampMatch = sessionDir.match(/(\d{4}-\d{2}-\d{2})T(\d{2}-\d{2}-\d{2})/);
+  const captureTime = timestampMatch
+    ? `${timestampMatch[1]} ${timestampMatch[2].replace(/-/g, ':')}`
+    : new Date(stats.mtime).toISOString().replace('T', ' ').substring(0, 19);
+
+  return {
+    filename,
+    captureTime,
+    fileSize: stats.size,
+    sessionDir
+  };
+};
+
+// Generate context based on filename patterns
+const generateContext = (filename) => {
+  const name = filename.toLowerCase();
+
+  // Pattern matching for common screenshot types
+  if (name.includes('dashboard')) {
+    return {
+      what: 'Complete dashboard interface showing all navigation tabs and main interactive area',
+      why: 'Demonstrates the full application layout and primary user interface',
+      when: 'Captured during integration testing of browser automation API'
+    };
+  } else if (name.includes('header')) {
+    return {
+      what: 'Navigation header with tabs and controls',
+      why: 'Shows element-specific screenshot capability (targeting specific components)',
+      when: 'Captured to demonstrate selector-based screenshot feature'
+    };
+  } else if (name.includes('example') && name.includes('homepage')) {
+    return {
+      what: 'Example.com homepage - standard test page',
+      why: 'Validates full-page screenshot functionality with a known stable page',
+      when: 'Captured during basic workflow testing'
+    };
+  } else if (name.includes('example') && name.includes('h1')) {
+    return {
+      what: 'H1 element from Example.com page',
+      why: 'Demonstrates element-specific screenshot by CSS selector',
+      when: 'Captured to validate element querying and isolated screenshot capture'
+    };
+  } else if (name.includes('error') || name.includes('fail')) {
+    return {
+      what: 'Error state or failure condition',
+      why: 'Documents issue or bug for debugging purposes',
+      when: 'Captured when error condition occurred'
+    };
+  } else if (name.includes('test')) {
+    return {
+      what: 'Test execution result or test interface',
+      why: 'Documents test results or validates test functionality',
+      when: 'Captured during automated test run'
+    };
+  } else if (name.includes('before') || name.includes('after')) {
+    return {
+      what: name.includes('before') ? 'State before changes' : 'State after changes',
+      why: 'Visual comparison for change validation',
+      when: 'Captured for visual regression testing'
+    };
+  } else {
+    return {
+      what: 'Screenshot captured during development',
+      why: 'Documents visual state or behavior',
+      when: 'Captured during testing or development'
+    };
+  }
+};
+
 const copiedImages = [];
 for (const imgPath of imageFiles) {
-  const filename = path.basename(imgPath);
-  const destPath = path.join(prTempDir, filename);
+  const metadata = extractMetadata(imgPath);
+  const context = generateContext(metadata.filename);
+  const destPath = path.join(prTempDir, metadata.filename);
 
   // Copy (overwrite if exists)
   fs.copyFileSync(imgPath, destPath);
-  console.log(`✓ Copied ${filename} to temp/pr-${prNumber}/`);
-  copiedImages.push({ original: imgPath, dest: destPath, filename });
+  console.log(`✓ Copied ${metadata.filename} to temp/pr-${prNumber}/`);
+
+  copiedImages.push({
+    original: imgPath,
+    dest: destPath,
+    ...metadata,
+    context
+  });
 }
 
 // Generate markdown comment
 const generateCommentMarkdown = () => {
   let markdown = '## 📸 Screenshots - Browser Automation in Action\n\n';
-  markdown += 'The automation service successfully captured these screenshots:\n\n';
+  markdown += 'The automation service successfully captured these screenshots during development and testing.\n\n';
   markdown += '---\n\n';
 
   for (const img of copiedImages) {
@@ -126,12 +209,22 @@ const generateCommentMarkdown = () => {
 
     markdown += `### ${title}\n\n`;
     markdown += `![${title}](${blobUrl})\n\n`;
+
+    // Add context metadata
+    markdown += `**📋 What:** ${img.context.what}\n\n`;
+    markdown += `**💡 Why:** ${img.context.why}\n\n`;
+    markdown += `**⏰ When:** ${img.context.when}\n\n`;
+    markdown += `**📅 Captured:** ${img.captureTime}\n`;
+    markdown += ` | **💾 Size:** ${(img.fileSize / 1024).toFixed(1)} KB\n`;
+    markdown += ` | **📁 Session:** \`${img.sessionDir}\`\n\n`;
     markdown += '---\n\n';
   }
 
-  markdown += `\n**Total screenshots:** ${copiedImages.length}\n`;
-  markdown += `**Source directory:** \`${screenshotDir}\`\n`;
-  markdown += `**PR directory:** \`${path.relative(process.cwd(), prTempDir)}\`\n`;
+  markdown += `\n### Summary\n\n`;
+  markdown += `- **Total screenshots:** ${copiedImages.length}\n`;
+  markdown += `- **Source directory:** \`${screenshotDir}\`\n`;
+  markdown += `- **PR documentation directory:** \`${path.relative(process.cwd(), prTempDir)}\`\n`;
+  markdown += `- **Branch:** \`${currentBranch}\`\n`;
 
   return markdown;
 };
