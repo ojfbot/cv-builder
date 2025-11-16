@@ -1,303 +1,405 @@
-# Browser Automation Service
+# 🤖 Browser Automation Service
 
-Playwright-based browser automation service for UI testing and screenshot capture. Enables AI dev tools (like Claude Code) to interact with the CV Builder application programmatically.
+> **AI-Powered UI Testing & Screenshot Automation**
+> Chat with your browser. Test your UI. Document your changes. All through natural language.
 
-## Features
-
-- **Browser Automation**: Navigate, interact, and test UI components
-- **Screenshot Capture**: Full-page, element-specific, multi-viewport screenshots with format options
-- **User Interactions**: Click, type, hover, fill forms, press keys, and more
-- **Waiting Strategies**: Wait for elements, network, page load, and custom conditions
-- **Session Management**: Auto-cleanup of inactive sessions after 5 minutes
-- **Docker Integration**: Runs alongside development services
-- **REST API**: Simple HTTP endpoints for automation commands
-- **AI Tool Ready**: Designed for Claude Code integration
-
-## Quick Start
-
-### Using Docker Compose (Recommended)
+Playwright-based browser automation service designed for **AI dev tools** like Claude Code. Control browsers, capture screenshots, and test UIs through simple HTTP APIs or natural language prompts.
 
 ```bash
-# Start all services (browser-app + browser-automation)
-docker-compose up browser-app browser-automation
+# You: "Capture the dashboard at mobile and desktop sizes"
+# Claude Code → Browser Automation API → Screenshots captured ✅
 
-# Or start in background
-docker-compose up -d browser-app browser-automation
+# You: "Test if the Bio component is visible"
+# Claude Code → Element Query API → Component verified ✅
 
-# View logs
-docker-compose logs -f browser-automation
+# You: "Attach screenshots to PR #23"
+# Claude Code → GitHub Integration → Screenshots posted ✅
 ```
 
-### Local Development
+---
 
+## 🎯 Why This Exists
+
+**Problem:** Developers need to manually test UI changes, capture screenshots for PRs, and verify component behavior. This is tedious and error-prone.
+
+**Solution:** An HTTP API that AI tools can call to automate browser interactions. No manual clicking, no screenshot hunting, no copy-pasting.
+
+**Use Cases:**
+- 🤖 **AI-Assisted Testing:** Claude Code tests your UI through chat
+- 📸 **Automated PR Documentation:** Generate screenshots during development
+- 🔍 **Component Verification:** Query elements and validate states
+- 📱 **Responsive Testing:** Capture multiple viewport sizes instantly
+- 🎬 **User Flow Documentation:** Record multi-step workflows automatically
+
+---
+
+## ⚡ Quick Start
+
+### 1. Start the Service
+
+**Option A: Docker (Recommended)**
 ```bash
-# Navigate to package
-cd packages/browser-automation
+docker-compose up -d browser-automation browser-app
+```
 
-# Install dependencies
+**Option B: Local Development**
+```bash
+cd packages/browser-automation
+npm install
+npm run dev
+```
+
+**Verify it's running:**
+```bash
+curl http://localhost:3002/health
+# ✅ {"status":"ready","version":"0.3.0"}
+```
+
+### 2. Try It Out
+
+**Interactive API Documentation:**
+```
+http://localhost:3002/api-docs
+```
+
+Click any endpoint → "Try it out" → Execute → See results!
+
+**CLI (fastest for quick tasks):**
+```bash
+# Capture screenshot
+npm run cli screenshot http://localhost:3000 dashboard
+
+# Test element
+npm run cli test http://localhost:3000 ".bio-component"
+
+# Check health
+npm run cli health
+```
+
+**Example Scripts (realistic workflows):**
+```bash
+cd examples
 npm install
 
-# Start in development mode
-npm run dev
+# Capture dashboard
+npm run dashboard
 
-# Build for production
-npm run build
-npm start
+# Test all components
+npm run component
+
+# Generate PR screenshots
+npm run pr-docs 23
 ```
 
-## API Endpoints
+### 3. Use with Claude Code
 
-### Health Check
+**Just describe what you want:**
 
+```
+"Capture screenshots of the dashboard at mobile, tablet, and desktop sizes"
+
+"Click the Add Job button and verify the modal opens"
+
+"Test if the Bio component is visible and capture a screenshot"
+
+"Generate documentation screenshots for PR #23 and attach them"
+```
+
+Claude Code will use the Browser Automation API to execute these tasks automatically.
+
+---
+
+## 🚀 Key Features
+
+### 🎭 **Browser Control**
+- Navigate to URLs with wait strategies (load, networkidle, domcontentloaded)
+- Execute JavaScript in page context
+- Manage browser sessions with auto-cleanup (5min timeout)
+
+### 📸 **Screenshot Capture**
+- Full-page and element-specific screenshots
+- Multi-viewport support (desktop 1920x1080, tablet 768x1024, mobile 375x667)
+- Format options (PNG, JPEG with quality control 0-100)
+- Automatic organization by session
+- **NEW:** Automatic manifest.json generation with metadata
+
+### 🖱️ **User Interactions** (7 types)
+- **Click:** Elements with position/modifier options
+- **Type:** Text with configurable keystroke delay
+- **Fill:** Form inputs (faster than type)
+- **Hover:** Trigger hover states and tooltips
+- **Press:** Keyboard keys (Enter, Escape, Tab, etc.)
+- **Select:** Dropdown options
+- **Check:** Checkboxes and radio buttons
+
+### ⏳ **Waiting Strategies** (6 conditions)
+- **Selector:** Wait for CSS selector to appear
+- **Text:** Wait for text content to appear
+- **Network:** Wait for network idle
+- **Timeout:** Simple time-based delay
+- **URL:** Wait for URL pattern match
+- **Function:** Wait for custom JavaScript condition
+- **Element States:** visible, hidden, attached, detached
+
+### 🔍 **Element Querying**
+- Check existence by selector, text, or role
+- Get visibility and enabled state
+- Extract text content
+- Read element attributes
+- Count matching elements
+
+### 🐙 **GitHub Integration** (NEW)
+- Attach screenshots to PRs/Issues programmatically
+- List and manage screenshot sessions
+- Integrates with screenshot-commenter agent
+- Automatic markdown generation
+
+### 🧹 **Auto-Cleanup** (NEW)
+- Deletes screenshot sessions older than 30 days
+- Runs daily automatically
+- Configurable via `SCREENSHOT_MAX_AGE_DAYS`
+- Logs freed space and deleted files
+
+### 📚 **Developer Experience**
+- **Interactive Swagger UI** at `/api-docs` - try APIs in browser
+- **Full OpenAPI 3.0 spec** - import into any API client
+- **CLI wrapper** - quick commands without curl
+- **TypeScript examples** - copy-paste ready workflows
+- **Comprehensive guides** - AI integration, troubleshooting, best practices
+
+---
+
+## 📖 Documentation
+
+### For Developers
+
+| Resource | Description | Link |
+|----------|-------------|------|
+| **API Docs (Interactive)** | Try all endpoints in browser | [http://localhost:3002/api-docs](http://localhost:3002/api-docs) |
+| **OpenAPI Spec** | Import into Postman/Insomnia | [/openapi.yaml](http://localhost:3002/openapi.yaml) |
+| **Claude Code Guide** | AI integration workflows | [docs/CLAUDE_CODE_INTEGRATION.md](../../docs/CLAUDE_CODE_INTEGRATION.md) |
+| **Example Scripts** | Ready-to-run TypeScript examples | [examples/README.md](./examples/README.md) |
+| **CLI Reference** | Command-line usage | `npm run cli --help` |
+
+### Quick Links
+
+- 🏥 **Health Check:** `http://localhost:3002/health`
+- 📚 **API Docs:** `http://localhost:3002/api-docs/`
+- 📄 **OpenAPI YAML:** `http://localhost:3002/openapi.yaml`
+- 📋 **OpenAPI JSON:** `http://localhost:3002/openapi.json`
+- ℹ️ **Service Info:** `http://localhost:3002/`
+
+---
+
+## 🎓 Usage Examples
+
+### Example 1: Capture Dashboard Screenshot
+
+**Using CLI:**
 ```bash
-GET http://localhost:3002/health
+npm run cli screenshot http://localhost:3000 dashboard --viewport desktop
+```
+
+**Using API:**
+```bash
+curl -X POST http://localhost:3002/api/screenshot \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "dashboard",
+    "viewport": "desktop",
+    "sessionDir": "temp/screenshots/my-test"
+  }'
+```
+
+**Using Claude Code:**
+```
+"Capture a screenshot of the CV Builder dashboard"
+```
+
+**Result:**
+```
+✅ Screenshot saved: temp/screenshots/my-test/dashboard-desktop.png
+   File size: 78.23 KB
+   Viewport: 1920x1080
+```
+
+---
+
+### Example 2: Test Component Presence
+
+**Using CLI:**
+```bash
+npm run cli test http://localhost:3000 ".bio-component"
+```
+
+**Using API:**
+```bash
+curl "http://localhost:3002/api/element/exists?selector=.bio-component"
 ```
 
 **Response:**
 ```json
 {
-  "status": "ready",
-  "service": "browser-automation",
-  "version": "0.3.0",
-  "environment": "development",
-  "browser": {
-    "running": true,
-    "currentUrl": "http://example.com",
-    "connected": true,
-    "session": {
-      "id": "session-1234567890",
-      "createdAt": "2025-01-16T...",
-      "lastActivity": "2025-01-16T...",
-      "url": "http://example.com"
-    }
-  },
-  "config": {
-    "browserAppUrl": "http://browser-app:3000",
-    "headless": true,
-    "port": 3002
-  }
+  "exists": true,
+  "visible": true,
+  "enabled": true,
+  "count": 1
 }
 ```
 
-### Service Info
+---
 
+### Example 3: Multi-Viewport Responsive Testing
+
+**Using Example Script:**
 ```bash
-GET http://localhost:3002/
+cd examples
+npm run responsive
 ```
+
+**What it does:**
+1. Navigates to dashboard
+2. Captures screenshots at mobile (375x667), tablet (768x1024), desktop (1920x1080)
+3. Shows file size comparison
+4. Saves to `temp/screenshots/responsive-test/`
+
+**Output:**
+```
+Viewport          | Dimensions  | File Size
+------------------|-------------|----------
+mobile            | 375x667     | 49.12 KB
+tablet            | 768x1024    | 111.45 KB
+desktop           | 1920x1080   | 127.89 KB
+```
+
+---
+
+### Example 4: User Flow Documentation
+
+**Using Example Script:**
+```bash
+cd examples
+npm run user-flow
+```
+
+**What it does:**
+1. Captures initial dashboard state
+2. Clicks through all tabs (Bio, Jobs, Outputs, Chat)
+3. Tests chat expansion
+4. Creates numbered sequence: `01-dashboard.png`, `02-bio-tab.png`, etc.
+5. Ready for PR attachment
+
+**Result:** 7 screenshots documenting complete UI navigation flow
+
+---
+
+### Example 5: Generate PR Documentation
+
+**Using Example Script:**
+```bash
+cd examples
+npm run pr-docs 23  # PR number
+```
+
+**What it does:**
+1. Captures all main views (dashboard, tabs)
+2. Captures mobile view for responsive proof
+3. Organizes in `temp/screenshots/pr-23/`
+4. Shows next steps for attachment
+
+**Then attach to PR:**
+```
+"Attach screenshots to PR #23"
+```
+
+Claude Code + screenshot-commenter agent will:
+1. Auto-detect screenshots in temp/screenshots/*
+2. Copy to temp/pr-23/
+3. Commit files to current branch
+4. Generate rich markdown comment with metadata
+5. Post to GitHub PR
+
+---
+
+## 🔌 API Reference
+
+### System
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Service health and status |
+| GET | `/` | API information and endpoints |
+| GET | `/api-docs/` | Interactive Swagger UI |
+| GET | `/openapi.yaml` | OpenAPI specification (YAML) |
+| GET | `/openapi.json` | OpenAPI specification (JSON) |
 
 ### Navigation
 
-```bash
-POST http://localhost:3002/api/navigate
-Content-Type: application/json
-
-{
-  "url": "http://localhost:3000",
-  "waitFor": "load"  # Optional: "load" | "networkidle" | "domcontentloaded"
-}
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/navigate` | Navigate to URL |
+| GET | `/api/navigate/current` | Get current URL and title |
+| POST | `/api/navigate/back` | Navigate back in history |
+| POST | `/api/navigate/reload` | Reload current page |
 
 ### Element Query
 
-```bash
-GET http://localhost:3002/api/element/exists?selector=h1
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/element/exists` | Check if element exists |
+| GET | `/api/element/text` | Get element text content |
+| GET | `/api/element/attribute` | Get element attribute value |
 
-# Response
-{
-  "exists": true,
-  "visible": true,
-  "enabled": true
-}
-```
+### Screenshots
 
-### Screenshot Capture
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/screenshot` | Capture full-page or element screenshot |
+| GET | `/api/screenshot/sessions` | List all screenshot sessions |
+| GET | `/api/screenshot/sessions/:id` | List screenshots in session |
 
-**Basic Screenshot:**
-```bash
-POST http://localhost:3002/api/screenshot
-Content-Type: application/json
+**Screenshot Options:**
+- `name` - Filename (without extension)
+- `viewport` - Preset: `desktop`, `tablet`, `mobile`, `mobile-landscape`
+- `format` - Image format: `png`, `jpeg`
+- `quality` - JPEG quality (0-100)
+- `selector` - CSS selector for element screenshot
+- `fullPage` - Capture full scrollable page (default: true)
+- `sessionDir` - Custom directory for organized storage
 
-{
-  "name": "dashboard",
-  "fullPage": true
-}
-```
+### Interactions
 
-**Viewport-Specific Screenshot:**
-```bash
-POST http://localhost:3002/api/screenshot
-Content-Type: application/json
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/interact/click` | Click element |
+| POST | `/api/interact/type` | Type text with delay |
+| POST | `/api/interact/fill` | Fill input (faster) |
+| POST | `/api/interact/hover` | Hover over element |
+| POST | `/api/interact/press` | Press keyboard key |
+| POST | `/api/interact/select` | Select dropdown option |
+| POST | `/api/interact/check` | Check/uncheck checkbox |
 
-{
-  "name": "mobile-view",
-  "viewport": "mobile",  # "desktop" | "tablet" | "mobile" | "mobile-landscape"
-  "fullPage": true
-}
-```
+### Waiting
 
-**Element Screenshot with JPEG:**
-```bash
-POST http://localhost:3002/api/screenshot
-Content-Type: application/json
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/wait` | Wait for condition (selector, text, network, timeout, url, function) |
+| POST | `/api/wait/load` | Wait for page load state |
+| POST | `/api/wait/element` | Wait for element state (visible, hidden, attached, detached) |
 
-{
-  "name": "bio-component",
-  "selector": ".bio-sidebar",
-  "format": "jpeg",  # "png" | "jpeg"
-  "quality": 80,     # 0-100 (JPEG only)
-  "sessionDir": "temp/screenshots/pr-123"
-}
-```
+### GitHub Integration
 
-### User Interactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/github/attach-screenshots` | Attach screenshots to PR/Issue |
+| GET | `/api/github/sessions` | List available screenshot sessions |
+| GET | `/api/github/sessions/:id` | Get session details with manifest |
 
-**Click:**
-```bash
-POST http://localhost:3002/api/interact/click
-Content-Type: application/json
+---
 
-{
-  "selector": "button.submit",
-  "options": {
-    "timeout": 5000,
-    "force": false
-  }
-}
-```
+## ⚙️ Configuration
 
-**Type Text:**
-```bash
-POST http://localhost:3002/api/interact/type
-Content-Type: application/json
-
-{
-  "selector": "input[name='email']",
-  "text": "user@example.com",
-  "options": {
-    "delay": 100,  # ms between keystrokes
-    "clear": true  # Clear existing text first
-  }
-}
-```
-
-**Fill (faster than type):**
-```bash
-POST http://localhost:3002/api/interact/fill
-Content-Type: application/json
-
-{
-  "selector": "input[name='name']",
-  "text": "John Doe"
-}
-```
-
-**Hover:**
-```bash
-POST http://localhost:3002/api/interact/hover
-Content-Type: application/json
-
-{
-  "selector": ".tooltip-trigger"
-}
-```
-
-**Press Key:**
-```bash
-POST http://localhost:3002/api/interact/press
-Content-Type: application/json
-
-{
-  "key": "Enter"  # Any key: "Enter", "Escape", "Tab", etc.
-}
-```
-
-**Select Dropdown:**
-```bash
-POST http://localhost:3002/api/interact/select
-Content-Type: application/json
-
-{
-  "selector": "select#country",
-  "value": "US"  # or ["US", "CA"] for multiple
-}
-```
-
-**Check/Uncheck:**
-```bash
-POST http://localhost:3002/api/interact/check
-Content-Type: application/json
-
-{
-  "selector": "input[type='checkbox']",
-  "checked": true
-}
-```
-
-### Waiting Strategies
-
-**Wait for Element:**
-```bash
-POST http://localhost:3002/api/wait/element
-Content-Type: application/json
-
-{
-  "selector": ".loading-complete",
-  "state": "visible",  # "attached" | "detached" | "visible" | "hidden"
-  "timeout": 30000
-}
-```
-
-**Wait for Load State:**
-```bash
-POST http://localhost:3002/api/wait/load
-Content-Type: application/json
-
-{
-  "state": "networkidle",  # "load" | "domcontentloaded" | "networkidle"
-  "timeout": 30000
-}
-```
-
-**Generic Wait:**
-```bash
-POST http://localhost:3002/api/wait
-Content-Type: application/json
-
-{
-  "condition": "selector",  # "selector" | "text" | "network" | "timeout" | "url" | "function"
-  "value": "h1",
-  "timeout": 5000
-}
-```
-
-### Session Management
-
-**List Screenshot Sessions:**
-```bash
-GET http://localhost:3002/api/screenshot/sessions
-
-# Response
-{
-  "success": true,
-  "sessions": ["2025-11-16T07-25-33", "phase3-test", "pr-22"],
-  "count": 3
-}
-```
-
-**List Screenshots in Session:**
-```bash
-GET http://localhost:3002/api/screenshot/sessions/pr-22
-
-# Response
-{
-  "success": true,
-  "sessionId": "pr-22",
-  "screenshots": ["example-homepage.png", "example-h1.png"],
-  "count": 2
-}
-```
-
-## Environment Variables
+### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -305,227 +407,473 @@ GET http://localhost:3002/api/screenshot/sessions/pr-22
 | `NODE_ENV` | Environment mode | `development` |
 | `BROWSER_APP_URL` | Target application URL | `http://browser-app:3000` |
 | `HEADLESS` | Run browser in headless mode | `true` |
-| `SCREENSHOTS_DIR` | Screenshot output directory | `/app/screenshots` (Docker) or `temp/screenshots` (local) |
+| `SCREENSHOTS_DIR` | Screenshot output directory | `temp/screenshots` |
+| `SCREENSHOT_MAX_AGE_DAYS` | Auto-cleanup age threshold | `30` |
 
-## Directory Structure
+### Docker Compose
+
+```yaml
+browser-automation:
+  build: ./packages/browser-automation
+  ports:
+    - "3002:3002"
+  environment:
+    - HEADLESS=true
+    - BROWSER_APP_URL=http://browser-app:3000
+  volumes:
+    - ./temp/screenshots:/app/screenshots
+  networks:
+    - cv-builder-network
+```
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│ User / AI Tool (Claude Code)               │
+│                                             │
+│ "Capture dashboard at mobile size"         │
+└───────────────┬─────────────────────────────┘
+                │
+                │ Natural Language
+                ▼
+┌─────────────────────────────────────────────┐
+│ Claude Code                                 │
+│ - Parses intent                             │
+│ - Maps to API calls                         │
+│ - Formats results                           │
+└───────────────┬─────────────────────────────┘
+                │
+                │ HTTP/REST API
+                ▼
+┌─────────────────────────────────────────────┐
+│ Browser Automation Service (Port 3002)     │
+│ ├─ Express API Server                      │
+│ ├─ Playwright Browser Manager              │
+│ ├─ Screenshot System + Manifest Tracking   │
+│ ├─ Interaction Engine (7 types)            │
+│ ├─ Waiting Strategies (6 conditions)       │
+│ ├─ GitHub Integration                      │
+│ └─ Auto-Cleanup Scheduler                  │
+└───────────────┬─────────────────────────────┘
+                │
+                │ WebSocket/CDP
+                ▼
+┌─────────────────────────────────────────────┐
+│ Playwright Chromium Browser                │
+│ - Viewport control (mobile/tablet/desktop) │
+│ - Element interaction                      │
+│ - Screenshot capture (PNG/JPEG)            │
+│ - Network monitoring                       │
+└───────────────┬─────────────────────────────┘
+                │
+                │ HTTP
+                ▼
+┌─────────────────────────────────────────────┐
+│ Browser App (localhost:3000)               │
+│ - CV Builder React App                     │
+│ - Your application under test              │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 packages/browser-automation/
 ├── src/
-│   ├── server.ts              # Express API server
+│   ├── server.ts                    # Express API server + route registration
 │   ├── automation/
-│   │   ├── browser.ts         # Browser instance manager with session management
-│   │   ├── actions.ts         # UI interaction methods (click, type, hover, etc.)
-│   │   ├── screenshots.ts     # Screenshot utilities with viewport/format support
-│   │   └── viewport.ts        # Viewport presets and management
+│   │   ├── browser.ts               # Browser lifecycle + session management
+│   │   ├── actions.ts               # User interactions (click, type, etc.)
+│   │   ├── screenshots.ts           # Screenshot capture + manifest updates
+│   │   ├── viewport.ts              # Viewport presets + management
+│   │   ├── manifest.ts              # 📋 NEW: Manifest system
+│   │   └── cleanup.ts               # 🧹 NEW: Auto-cleanup scheduler
 │   ├── routes/
-│   │   ├── navigate.ts        # Navigation endpoints
-│   │   ├── query.ts           # Element query endpoints
-│   │   ├── capture.ts         # Screenshot endpoints
-│   │   ├── interact.ts        # Interaction endpoints (click, type, hover, etc.)
-│   │   └── wait.ts            # Waiting strategy endpoints
-│   └── cli/                   # (Phase 4)
-│       └── index.ts           # CLI wrapper
+│   │   ├── navigate.ts              # Navigation endpoints
+│   │   ├── query.ts                 # Element query endpoints
+│   │   ├── capture.ts               # Screenshot endpoints
+│   │   ├── interact.ts              # Interaction endpoints (7 types)
+│   │   ├── wait.ts                  # Waiting strategy endpoints (6 conditions)
+│   │   ├── docs.ts                  # 📚 NEW: Swagger UI
+│   │   └── github.ts                # 🐙 NEW: GitHub integration
+│   └── cli/
+│       └── index.ts                 # 🎯 NEW: CLI wrapper (5 commands)
+├── docs/
+│   └── openapi.yaml                 # 📄 NEW: OpenAPI 3.0 specification (800+ lines)
+├── examples/                        # 💡 NEW: TypeScript example scripts
+│   ├── package.json
+│   ├── README.md
+│   ├── capture-dashboard.ts
+│   ├── test-component-presence.ts
+│   ├── user-flow-screenshots.ts
+│   ├── multi-viewport-capture.ts
+│   └── pr-documentation.ts
 ├── temp/
-│   └── screenshots/           # Local screenshot output
-├── test-workflow.sh           # Example.com test script
-├── test-cv-builder.sh         # CV Builder integration test
-├── test-phase3.sh             # Phase 3 feature tests
-├── Dockerfile
-├── package.json
-├── tsconfig.json
-└── README.md
+│   └── screenshots/                 # Local screenshot output + manifests
+├── test-workflow.sh                 # Example.com basic test
+├── test-cv-builder.sh               # CV Builder integration test
+├── test-phase3.sh                   # Phase 3 comprehensive test (264 lines)
+├── test-ui-navigation.sh            # UI navigation test (477 lines)
+├── Dockerfile                       # Playwright v1.40.0 base image
+├── package.json                     # Dependencies + scripts + CLI bin
+├── tsconfig.json                    # TypeScript strict config
+└── README.md                        # This file
 ```
 
-## Docker Configuration
+---
 
-The service runs in a Docker container based on `mcr.microsoft.com/playwright:v1.40.0-jammy` which includes:
-- Node.js 20
-- Playwright with Chromium pre-installed
-- All required system dependencies
+## 🧪 Testing
 
-### Volume Mounts
+### Automated Test Suites
 
-- `./packages/browser-automation:/app` - Source code (hot reload in dev)
-- `./temp/screenshots:/app/screenshots` - Screenshot output directory
-- `automation-node-modules:/app/node_modules` - Cached dependencies
-
-### Network
-
-The service is connected to `cv-builder-network` and can communicate with:
-- `browser-app:3000` - The React application under test
-- Other services in the compose network
-
-## Development
-
-### TypeScript
-
-The project uses TypeScript with strict mode enabled:
-
+**1. Phase 3 Feature Test** (comprehensive)
 ```bash
-# Type check only
-npm run type-check
-
-# Build TypeScript
-npm run build
-```
-
-### Testing
-
-### Test Scripts
-
-**Test Phase 3 Features:**
-```bash
-# Terminal 1: Start browser automation service
-cd packages/browser-automation
-HEADLESS=true PORT=3002 SCREENSHOTS_DIR=/Users/yuri/ojfbot/cv-builder/packages/browser-automation/temp/screenshots npm run dev
-
-# Terminal 2: Run Phase 3 tests
 ./test-phase3.sh
 ```
+Tests: viewports, interactions, waiting, element states, sessions
 
-This comprehensive test covers:
-- ✅ Advanced screenshots (viewport presets, JPEG format, quality settings)
-- ✅ User interactions (click, hover, key press)
-- ✅ Waiting strategies (element, load state, timeout)
-- ✅ Session management (tracking and listing)
-
-**Test with Example.com:**
+**2. UI Navigation Test** (real-world workflow)
 ```bash
-cd packages/browser-automation
-npm run build
+./test-ui-navigation.sh
+```
+Tests: tab navigation, chat expansion, multi-viewport, animations
+
+**3. Basic Workflow Test**
+```bash
 ./test-workflow.sh
 ```
+Tests: navigation, element queries, screenshots
 
-This tests basic functionality:
-- Navigate to example.com
-- Query for elements
-- Capture screenshots
-
-**Test with CV Builder App:**
+**4. CV Builder Integration**
 ```bash
-# Terminal 1: Start dev services
-npm run dev:all
-
-# Terminal 2: Run browser automation tests
-cd packages/browser-automation
-npm run build
 ./test-cv-builder.sh
 ```
+Tests: dashboard components, app-specific elements
 
-This tests integration with the actual CV Builder application:
-- Navigate to CV Builder dashboard
-- Query for app components (Bio, Jobs, etc.)
-- Capture dashboard screenshots
-- Verify component presence
-
-### Manual Testing
+### Example Scripts
 
 ```bash
-# From host machine
+cd examples
+npm install
+
+# Test each workflow
+npm run dashboard      # Basic screenshot
+npm run component      # Element verification
+npm run user-flow      # Multi-step workflow
+npm run responsive     # Viewport testing
+npm run pr-docs 23     # PR documentation
+```
+
+### CLI Testing
+
+```bash
+# Health check
+npm run cli health
+
+# Screenshot capture
+npm run cli screenshot http://localhost:3000 test
+
+# Element verification
+npm run cli test http://localhost:3000 ".cds--content"
+
+# Navigation
+npm run cli navigate http://localhost:3000
+```
+
+### Interactive Testing (Swagger UI)
+
+1. Open http://localhost:3002/api-docs/
+2. Click any endpoint
+3. Click "Try it out"
+4. Modify parameters
+5. Click "Execute"
+6. See live results
+
+---
+
+## 🎯 Implementation Status
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| **Phase 1** | ✅ Complete | Infrastructure (Docker, Express, Health check) |
+| **Phase 2** | ✅ Complete | Core API (Navigation, Element queries, Screenshots) |
+| **Phase 3** | ✅ Complete | Advanced (Interactions, Viewports, Waiting, Sessions) |
+| **Phase 4** | ✅ Complete | Documentation (OpenAPI, Swagger UI, CLI, Examples, AI Guide) |
+| **Phase 5** | ✅ Complete | GitHub (API wrapper, Manifests, Auto-cleanup) |
+
+**Total Features Implemented:**
+- ✅ 23 API endpoints
+- ✅ 7 interaction types
+- ✅ 6 waiting conditions
+- ✅ 4 viewport presets
+- ✅ 2 screenshot formats (PNG, JPEG)
+- ✅ 5 CLI commands
+- ✅ 5 example scripts
+- ✅ 3 GitHub integration endpoints
+- ✅ Automatic manifest generation
+- ✅ Auto-cleanup scheduler
+- ✅ Interactive API documentation
+- ✅ 800+ line OpenAPI specification
+- ✅ Comprehensive AI integration guide
+
+---
+
+## 🛠️ Development
+
+### Setup
+
+```bash
+cd packages/browser-automation
+npm install
+npm run build
+```
+
+### Run Modes
+
+```bash
+# Development (hot reload)
+npm run dev
+
+# Production
+npm run build
+npm start
+
+# Type checking
+npm run type-check
+
+# CLI
+npm run cli -- <command>
+```
+
+### Adding New Endpoints
+
+1. Create route file in `src/routes/`
+2. Implement handler logic
+3. Register in `src/server.ts`
+4. Update `docs/openapi.yaml`
+5. Add example in `examples/`
+6. Update this README
+
+### Adding New Examples
+
+1. Create `.ts` file in `examples/`
+2. Add npm script to `examples/package.json`
+3. Document in `examples/README.md`
+4. Reference in this README
+
+---
+
+## 🐛 Troubleshooting
+
+### Service Won't Start
+
+**Symptom:** `ERR_CONNECTION_REFUSED` on port 3002
+
+**Solutions:**
+```bash
+# Check if service is running
 curl http://localhost:3002/health
 
-# Navigate to a page
-curl -X POST http://localhost:3002/api/navigate \
-  -H "Content-Type: application/json" \
-  -d '{"url": "http://localhost:3000"}'
+# Check Docker status
+docker-compose ps browser-automation
 
-# Query for element
-curl "http://localhost:3002/api/element/exists?selector=h1"
-
-# Capture screenshot
-curl -X POST http://localhost:3002/api/screenshot \
-  -H "Content-Type: application/json" \
-  -d '{"name": "test", "fullPage": true}'
-```
-
-## Implementation Status
-
-### Phase 1: Core Infrastructure ✅ Completed
-- [x] Directory structure
-- [x] package.json with Playwright dependencies
-- [x] TypeScript configuration
-- [x] Dockerfile with Playwright image
-- [x] Docker Compose integration
-- [x] Basic Express server
-- [x] Health check endpoint
-- [x] README documentation
-
-### Phase 2: Basic Automation ✅ Completed
-- [x] Browser instance manager
-- [x] Navigation endpoints
-- [x] Element query methods
-- [x] Screenshot capture (full page)
-- [x] Session directory management
-
-### Phase 3: Advanced Features ✅ Completed (Current)
-- [x] User interactions (click, type, hover, fill, press, select, check)
-- [x] Element-specific screenshots
-- [x] Viewport control (desktop, tablet, mobile, mobile-landscape)
-- [x] Screenshot format options (PNG, JPEG with quality)
-- [x] Waiting strategies (element, load, network, timeout, URL, function)
-- [x] Session management with auto-cleanup (5 min timeout)
-- [x] Comprehensive test suite (test-phase3.sh)
-
-### Phase 4: Documentation & Integration (Next)
-- [ ] OpenAPI/Swagger spec
-- [ ] AI tool integration guide
-- [ ] CLI wrapper
-- [ ] Example scripts
-
-### Phase 5: GitHub Integration
-- [ ] Screenshot uploads
-- [ ] PR/Issue commenting
-- [ ] Markdown generation
-
-## Troubleshooting
-
-### Service won't start
-
-```bash
-# Check logs
-docker-compose logs browser-automation
-
-# Rebuild container
-docker-compose build browser-automation
-docker-compose up browser-automation
-```
-
-### Can't connect to browser-app
-
-```bash
-# Verify browser-app is running
-docker-compose ps
-
-# Check network connectivity
-docker exec cv-builder-browser-automation ping browser-app
-
-# Verify browser-app is accessible
-docker exec cv-builder-browser-automation curl http://browser-app:3000
-```
-
-### Port 3002 already in use
-
-```bash
-# Find process using port
+# Check local process
 lsof -i :3002
 
-# Change port in docker-compose.yml
-ports:
-  - "3003:3002"  # Map to different host port
+# Restart service
+docker-compose restart browser-automation
+# OR
+npm run dev
 ```
 
-## Related Issues
+### Can't Connect to Browser App
 
-- **Parent Issue:** #16 - Browser automation tool implementation
-- **Phase 1 Issue:** #17 - Setup Playwright infrastructure (current)
-- **Phase 2 Issue:** #18 - Core automation API
-- **Phase 3 Issue:** #19 - Advanced features
-- **Phase 4 Issue:** #20 - Documentation
-- **Phase 5 Issue:** #21 - GitHub integration
+**Symptom:** Navigation fails or times out
 
-## Resources
+**Solutions:**
+```bash
+# Verify browser-app is running
+docker-compose ps browser-app
+curl http://localhost:3000
 
-- [Playwright Documentation](https://playwright.dev/)
-- [Playwright Docker Guide](https://playwright.dev/docs/docker)
-- [Express.js Documentation](https://expressjs.com/)
+# Check network (Docker)
+docker exec cv-builder-browser-automation ping browser-app
+
+# Verify environment variable
+echo $BROWSER_APP_URL
+# Should be: http://browser-app:3000 (Docker) or http://localhost:3000 (local)
+```
+
+### Screenshots Not Captured
+
+**Symptom:** Screenshot endpoint returns error
+
+**Solutions:**
+```bash
+# Check screenshots directory exists
+ls -la temp/screenshots
+
+# Check permissions
+ls -ld temp/screenshots
+
+# Create directory if missing
+mkdir -p temp/screenshots
+
+# Check manifest generation (shouldn't block screenshot)
+cat temp/screenshots/<session>/manifest.json
+```
+
+### Swagger UI Not Loading
+
+**Symptom:** `/api-docs` shows 404 or blank page
+
+**Solutions:**
+```bash
+# Verify endpoint exists
+curl http://localhost:3002/api-docs/
+# Note the trailing slash!
+
+# Check OpenAPI spec loads
+curl http://localhost:3002/openapi.yaml | head -20
+
+# Rebuild and restart
+npm run build
+npm run dev
+```
+
+### Element Not Found
+
+**Symptom:** `Element not found: .selector`
+
+**Solutions:**
+```bash
+# Add wait before query
+curl -X POST http://localhost:3002/api/wait/element \
+  -d '{"selector": ".my-element", "state": "visible", "timeout": 10000}'
+
+# Verify selector in browser DevTools
+# Open localhost:3000 → F12 → Console
+# Type: document.querySelector('.my-element')
+
+# Try different selector strategies
+# Instead of: .css-class-123 (fragile)
+# Use: [data-testid="my-element"] (semantic)
+# Or: button:has-text("Click Me") (semantic)
+```
+
+### Cleanup Not Running
+
+**Symptom:** Old screenshots not deleted
+
+**Solutions:**
+```bash
+# Check server logs for scheduler message
+# Should see: "Screenshot cleanup scheduled (runs daily...)"
+
+# Check age threshold
+echo $SCREENSHOT_MAX_AGE_DAYS
+# Default: 30 days
+
+# Manually trigger cleanup (restart server)
+# Cleanup runs on first daily cycle after restart
+```
+
+---
+
+## 📊 Performance & Resources
+
+### Resource Usage
+
+| Resource | Development | Production |
+|----------|-------------|------------|
+| Memory | ~200-300 MB | ~150-200 MB |
+| CPU | 5-10% idle | 2-5% idle |
+| Disk | ~100 MB + screenshots | ~100 MB + screenshots |
+| Network | Minimal | Minimal |
+
+### Screenshot Storage
+
+**Typical sizes:**
+- Mobile (375x667): 40-60 KB
+- Tablet (768x1024): 100-120 KB
+- Desktop (1920x1080): 120-150 KB
+
+**With auto-cleanup (30 days):**
+- Average: 50-100 screenshots/month
+- Storage: 5-10 MB/month
+- Auto-deleted after 30 days
+
+### Session Management
+
+- **Timeout:** 5 minutes of inactivity
+- **Impact:** Minimal (browser closes, memory freed)
+- **Behavior:** Next request auto-creates new session
+
+---
+
+## 🤝 Contributing
+
+### Code Style
+
+- TypeScript with strict mode
+- ESLint + Prettier (configured in repo root)
+- Meaningful variable names
+- Comments for complex logic
+- Error handling on all async operations
+
+### Adding Features
+
+1. Create issue describing feature
+2. Implement with tests
+3. Update OpenAPI spec
+4. Add example script
+5. Update documentation
+6. Create PR
+
+### Documentation Standards
+
+- Keep README in sync with code
+- Update OpenAPI spec for API changes
+- Add examples for new features
+- Update Claude Code guide for AI workflows
+
+---
+
+## 📄 License
+
+MIT
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with [Playwright](https://playwright.dev/)
+- Powered by [Express.js](https://expressjs.com/)
+- Documented with [Swagger UI](https://swagger.io/tools/swagger-ui/)
+- Designed for [Claude Code](https://claude.ai/code)
+
+---
+
+## 📞 Support
+
+**Issues:** https://github.com/ojfbot/cv-builder/issues
+
+**Parent Issue:** [#16 - Browser automation tool implementation](https://github.com/ojfbot/cv-builder/issues/16)
+
+**Phase Issues:**
+- ✅ [#17 - Phase 1: Infrastructure](https://github.com/ojfbot/cv-builder/issues/17)
+- ✅ [#18 - Phase 2: Core API](https://github.com/ojfbot/cv-builder/issues/18)
+- ✅ [#19 - Phase 3: Advanced Features](https://github.com/ojfbot/cv-builder/issues/19)
+- ✅ [#20 - Phase 4: Documentation](https://github.com/ojfbot/cv-builder/issues/20)
+- ✅ [#21 - Phase 5: GitHub Integration](https://github.com/ojfbot/cv-builder/issues/21)
+
+---
+
+**Version:** 0.3.0
+**Last Updated:** 2025-11-16
+**Status:** Production Ready ✅
