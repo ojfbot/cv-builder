@@ -14,10 +14,11 @@
     "cli": "tsx src/cli/index.ts",
     "type-check": "tsc --noEmit",
     "test": "tsx tests/integration/basic-workflow.test.ts",
+    "test:phase2": "tsx tests/features/phase2-element-store-maps.test.ts",
     "test:phase3": "tsx tests/features/phase3-features.test.ts",
     "test:cv-builder": "tsx tests/apps/cv-builder-integration.test.ts",
     "test:ui-nav": "tsx tests/ui/cv-builder-navigation.test.ts",
-    "test:all": "npm run test && npm run test:phase3 && npm run test:cv-builder && npm run test:ui-nav",
+    "test:all": "npm run test && npm run test:phase2 && npm run test:phase3 && npm run test:cv-builder && npm run test:ui-nav",
     "test:watch": "tsx watch tests/integration/basic-workflow.test.ts"
   },
   "keywords": [
@@ -35,6 +36,7 @@
     "commander": "^12.1.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "fuse.js": "^7.1.0",
     "js-yaml": "^4.1.1",
     "playwright": "^1.40.0",
     "swagger-ui-express": "^5.0.1"
