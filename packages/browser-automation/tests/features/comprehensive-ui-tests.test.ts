@@ -9,7 +9,10 @@ import { createTestSuite, createTestRunner } from '../../src/test-runner/index.j
 
 // Configuration
 const API_URL = process.env.API_URL || 'http://localhost:3002';
-const CV_BUILDER_URL = process.env.CV_BUILDER_URL || 'http://localhost:3001';
+const CV_BUILDER_URL = process.env.CV_BUILDER_URL || 'http://localhost:3000';
+
+// Helper function for delays
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function main() {
   // Create test suite
@@ -18,10 +21,10 @@ async function main() {
   // Setup: Navigate to CV Builder before tests
   suite.beforeAll(async () => {
     console.log('Navigating to CV Builder app...');
-    await client.navigate(CV_BUILDER_URL);
-    // Wait for app to load
-    await client.waitForSelector('[data-element="app-container"]', { state: 'attached', timeout: 10000 });
-    await client.wait(1000); // Give UI time to settle
+    await client.navigate(CV_BUILDER_URL, { waitFor: 'networkidle' });
+    // Wait for app to load - use a selector that exists
+    await client.waitForSelector('.app-container', { state: 'attached', timeout: 10000 });
+    await wait(1000); // Give UI time to settle
   });
 
   // ========================================
@@ -31,7 +34,7 @@ async function main() {
   suite.test('Navigate to Interactive tab and capture', async () => {
     console.log('Clicking Interactive tab...');
     await client.click('[data-element="interactive-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'tab-interactive',
@@ -43,7 +46,7 @@ async function main() {
   suite.test('Navigate to Bio tab and capture', async () => {
     console.log('Clicking Bio tab...');
     await client.click('[data-element="bio-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'tab-bio',
@@ -55,7 +58,7 @@ async function main() {
   suite.test('Navigate to Jobs tab and capture', async () => {
     console.log('Clicking Jobs tab...');
     await client.click('[data-element="jobs-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'tab-jobs',
@@ -67,7 +70,7 @@ async function main() {
   suite.test('Navigate to Outputs tab and capture', async () => {
     console.log('Clicking Outputs tab...');
     await client.click('[data-element="outputs-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'tab-outputs',
@@ -79,7 +82,7 @@ async function main() {
   suite.test('Navigate to Research tab and capture', async () => {
     console.log('Clicking Research tab...');
     await client.click('[data-element="research-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'tab-research',
@@ -91,7 +94,7 @@ async function main() {
   suite.test('Navigate to Pipelines tab and capture', async () => {
     console.log('Clicking Pipelines tab...');
     await client.click('[data-element="pipelines-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'tab-pipelines',
@@ -103,7 +106,7 @@ async function main() {
   suite.test('Navigate to Toolbox tab and capture', async () => {
     console.log('Clicking Toolbox tab...');
     await client.click('[data-element="toolbox-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'tab-toolbox',
@@ -119,7 +122,7 @@ async function main() {
   suite.test('Navigate to Bio tab for chat testing', async () => {
     // Go to Bio tab where condensed chat will be visible
     await client.click('[data-element="bio-tab"]');
-    await client.wait(500);
+    await wait(500);
   });
 
   suite.test('Chat initially collapsed state', async () => {
@@ -140,7 +143,7 @@ async function main() {
     if (chatExists) {
       // Type something to make chat more visible
       await client.fill('[data-element="chat-input"]', 'Test message for screenshot');
-      await client.wait(500);
+      await wait(500);
 
       const screenshot = await client.screenshot({
         name: 'chat-with-input',
@@ -159,7 +162,7 @@ async function main() {
 
     if (closeExists) {
       await client.click('[data-element="chat-close-button"]');
-      await client.wait(500);
+      await wait(500);
 
       const screenshot = await client.screenshot({
         name: 'chat-closed',
@@ -176,7 +179,7 @@ async function main() {
   suite.test('Capture current theme (light mode)', async () => {
     // Navigate back to Interactive tab for theme testing
     await client.click('[data-element="interactive-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'theme-light',
@@ -194,7 +197,7 @@ async function main() {
 
     if (themeToggleExists) {
       await client.click('[data-element="theme-toggle"]');
-      await client.wait(500);
+      await wait(500);
 
       const screenshot = await client.screenshot({
         name: 'theme-dark',
@@ -204,7 +207,7 @@ async function main() {
 
       // Toggle back to light
       await client.click('[data-element="theme-toggle"]');
-      await client.wait(500);
+      await wait(500);
     } else {
       console.log('⚠️  Theme toggle not implemented - skipping dark theme screenshot');
     }
@@ -217,7 +220,7 @@ async function main() {
   suite.test('Capture final dashboard state', async () => {
     // Return to Bio tab for final screenshot
     await client.click('[data-element="bio-tab"]');
-    await client.wait(500);
+    await wait(500);
 
     const screenshot = await client.screenshot({
       name: 'final-state',
