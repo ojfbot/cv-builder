@@ -276,11 +276,13 @@ function BioDashboard() {
           <input
             type="file"
             id="file-upload-input"
+            data-element="bio-file-upload-input"
             style={{ display: 'none' }}
             onChange={handleFileUpload}
             accept=".pdf,.docx,.txt,.md,.json,.csv,.png,.jpg,.jpeg,.gif"
           />
           <Button
+            data-element="bio-upload-button"
             renderIcon={Upload}
             kind="primary"
             onClick={() => document.getElementById('file-upload-input')?.click()}
@@ -312,7 +314,7 @@ function BioDashboard() {
           </p>
         </Tile>
       ) : (
-        <Table size="md" useZebraStyles={true}>
+        <Table size="md" useZebraStyles={true} data-element="bio-files-table">
           <TableHead>
             <TableRow>
               <TableHeader>Name</TableHeader>
@@ -324,7 +326,7 @@ function BioDashboard() {
           </TableHead>
           <TableBody>
             {bioFiles.map((file) => (
-              <TableRow key={file.id}>
+              <TableRow key={file.id} data-element="bio-file-row">
                 <TableCell>{file.originalName}</TableCell>
                 <TableCell>{file.extension.toUpperCase().replace('.', '')}</TableCell>
                 <TableCell>{file.sizeFormatted}</TableCell>
@@ -332,6 +334,7 @@ function BioDashboard() {
                 <TableCell>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <Button
+                      data-element="bio-file-download-button"
                       size="sm"
                       kind="ghost"
                       renderIcon={Download}
@@ -340,6 +343,7 @@ function BioDashboard() {
                       onClick={() => handleDownloadFile(file.id, file.originalName)}
                     />
                     <Button
+                      data-element="bio-file-delete-button"
                       size="sm"
                       kind="danger--ghost"
                       renderIcon={TrashCan}
@@ -416,6 +420,7 @@ function BioDashboard() {
                 return (
                   <Tile
                     key={index}
+                    data-element={`bio-action-tile-${index}`}
                     style={{
                       minHeight: '200px',
                       display: 'flex',
@@ -523,6 +528,7 @@ function BioDashboard() {
           {bioEntries.map((entry, index) => (
             <Tile
               key={index}
+              data-element="bio-entry-tile"
               style={{
                 minHeight: '180px',
                 display: 'flex',
@@ -660,11 +666,12 @@ function BioDashboard() {
   }
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content" data-element="bio-dashboard">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading className="section-header">Your Professional Bio</Heading>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <Button
+            data-element="bio-edit-button"
             renderIcon={viewMode === 'landing' ? Edit : ViewFilled}
             kind="tertiary"
             onClick={() => {
@@ -681,6 +688,7 @@ function BioDashboard() {
             {viewMode === 'landing' ? 'Edit Bio' : 'Summarize'}
           </Button>
           <Button
+            data-element="bio-files-button"
             renderIcon={Folder}
             kind="tertiary"
             onClick={() => {
@@ -699,6 +707,7 @@ function BioDashboard() {
             {viewMode === 'files' ? 'Library' : 'View Files'}
           </Button>
           <Button
+            data-element="bio-create-button"
             renderIcon={DocumentAdd}
             kind="primary"
             onClick={() => {

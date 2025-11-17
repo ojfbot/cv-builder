@@ -21,7 +21,7 @@ function OutputsDashboard() {
   const rows: any[] = []
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content" data-element="outputs-dashboard">
       <Heading className="section-header">Generated Outputs</Heading>
 
       <Tile style={{ marginBottom: '2rem' }}>
@@ -33,7 +33,7 @@ function OutputsDashboard() {
 
       <DataTable rows={rows} headers={headers}>
         {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
-          <Table {...getTableProps()}>
+          <Table {...getTableProps()} data-element="outputs-table">
             <TableHead>
               <TableRow>
                 {headers.map((header: any) => (
@@ -54,7 +54,7 @@ function OutputsDashboard() {
                 </TableRow>
               ) : (
                 rows.map((row: any) => (
-                  <TableRow {...getRowProps({ row })} key={row.id}>
+                  <TableRow {...getRowProps({ row })} key={row.id} data-element="output-row">
                     {row.cells.map((cell: any) => (
                       <TableCell key={cell.id}>{cell.value}</TableCell>
                     ))}
