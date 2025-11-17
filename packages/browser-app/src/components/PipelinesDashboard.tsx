@@ -21,7 +21,7 @@ function PipelinesDashboard() {
   const rows: any[] = []
 
   return (
-    <div>
+    <div className="dashboard-content" data-element="pipelines-dashboard">
       <Heading className="section-header">Application Pipelines</Heading>
 
       <Tile style={{ marginBottom: '2rem' }}>
@@ -33,7 +33,7 @@ function PipelinesDashboard() {
 
       <DataTable rows={rows} headers={headers}>
         {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
-          <Table {...getTableProps()}>
+          <Table {...getTableProps()} data-element="pipelines-table">
             <TableHead>
               <TableRow>
                 {headers.map((header: any) => (
@@ -58,7 +58,7 @@ function PipelinesDashboard() {
                 </TableRow>
               ) : (
                 rows.map((row: any) => (
-                  <TableRow {...getRowProps({ row })} key={row.id}>
+                  <TableRow {...getRowProps({ row })} key={row.id} data-element="pipeline-row">
                     {row.cells.map((cell: any) => (
                       <TableCell key={cell.id}>{cell.value}</TableCell>
                     ))}

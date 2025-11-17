@@ -34,7 +34,7 @@ function ToolboxDashboard() {
   const agentsRows: any[] = []
 
   return (
-    <div>
+    <div className="dashboard-content" data-element="toolbox-dashboard">
       <Heading className="section-header">Toolbox</Heading>
 
       <Tile style={{ marginBottom: '2rem' }}>
@@ -44,17 +44,17 @@ function ToolboxDashboard() {
         </p>
       </Tile>
 
-      <Tabs>
+      <Tabs data-element="toolbox-tabs">
         <TabList aria-label="Toolbox sections" contained>
-          <Tab>Actions</Tab>
-          <Tab>Agents</Tab>
-          <Tab>Tools</Tab>
+          <Tab data-element="toolbox-actions-tab">Actions</Tab>
+          <Tab data-element="toolbox-agents-tab">Agents</Tab>
+          <Tab data-element="toolbox-tools-tab">Tools</Tab>
         </TabList>
         <TabPanels>
-          <TabPanel>
+          <TabPanel data-element="toolbox-actions-panel">
             <DataTable rows={actionsRows} headers={actionsHeaders}>
-              {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
-                <Table {...getTableProps()}>
+              {({ rows, headers, getTableProps, getHeaderProps }: any) => (
+                <Table {...getTableProps()} data-element="toolbox-actions-table">
                   <TableHead>
                     <TableRow>
                       {headers.map((header: any) => (
@@ -92,10 +92,10 @@ function ToolboxDashboard() {
             </DataTable>
           </TabPanel>
 
-          <TabPanel>
+          <TabPanel data-element="toolbox-agents-panel">
             <DataTable rows={agentsRows} headers={agentsHeaders}>
               {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
-                <Table {...getTableProps()}>
+                <Table {...getTableProps()} data-element="toolbox-agents-table">
                   <TableHead>
                     <TableRow>
                       {headers.map((header: any) => (
@@ -133,7 +133,7 @@ function ToolboxDashboard() {
             </DataTable>
           </TabPanel>
 
-          <TabPanel>
+          <TabPanel data-element="toolbox-tools-panel">
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--cds-text-secondary)' }}>
               <p style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>🔧</p>
               <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Tools & Integrations</p>
