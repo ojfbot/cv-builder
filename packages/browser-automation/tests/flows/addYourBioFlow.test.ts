@@ -99,35 +99,58 @@ async function main() {
     console.log(`📸 Screenshot: ${screenshot.filename}`);
   });
 
-  suite.test('Chat window remains expanded and accessible on bio tab', async ({ assert }) => {
-    // Wait for chat to fully expand and condensed chat to render
-    await new Promise(resolve => setTimeout(resolve, 2000));
+  suite.test('Chat input receives keyboard focus and accepts text', async ({ assert }) => {
+    // Wait longer for CondensedChat to fully render and become interactive
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // Verify chat messages container is visible (only when expanded)
-    const messagesVisible = await client.page?.evaluate(() => {
-      const messagesContainer = document.querySelector('[data-element="chat-messages"]');
-      return messagesContainer !== null;
-    }) || false;
+    // Use specific selector for CondensedChat input (different from InteractiveChat)
+    const chatInputSelector = '[data-element="condensed-chat-input-wrapper"] [data-element="chat-input"]';
 
-    console.log(`📊 Chat messages container present: ${messagesVisible}`);
+    // Verify the condensed chat input exists and get details
+    const inputInfo = await client.page?.evaluate((selector) => {
+      const chatInput = document.querySelector(selector);
+      if (!chatInput) return { exists: false };
 
-    if (messagesVisible) {
-      console.log('✅ Chat window is expanded and messages are accessible');
+      const styles = window.getComputedStyle(chatInput);
+      return {
+        exists: true,
+        tagName: chatInput.tagName,
+        display: styles.display,
+        visibility: styles.visibility,
+        opacity: styles.opacity,
+        disabled: (chatInput as HTMLInputElement).disabled
+      };
+    }, chatInputSelector) || { exists: false };
+
+    console.log(`📊 CondensedChat input info:`, JSON.stringify(inputInfo, null, 2));
+
+    // Click the input to ensure it has focus
+    await client.click(chatInputSelector);
+    console.log('🖱️  Clicked CondensedChat input');
+
+    // Wait for focus to settle
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Type text to verify it can receive input
+    await client.type(chatInputSelector, 'Testing bio chat input');
+    console.log('✅ Successfully typed into CondensedChat input');
+
+    // Verify the text was entered
+    const inputValue = await client.page?.evaluate((selector) => {
+      const input = document.querySelector(selector) as HTMLInputElement | HTMLTextAreaElement;
+      return input?.value || '';
+    }, chatInputSelector) || '';
+    console.log(`📊 Chat input value: "${inputValue}"`);
+
+    if (inputValue.includes('Testing bio chat input')) {
+      console.log('✅ CondensedChat input received text correctly');
     } else {
-      console.log('⚠️  Chat messages container not found - chat may be collapsed');
+      console.log(`⚠️  Chat input value unexpected: "${inputValue}"`);
     }
 
-    // Check if chat input exists (even if not focusable due to UI positioning)
-    const inputExists = await client.page?.evaluate(() => {
-      const chatInput = document.querySelector('[data-element="chat-input"]');
-      return chatInput !== null;
-    }) || false;
-
-    console.log(`📊 Chat input exists: ${inputExists}`);
-
-    // Capture chat state
+    // Capture state with text input
     const screenshot = await client.screenshot({
-      name: 'add-your-bio-flow-chat-state',
+      name: 'add-your-bio-flow-focus',
       fullPage: true,
     });
     assert.screenshotCaptured(screenshot);

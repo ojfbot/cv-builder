@@ -523,7 +523,7 @@ function CondensedChat() {
         </div>
       )}
 
-      <div className="condensed-input-wrapper">
+      <div className="condensed-input-wrapper" data-element="condensed-chat-input-wrapper">
         <div className="textarea-container-condensed">
           {isExpanded ? (
             <TextArea
