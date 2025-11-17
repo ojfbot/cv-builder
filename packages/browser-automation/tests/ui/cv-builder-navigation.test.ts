@@ -327,6 +327,11 @@ async function main() {
 
   const result = await runner.run(suite);
 
+  // Cleanup: Close browser after all tests
+  console.log('\n🧹 Closing browser...');
+  await client.close();
+  console.log('✅ Browser closed successfully');
+
   // Print summary with screenshot manifest
   console.log('\n╔═══════════════════════════════════════════════════════╗');
   console.log('║   CV Builder UI Navigation Test Complete             ║');

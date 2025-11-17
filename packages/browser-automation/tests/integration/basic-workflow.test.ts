@@ -92,6 +92,11 @@ async function main() {
 
   const result = await runner.run(suite);
 
+  // Cleanup: Close browser after all tests
+  console.log('\n🧹 Closing browser...');
+  await client.close();
+  console.log('✅ Browser closed successfully');
+
   // Print summary
   console.log('\n✅ Test workflow complete!');
   console.log(`Screenshots saved to: ./temp/screenshots/`);
