@@ -371,7 +371,7 @@ export class BrowserAutomationClient {
    */
   async close(): Promise<void> {
     try {
-      await this.axios.post('/api/browser/close');
+      await this.axios.post('/api/close');
     } catch (error) {
       throw this.handleError(error);
     }
