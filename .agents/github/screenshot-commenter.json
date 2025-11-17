@@ -173,7 +173,7 @@
           "3. Detect current git branch using `git rev-parse --abbrev-ref HEAD`",
           "4. Copy screenshots from detected location to temp/pr-{number}/ directory",
           "5. Commit the screenshot files to the current branch",
-          "6. Generate markdown comment body with image embeds using blob URLs (format: https://github.com/OWNER/REPO/blob/{branch}/packages/browser-automation/temp/pr-{number}/image.png?raw=true)",
+          "6. Generate markdown comment body with image embeds using blob URLs with ?raw=true parameter (CRITICAL: format MUST be: https://github.com/OWNER/REPO/blob/{branch}/path/to/image.png?raw=true - the ?raw=true is REQUIRED for images to render in markdown)",
           "7. Post the comment to the specified PR or issue",
           "8. Report success with comment URL"
         ],
@@ -182,7 +182,8 @@
           "commit_failed": "Report error and suggest manual commit",
           "comment_post_failed": "Show generated markdown and suggest manual posting"
         },
-        "url_format": "https://raw.githubusercontent.com/OWNER/REPO/{detected-branch}/path/to/image.png",
+        "url_format": "https://github.com/OWNER/REPO/blob/{detected-branch}/path/to/image.png?raw=true",
+        "url_format_note": "CRITICAL: Must use blob URLs with ?raw=true parameter, NOT raw.githubusercontent.com URLs. The ?raw=true parameter forces GitHub to serve the raw file which allows markdown image rendering. Format: https://github.com/{owner}/{repo}/blob/{branch}/{path}?raw=true",
         "branch_detection": "Uses `git rev-parse --abbrev-ref HEAD` to automatically detect current branch",
         "markdown_template": "## 📸 Screenshots\n\n### [Title]\n![Alt Text](image-url)\n\n[Description]",
         "critical_fix": "Always use detected branch name in URLs, not hardcoded branch names"

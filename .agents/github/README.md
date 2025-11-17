@@ -223,7 +223,7 @@ The agent uses a Node.js script that:
 4. Copies files to `packages/*/temp/pr-<number>/` for PR-specific documentation
 5. Commits and pushes the files to the current branch
 6. Generates a rich markdown comment with:
-   - Screenshot image embeds (GitHub blob URLs)
+   - Screenshot image embeds (GitHub blob URLs with ?raw=true parameter for rendering)
    - **What:** Description of what the screenshot shows
    - **Why:** Reason for including this screenshot
    - **When:** Development phase when it was captured
@@ -286,6 +286,42 @@ When creating new GitHub agents:
 4. Specify required permissions
 5. Include usage examples
 6. Document in this README
+
+## Image Embedding in GitHub Comments/PRs
+
+**CRITICAL:** When embedding images in GitHub PR descriptions or comments, you MUST use blob URLs with the `?raw=true` parameter.
+
+### Correct Format
+
+```markdown
+![Alt Text](https://github.com/{owner}/{repo}/blob/{branch}/{path}?raw=true)
+```
+
+### Example
+
+```markdown
+![Screenshot](https://github.com/ojfbot/cv-builder/blob/phase-2-extended-automation/packages/temp/screenshots/2025-11-17T02-36-21/tab-interactive.png?raw=true)
+```
+
+### Why ?raw=true is Required
+
+- **Without `?raw=true`**: GitHub serves an HTML page showing the image (does NOT render in markdown)
+- **With `?raw=true`**: GitHub serves the raw image file (renders properly in markdown)
+
+### Common Mistakes to Avoid
+
+❌ **WRONG:** `https://raw.githubusercontent.com/...` (404 errors for private repos)
+❌ **WRONG:** `https://github.com/.../blob/.../image.png` (renders as link, not image)
+✅ **CORRECT:** `https://github.com/.../blob/.../image.png?raw=true`
+
+### Workflow
+
+1. Commit images to repository
+2. Get current branch: `git rev-parse --abbrev-ref HEAD`
+3. Construct URL: `https://github.com/{owner}/{repo}/blob/{branch}/{path}?raw=true`
+4. Use in markdown: `![Description](url)`
+
+---
 
 ## GitHub CLI Requirements
 
