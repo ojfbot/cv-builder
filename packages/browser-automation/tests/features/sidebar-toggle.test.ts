@@ -39,41 +39,19 @@ async function main() {
   // Sidebar Toggle Tests
   // ========================================
 
-  suite.test('Sidebar initial expanded state', async () => {
-    // Wait for sidebar to be present
-    const sidebarExists = await client.elementExists('[data-element="sidebar"]');
-
-    if (sidebarExists) {
-      await wait(300);
-    }
+  suite.test('Sidebar initial collapsed state', async () => {
+    // Sidebar starts collapsed by default (sideNavExpanded = false)
+    await wait(300);
 
     const screenshot = await client.screenshot({
-      name: 'sidebar-expanded',
+      name: 'sidebar-collapsed',
       fullPage: false,
     });
     console.log(`✓ Screenshot saved: ${screenshot.path}`);
   });
 
-  suite.test('Collapse sidebar and capture', async () => {
-    // Look for sidebar toggle button in header
-    const toggleExists = await client.elementExists('[data-element="sidebar-toggle"]');
-
-    if (toggleExists) {
-      await client.click('[data-element="sidebar-toggle"]');
-      // Wait for collapse animation
-      await wait(300);
-
-      const screenshot = await client.screenshot({
-        name: 'sidebar-collapsed',
-        fullPage: false,
-      });
-      console.log(`✓ Screenshot saved: ${screenshot.path}`);
-    } else {
-      console.log('⚠️  Sidebar toggle button not found - skipping collapse screenshot');
-    }
-  });
-
   suite.test('Expand sidebar and capture', async () => {
+    // Look for sidebar toggle button in header
     const toggleExists = await client.elementExists('[data-element="sidebar-toggle"]');
 
     if (toggleExists) {
@@ -82,12 +60,30 @@ async function main() {
       await wait(300);
 
       const screenshot = await client.screenshot({
-        name: 'sidebar-expanded-restored',
+        name: 'sidebar-expanded',
         fullPage: false,
       });
       console.log(`✓ Screenshot saved: ${screenshot.path}`);
     } else {
       console.log('⚠️  Sidebar toggle button not found - skipping expand screenshot');
+    }
+  });
+
+  suite.test('Collapse sidebar and capture', async () => {
+    const toggleExists = await client.elementExists('[data-element="sidebar-toggle"]');
+
+    if (toggleExists) {
+      await client.click('[data-element="sidebar-toggle"]');
+      // Wait for collapse animation
+      await wait(300);
+
+      const screenshot = await client.screenshot({
+        name: 'sidebar-collapsed-restored',
+        fullPage: false,
+      });
+      console.log(`✓ Screenshot saved: ${screenshot.path}`);
+    } else {
+      console.log('⚠️  Sidebar toggle button not found - skipping collapse screenshot');
     }
   });
 
