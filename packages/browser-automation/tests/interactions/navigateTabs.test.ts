@@ -27,8 +27,8 @@ async function main() {
     // Verify DOM: Bio tab panel is visible
     await assert.elementVisible('[data-element="bio-panel"]');
 
-    // Verify Redux store: currentTab is 0 (Bio)
-    await assert.storeEventuallyEquals('currentTab', 0, { timeout: 2000 });
+    // Verify Redux store: currentTab is "bio"
+    await assert.storeEventuallyEquals('currentTab', 'bio', { timeout: 2000 });
 
     // Capture screenshot
     const screenshot = await client.screenshot({
@@ -47,8 +47,8 @@ async function main() {
     // Verify DOM: Jobs tab panel is visible
     await assert.elementVisible('[data-element="jobs-panel"]');
 
-    // Verify Redux store: currentTab is 1 (Jobs)
-    await assert.storeEventuallyEquals('currentTab', 1, { timeout: 2000 });
+    // Verify Redux store: currentTab is "jobs"
+    await assert.storeEventuallyEquals('currentTab', 'jobs', { timeout: 2000 });
 
     // Capture screenshot
     const screenshot = await client.screenshot({
@@ -67,8 +67,8 @@ async function main() {
     // Verify DOM: Outputs tab panel is visible
     await assert.elementVisible('[data-element="outputs-panel"]');
 
-    // Verify Redux store: currentTab is 2 (Outputs)
-    await assert.storeEventuallyEquals('currentTab', 2, { timeout: 2000 });
+    // Verify Redux store: currentTab is "outputs"
+    await assert.storeEventuallyEquals('currentTab', 'outputs', { timeout: 2000 });
 
     // Capture screenshot
     const screenshot = await client.screenshot({
@@ -87,8 +87,8 @@ async function main() {
     // Verify DOM: Interactive tab panel is visible
     await assert.elementVisible('[data-element="interactive-panel"]');
 
-    // Verify Redux store: currentTab is 3 (Interactive)
-    await assert.storeEventuallyEquals('currentTab', 3, { timeout: 2000 });
+    // Verify Redux store: currentTab is "interactive"
+    await assert.storeEventuallyEquals('currentTab', 'interactive', { timeout: 2000 });
 
     // Capture screenshot
     const screenshot = await client.screenshot({

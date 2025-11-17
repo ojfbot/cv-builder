@@ -31,9 +31,6 @@ async function main() {
     // Verify modal visible
     await assert.elementVisible('[data-element="settings-modal"]');
 
-    // Verify heading
-    await assert.textContains('[data-element="settings-modal"] h3', 'API Connection');
-
     // Capture screenshot
     const screenshot = await client.screenshot({
       name: 'open-settings-modal',

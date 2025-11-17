@@ -1,0 +1,35 @@
+{
+  "sessionId": "2025-11-17T04-37-39",
+  "created": "2025-11-17T04:37:39.349Z",
+  "screenshots": [
+    {
+      "filename": "navigate-tabs-bio.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T04-37-39/navigate-tabs-bio.png",
+      "fileSize": 77732,
+      "format": "png",
+      "timestamp": "2025-11-17T04:37:39.349Z"
+    },
+    {
+      "filename": "navigate-tabs-jobs.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T04-37-39/navigate-tabs-jobs.png",
+      "fileSize": 58331,
+      "format": "png",
+      "timestamp": "2025-11-17T04:37:39.430Z"
+    },
+    {
+      "filename": "navigate-tabs-outputs.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T04-37-39/navigate-tabs-outputs.png",
+      "fileSize": 58061,
+      "format": "png",
+      "timestamp": "2025-11-17T04:37:39.496Z"
+    },
+    {
+      "filename": "navigate-tabs-interactive.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T04-37-39/navigate-tabs-interactive.png",
+      "fileSize": 80852,
+      "format": "png",
+      "timestamp": "2025-11-17T04:37:39.583Z"
+    }
+  ],
+  "metadata": {}
+}

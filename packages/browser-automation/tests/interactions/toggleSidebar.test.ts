@@ -20,8 +20,8 @@ async function main() {
   });
 
   suite.test('View initial collapsed sidebar state', async ({ assert }) => {
-    // Verify Redux store: sidebar is closed (false)
-    await assert.storeEquals('sidebarOpen', false);
+    // Verify DOM: Sidebar navigation is not visible (collapsed)
+    await assert.elementHidden('.cds--side-nav__navigation');
 
     // Capture collapsed state
     const screenshot = await client.screenshot({
@@ -42,8 +42,7 @@ async function main() {
     // Verify DOM: Sidebar navigation is visible
     await assert.elementVisible('.cds--side-nav__navigation');
 
-    // Verify Redux store: sidebar is open (true)
-    await assert.storeEventuallyEquals('sidebarOpen', true, { timeout: 2000 });
+    // Note: Sidebar state is local to App.tsx, not in Redux store
 
     // Capture expanded state
     const screenshot = await client.screenshot({
@@ -58,11 +57,13 @@ async function main() {
     // Click to collapse using data-element
     await client.click('[data-element="sidebar-toggle"]');
 
-    // Wait a moment for animation
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for sidebar to be hidden
+    await client.waitForSelector('.cds--side-nav__navigation', { state: 'hidden', timeout: 2000 });
 
-    // Verify Redux store: sidebar is closed (false)
-    await assert.storeEventuallyEquals('sidebarOpen', false, { timeout: 2000 });
+    // Verify DOM: Sidebar navigation is hidden
+    await assert.elementHidden('.cds--side-nav__navigation');
+
+    // Note: Sidebar state is local to App.tsx, not in Redux store
 
     // Capture collapsed state again
     const screenshot = await client.screenshot({

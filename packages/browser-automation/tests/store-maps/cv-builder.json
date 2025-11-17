@@ -10,9 +10,15 @@
   "queries": {
     "currentTab": {
       "path": "navigation.currentTab",
+      "type": "string",
+      "values": ["bio", "jobs", "outputs", "interactive"],
+      "description": "Currently active dashboard tab key"
+    },
+    "currentTabIndex": {
+      "path": "navigation.currentTabIndex",
       "type": "number",
       "values": [0, 1, 2, 3],
-      "description": "Currently active dashboard tab (0=Bio, 1=Jobs, 2=Outputs, 3=Interactive)"
+      "description": "Currently active dashboard tab index (0=Bio, 1=Jobs, 2=Outputs, 3=Interactive)"
     },
     "sidebarOpen": {
       "path": "navigation.sidebarOpen",
@@ -24,7 +30,7 @@
       "type": "boolean",
       "description": "Whether chat window is expanded to full-screen"
     },
-    "chatInput": {
+    "draftInput": {
       "path": "chat.draftInput",
       "type": "string",
       "description": "Current chat input text (draft)"

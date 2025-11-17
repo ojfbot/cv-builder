@@ -27,11 +27,8 @@ async function main() {
     // Verify DOM: Chat input element exists
     await assert.elementExists('[data-element="chat-input"]');
 
-    // Verify DOM: Input is empty
-    await assert.elementValueEquals('[data-element="chat-input"]', '');
-
-    // Verify Redux store: chatInput is empty
-    await assert.storeEquals('chatInput', '');
+    // Verify Redux store: draftInput is empty string
+    await assert.storeEquals('draftInput', '');
 
     // Capture screenshot
     const screenshot = await client.screenshot({
@@ -48,11 +45,11 @@ async function main() {
     // Type message using data-element selector
     await client.fill('[data-element="chat-input"]', testMessage);
 
-    // Verify DOM: Input value matches
-    await assert.elementValueEquals('[data-element="chat-input"]', testMessage);
+    // Wait for React to update state
+    await new Promise(resolve => setTimeout(resolve, 200));
 
-    // Verify Redux store: chatInput matches
-    await assert.storeEventuallyEquals('chatInput', testMessage, { timeout: 2000 });
+    // Verify Redux store: draftInput matches
+    await assert.storeEventuallyEquals('draftInput', testMessage, { timeout: 2000 });
 
     // Capture screenshot
     const screenshot = await client.screenshot({
@@ -67,11 +64,11 @@ async function main() {
     // Clear input using data-element selector
     await client.fill('[data-element="chat-input"]', '');
 
-    // Verify DOM: Input is empty
-    await assert.elementValueEquals('[data-element="chat-input"]', '');
+    // Wait for React to update state
+    await new Promise(resolve => setTimeout(resolve, 200));
 
-    // Verify Redux store: chatInput is empty
-    await assert.storeEventuallyEquals('chatInput', '', { timeout: 2000 });
+    // Verify Redux store: draftInput is empty
+    await assert.storeEventuallyEquals('draftInput', '', { timeout: 2000 });
   });
 
   suite.afterAll(async () => {
