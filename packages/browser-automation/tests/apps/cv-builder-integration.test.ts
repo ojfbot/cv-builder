@@ -58,8 +58,9 @@ async function main() {
 
   // Test 3: Main App Container
   suite.test('Main app container exists', async ({ assert }) => {
-    await assert.elementExists('.cds--content');
-    await assert.elementVisible('.cds--content');
+    // CV Builder uses #root as main container (React app)
+    await assert.elementExists('#root');
+    await assert.elementVisible('#root');
   });
 
   // Test 4: Dashboard Header
