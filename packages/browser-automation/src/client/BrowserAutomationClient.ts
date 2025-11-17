@@ -157,13 +157,13 @@ export class BrowserAutomationClient {
   /**
    * Get element attribute value
    */
-  async elementAttribute(selector: string, attribute: string): Promise<string> {
+  async elementAttribute(selector: string, attribute: string): Promise<string | null> {
     try {
       const response = await this.axios.get<AttributeResult>('/api/element/attribute', {
         params: { selector, attribute },
       });
 
-      return response.data.value || '';
+      return response.data.value || null;
     } catch (error) {
       throw this.handleError(error);
     }

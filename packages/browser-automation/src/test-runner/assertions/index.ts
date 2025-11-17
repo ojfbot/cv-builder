@@ -310,10 +310,10 @@ export class Assertions implements AssertionAPI {
         timeout: options.timeout || 30000,
       });
     } catch (error) {
-      const actualValue = await this.client.storeQuery(queryName);
+      // Re-throw with consistent error message without querying again (race condition)
       throw new AssertionError(
         options.message ||
-          `Expected store query "${queryName}" to eventually equal ${JSON.stringify(expectedValue)}, but got ${JSON.stringify(actualValue)} after timeout`
+          `Expected store query "${queryName}" to eventually equal ${JSON.stringify(expectedValue)}, but timed out after ${options.timeout || 30000}ms`
       );
     }
   }
