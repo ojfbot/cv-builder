@@ -3,6 +3,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { RETRY_CONFIG, TEST_TIMEOUTS, POLLING_CONFIG } from '../test-runner/constants.js';
 import {
   ClientConfig,
   NavigateOptions,
@@ -37,7 +38,7 @@ export class BrowserAutomationClient {
 
     this.axios = axios.create({
       baseURL: this.config.baseUrl,
-      timeout: this.config.timeout || 30000,
+      timeout: this.config.timeout || TEST_TIMEOUTS.DEFAULT,
       headers: {
         'Content-Type': 'application/json',
         ...this.config.headers,
@@ -319,7 +320,10 @@ export class BrowserAutomationClient {
       });
     } catch (error) {
       if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
-        throw new TimeoutError(`waitForSelector(${selector})`, options.timeout || 30000);
+        throw new TimeoutError(
+          `waitForSelector(${selector})`,
+          options.timeout || TEST_TIMEOUTS.DEFAULT
+        );
       }
       throw this.handleError(error);
     }
@@ -336,7 +340,7 @@ export class BrowserAutomationClient {
       });
     } catch (error) {
       if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
-        throw new TimeoutError(`waitForText("${text}")`, options.timeout || 30000);
+        throw new TimeoutError(`waitForText("${text}")`, options.timeout || TEST_TIMEOUTS.DEFAULT);
       }
       throw this.handleError(error);
     }
@@ -396,33 +400,67 @@ export class BrowserAutomationClient {
   }
 
   /**
-   * Close the browser
+   * Close the browser with retry for reliability
    */
-  async close(): Promise<void> {
-    try {
-      await this.axios.post('/api/close');
-    } catch (error) {
-      throw this.handleError(error);
+  async close(options: { force?: boolean; maxRetries?: number } = {}): Promise<void> {
+    const maxRetries = options.maxRetries ?? RETRY_CONFIG.MAX_RETRIES;
+    const baseDelay = RETRY_CONFIG.CLOSE_BASE_DELAY;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await this.axios.post('/api/close', { force: options.force });
+        return; // Success
+      } catch (error) {
+        // If this is the last attempt or a critical error, handle it
+        if (attempt === maxRetries) {
+          // Log error but don't throw - we want cleanup to always succeed
+          console.warn(
+            `Failed to close browser after ${maxRetries + 1} attempts:`,
+            error instanceof Error ? error.message : String(error)
+          );
+          return; // Return gracefully instead of throwing
+        }
+
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
   }
 
   /**
-   * Query Redux store state
+   * Query Redux store state with retry mechanism
    */
-  async storeQuery(queryName: string, app: string = 'cv-builder'): Promise<any> {
-    try {
-      const response = await this.axios.post('/api/store/query', {
-        app,
-        query: queryName,
-      });
-      return response.data.result;
-    } catch (error) {
-      throw this.handleError(error);
+  async storeQuery(
+    queryName: string,
+    app: string = 'cv-builder',
+    options: { maxRetries?: number; retryDelay?: number } = {}
+  ): Promise<any> {
+    const maxRetries = options.maxRetries ?? RETRY_CONFIG.MAX_RETRIES;
+    const baseDelay = options.retryDelay ?? RETRY_CONFIG.BASE_DELAY;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await this.axios.post('/api/store/query', {
+          app,
+          query: queryName,
+        });
+        return response.data.result;
+      } catch (error) {
+        // If this is the last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw this.handleError(error);
+        }
+
+        // Exponential backoff: 100ms, 200ms, 400ms, etc.
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
   }
 
   /**
-   * Wait for store state to match expected value
+   * Wait for store state to match expected value with retry mechanism
    */
   async storeWait(
     queryName: string,
@@ -431,18 +469,33 @@ export class BrowserAutomationClient {
       app?: string;
       timeout?: number;
       pollInterval?: number;
+      maxRetries?: number;
+      retryDelay?: number;
     } = {}
   ): Promise<void> {
-    try {
-      await this.axios.post('/api/store/wait', {
-        app: options.app || 'cv-builder',
-        query: queryName,
-        value: expectedValue,
-        timeout: options.timeout || 30000,
-        pollInterval: options.pollInterval || 100,
-      });
-    } catch (error) {
-      throw this.handleError(error);
+    const maxRetries = options.maxRetries ?? RETRY_CONFIG.MAX_RETRIES;
+    const baseDelay = options.retryDelay ?? RETRY_CONFIG.BASE_DELAY;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await this.axios.post('/api/store/wait', {
+          app: options.app || 'cv-builder',
+          query: queryName,
+          value: expectedValue,
+          timeout: options.timeout || TEST_TIMEOUTS.API_RESPONSE,
+          pollInterval: options.pollInterval || POLLING_CONFIG.DEFAULT_INTERVAL,
+        });
+        return; // Success, exit early
+      } catch (error) {
+        // If this is the last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw this.handleError(error);
+        }
+
+        // Exponential backoff: 100ms, 200ms, 400ms, etc.
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
   }
 

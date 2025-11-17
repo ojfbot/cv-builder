@@ -5,6 +5,7 @@
 import { BrowserAutomationClient } from '../../client/BrowserAutomationClient.js';
 import { ScreenshotResult } from '../../client/types.js';
 import { AssertionAPI } from '../types.js';
+import { isDeepStrictEqual } from 'node:util';
 
 export class AssertionError extends Error {
   constructor(message: string) {
@@ -222,10 +223,11 @@ export class Assertions implements AssertionAPI {
 
   /**
    * Assert that a store query matches expected value
+   * Uses deep strict equality (order-independent, type-safe)
    */
   async storeEquals(queryName: string, expectedValue: any, message?: string): Promise<void> {
     const actualValue = await this.client.storeQuery(queryName);
-    if (JSON.stringify(actualValue) !== JSON.stringify(expectedValue)) {
+    if (!isDeepStrictEqual(actualValue, expectedValue)) {
       throw new AssertionError(
         message ||
           `Expected store query "${queryName}" to equal ${JSON.stringify(expectedValue)}, but got ${JSON.stringify(actualValue)}`
@@ -259,6 +261,7 @@ export class Assertions implements AssertionAPI {
 
   /**
    * Assert that a store array contains an item
+   * Uses deep strict equality for comparison (order-independent, type-safe)
    */
   async storeContains(queryName: string, item: any, message?: string): Promise<void> {
     const array = await this.client.storeQuery(queryName);
@@ -267,7 +270,7 @@ export class Assertions implements AssertionAPI {
         `Store query "${queryName}" did not return an array, got ${typeof array}`
       );
     }
-    const found = array.some((el: any) => JSON.stringify(el) === JSON.stringify(item));
+    const found = array.some((el: any) => isDeepStrictEqual(el, item));
     if (!found) {
       throw new AssertionError(
         message ||
@@ -321,6 +324,7 @@ export class Assertions implements AssertionAPI {
 
   /**
    * Assert that an element has a specific class
+   * Handles edge cases: empty class="", multiple spaces, leading/trailing whitespace
    */
   async elementHasClass(selector: string, className: string, message?: string): Promise<void> {
     const classAttr = await this.client.elementAttribute(selector, 'class');
@@ -330,7 +334,8 @@ export class Assertions implements AssertionAPI {
           `Expected element "${selector}" to have class "${className}", but element has no class attribute`
       );
     }
-    const classes = classAttr.split(/\s+/);
+    // Trim, split on whitespace, and filter out empty strings
+    const classes = classAttr.trim().split(/\s+/).filter(Boolean);
     if (!classes.includes(className)) {
       throw new AssertionError(
         message ||
@@ -341,6 +346,7 @@ export class Assertions implements AssertionAPI {
 
   /**
    * Assert that an element does NOT have a specific class
+   * Handles edge cases: empty class="", multiple spaces, leading/trailing whitespace
    */
   async elementNotHasClass(selector: string, className: string, message?: string): Promise<void> {
     const classAttr = await this.client.elementAttribute(selector, 'class');
@@ -348,11 +354,12 @@ export class Assertions implements AssertionAPI {
       // Element has no class attribute, so it doesn't have the class (assertion passes)
       return;
     }
-    const classes = classAttr.split(/\s+/);
+    // Trim, split on whitespace, and filter out empty strings
+    const classes = classAttr.trim().split(/\s+/).filter(Boolean);
     if (classes.includes(className)) {
       throw new AssertionError(
         message ||
-          `Expected element "${selector}" to NOT have class "${className}", but it was present`
+          `Expected element "${selector}" NOT to have class "${className}", but it was present`
       );
     }
   }
