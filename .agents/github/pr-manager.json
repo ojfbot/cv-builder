@@ -154,6 +154,18 @@
     "reports_progress": true,
     "estimated_duration": "15-45 seconds",
     "user_guidance": "This agent creates well-formatted PRs with automatic change analysis and issue linking. It can also validate PRs against issue requirements.",
+    "image_embedding_guide": {
+      "description": "When embedding images in PR descriptions or comments, use blob URLs with ?raw=true parameter",
+      "url_format": "https://github.com/{owner}/{repo}/blob/{branch}/{path}?raw=true",
+      "critical_note": "MUST use blob URLs with ?raw=true, NOT raw.githubusercontent.com URLs. The ?raw=true parameter forces GitHub to serve the raw file for markdown rendering.",
+      "example": "![Screenshot](https://github.com/ojfbot/cv-builder/blob/phase-2-extended-automation/packages/temp/screenshots/2025-11-17T02-36-21/tab-interactive.png?raw=true)",
+      "workflow": [
+        "1. Ensure images are committed to the repository",
+        "2. Get current branch name with: git rev-parse --abbrev-ref HEAD",
+        "3. Construct blob URL: https://github.com/{owner}/{repo}/blob/{branch}/{path}?raw=true",
+        "4. Use in markdown: ![Alt Text](blob-url-with-raw-true)"
+      ]
+    },
     "workflow_selection": {
       "prompt": "What would you like to do?",
       "options": [
