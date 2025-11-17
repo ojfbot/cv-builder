@@ -1,18 +1,26 @@
 {
   "app": "cv-builder",
   "storeType": "redux",
-  "accessPath": "window.store",
+  "accessPath": "window.__REDUX_DEVTOOLS_EXTENSION__?.instanceConnection?.getState()",
   "alternativeAccessPaths": [
-    "window.__REDUX_STORE__"
+    "window.__REDUX_DEVTOOLS_EXTENSION__?.instanceConnection",
+    "window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__"
   ],
-  "version": "1.0.0",
-  "updated": "2025-11-16T12:00:00Z",
+  "version": "2.0.0",
+  "updated": "2025-11-16T14:00:00Z",
+  "notes": "Access Redux store via DevTools extension for security. Requires Redux DevTools browser extension installed.",
   "queries": {
     "currentTab": {
       "path": "navigation.currentTab",
       "type": "string",
       "values": ["bio", "jobs", "outputs", "interactive"],
-      "description": "Currently active dashboard tab key"
+      "description": "Currently active dashboard tab key (TabKey enum)"
+    },
+    "previousTab": {
+      "path": "navigation.previousTab",
+      "type": "string",
+      "values": ["bio", "jobs", "outputs", "interactive"],
+      "description": "Previously active dashboard tab key"
     },
     "currentTabIndex": {
       "path": "navigation.currentTabIndex",
@@ -20,237 +28,77 @@
       "values": [0, 1, 2, 3],
       "description": "Currently active dashboard tab index (0=Bio, 1=Jobs, 2=Outputs, 3=Interactive)"
     },
-    "sidebarOpen": {
-      "path": "navigation.sidebarOpen",
-      "type": "boolean",
-      "description": "Whether navigation sidebar is open"
+    "previousTabIndex": {
+      "path": "navigation.previousTabIndex",
+      "type": "number",
+      "values": [0, 1, 2, 3],
+      "description": "Previously active dashboard tab index"
+    },
+    "bioViewMode": {
+      "path": "navigation.bioViewMode",
+      "type": "string",
+      "values": ["landing", "tiles", "files"],
+      "description": "Bio panel view mode (landing, tiles, or files view)"
+    },
+    "chatMessages": {
+      "path": "chat.messages",
+      "type": "array",
+      "description": "Array of chat messages with role (user/assistant) and content"
+    },
+    "chatMessageCount": {
+      "path": "chat.messages.length",
+      "type": "number",
+      "description": "Number of chat messages"
+    },
+    "draftInput": {
+      "path": "chat.draftInput",
+      "type": "string",
+      "description": "Current chat input text (draft message being composed)"
     },
     "chatExpanded": {
       "path": "chat.isExpanded",
       "type": "boolean",
       "description": "Whether chat window is expanded to full-screen"
     },
-    "draftInput": {
-      "path": "chat.draftInput",
+    "chatSummary": {
+      "path": "chat.chatSummary",
       "type": "string",
-      "description": "Current chat input text (draft)"
+      "description": "Generated summary of chat conversation (2-3 words)"
     },
     "chatLoading": {
       "path": "chat.isLoading",
       "type": "boolean",
       "description": "Whether chat is processing a message"
     },
-    "theme": {
-      "path": "navigation.theme",
+    "streamingContent": {
+      "path": "chat.streamingContent",
       "type": "string",
-      "values": ["light", "dark"],
-      "description": "Current UI theme"
+      "description": "Content currently being streamed from assistant"
     },
-    "isAuthenticated": {
-      "path": "state.auth.isAuthenticated",
-      "type": "boolean",
-      "description": "User authentication status"
-    },
-    "currentUser": {
-      "path": "state.auth.user",
-      "type": "object",
-      "description": "Current user object with profile information"
-    },
-    "userId": {
-      "path": "state.auth.user.id",
-      "type": "string",
-      "description": "Current user's unique identifier"
-    },
-    "userName": {
-      "path": "state.auth.user.name",
-      "type": "string",
-      "description": "Current user's display name"
-    },
-    "bioData": {
-      "path": "state.bio.data",
-      "type": "object",
-      "description": "User's bio/resume information"
-    },
-    "bioFullName": {
-      "path": "state.bio.data.fullName",
-      "type": "string",
-      "description": "User's full name from bio"
-    },
-    "bioEmail": {
-      "path": "state.bio.data.email",
-      "type": "string",
-      "description": "User's email address from bio"
-    },
-    "bioPhone": {
-      "path": "state.bio.data.phone",
-      "type": "string",
-      "description": "User's phone number from bio"
-    },
-    "bioExperiences": {
-      "path": "state.bio.data.experiences",
-      "type": "array",
-      "description": "Array of work experiences"
-    },
-    "bioEducation": {
-      "path": "state.bio.data.education",
-      "type": "array",
-      "description": "Array of education entries"
-    },
-    "bioSkills": {
-      "path": "state.bio.data.skills",
-      "type": "array",
-      "description": "Array of skills"
-    },
-    "bioLoading": {
-      "path": "state.bio.loading",
-      "type": "boolean",
-      "description": "Whether bio data is currently loading"
-    },
-    "bioError": {
-      "path": "state.bio.error",
-      "type": "string",
-      "description": "Bio loading error message (if any)"
-    },
-    "jobs": {
-      "path": "state.jobs.list",
-      "type": "array",
-      "description": "List of saved job postings"
-    },
-    "jobCount": {
-      "path": "state.jobs.list.length",
+    "unreadCount": {
+      "path": "chat.unreadCount",
       "type": "number",
-      "description": "Number of saved job postings"
+      "description": "Number of unread chat messages"
     },
-    "selectedJob": {
-      "path": "state.jobs.selectedJob",
-      "type": "object",
-      "description": "Currently selected job for viewing/editing"
-    },
-    "selectedJobId": {
-      "path": "state.jobs.selectedJob.id",
-      "type": "string",
-      "description": "ID of currently selected job"
-    },
-    "jobsLoading": {
-      "path": "state.jobs.loading",
-      "type": "boolean",
-      "description": "Whether jobs are currently loading"
-    },
-    "jobsError": {
-      "path": "state.jobs.error",
-      "type": "string",
-      "description": "Jobs loading error message (if any)"
-    },
-    "outputs": {
-      "path": "state.outputs.list",
-      "type": "array",
-      "description": "List of generated resumes and documents"
-    },
-    "outputCount": {
-      "path": "state.outputs.list.length",
+    "lastReadMessageIndex": {
+      "path": "chat.lastReadMessageIndex",
       "type": "number",
-      "description": "Number of generated outputs"
+      "description": "Index of last message user read"
     },
-    "selectedOutput": {
-      "path": "state.outputs.selectedOutput",
-      "type": "object",
-      "description": "Currently selected output for preview"
-    },
-    "selectedOutputId": {
-      "path": "state.outputs.selectedOutput.id",
-      "type": "string",
-      "description": "ID of currently selected output"
-    },
-    "outputsLoading": {
-      "path": "state.outputs.loading",
-      "type": "boolean",
-      "description": "Whether outputs are currently loading"
-    },
-    "outputsError": {
-      "path": "state.outputs.error",
-      "type": "string",
-      "description": "Outputs loading error message (if any)"
-    },
-    "chatMessages": {
-      "path": "state.chat.messages",
-      "type": "array",
-      "description": "Array of chat messages (user and assistant)"
-    },
-    "chatMessageCount": {
-      "path": "state.chat.messages.length",
+    "scrollPosition": {
+      "path": "chat.scrollPosition",
       "type": "number",
-      "description": "Number of chat messages"
+      "description": "Saved scroll position in chat"
     },
-    "chatLoading": {
-      "path": "state.chat.loading",
+    "orchestratorInitialized": {
+      "path": "agent.isInitialized",
       "type": "boolean",
-      "description": "Whether chat is processing a message"
+      "description": "Whether the BrowserOrchestrator agent is initialized"
     },
-    "chatError": {
-      "path": "state.chat.error",
+    "agentError": {
+      "path": "agent.error",
       "type": "string",
-      "description": "Chat error message (if any)"
-    },
-    "chatSessionId": {
-      "path": "state.chat.sessionId",
-      "type": "string",
-      "description": "Current chat session identifier"
-    },
-    "chatInput": {
-      "path": "state.chat.input",
-      "type": "string",
-      "description": "Current chat input text"
-    },
-    "modalOpen": {
-      "path": "state.modal.isOpen",
-      "type": "boolean",
-      "description": "Whether any modal is currently open"
-    },
-    "modalType": {
-      "path": "state.modal.type",
-      "type": "string",
-      "values": ["upload", "confirmation", "error", "info"],
-      "description": "Type of currently open modal"
-    },
-    "modalData": {
-      "path": "state.modal.data",
-      "type": "object",
-      "description": "Data context for current modal"
-    },
-    "notifications": {
-      "path": "state.notifications.list",
-      "type": "array",
-      "description": "Array of active notifications"
-    },
-    "notificationCount": {
-      "path": "state.notifications.list.length",
-      "type": "number",
-      "description": "Number of active notifications"
-    },
-    "hasErrors": {
-      "path": "state.errors.hasErrors",
-      "type": "boolean",
-      "description": "Whether there are any application errors"
-    },
-    "globalError": {
-      "path": "state.errors.global",
-      "type": "string",
-      "description": "Global application error message (if any)"
-    },
-    "appInitialized": {
-      "path": "state.app.initialized",
-      "type": "boolean",
-      "description": "Whether the application has completed initialization"
-    },
-    "appVersion": {
-      "path": "state.app.version",
-      "type": "string",
-      "description": "Current application version"
-    },
-    "apiConnected": {
-      "path": "state.app.apiConnected",
-      "type": "boolean",
-      "description": "Whether API connection is established"
+      "description": "Agent initialization error message (if any)"
     }
   }
 }
