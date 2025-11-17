@@ -1,0 +1,21 @@
+{
+  "sessionId": "2025-11-17T01-38-49",
+  "created": "2025-11-17T01:38:49.814Z",
+  "screenshots": [
+    {
+      "filename": "cv-builder-dashboard.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T01-38-49/cv-builder-dashboard.png",
+      "fileSize": 80128,
+      "format": "png",
+      "timestamp": "2025-11-17T01:38:49.814Z"
+    },
+    {
+      "filename": "cv-builder-header.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T01-38-49/cv-builder-header.png",
+      "fileSize": 80128,
+      "format": "png",
+      "timestamp": "2025-11-17T01:38:49.856Z"
+    }
+  ],
+  "metadata": {}
+}

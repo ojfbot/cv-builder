@@ -4,6 +4,8 @@
 
 This guide explains how LLM agents (like Claude Code) can use the browser automation system's element and store mapping APIs to discover UI elements, query application state, and create executable tests from natural language.
 
+**Selector Strategy**: CV Builder uses `data-element` attributes for stable, semantic element selection. This avoids CSS class fragility and provides a clear contract between components and tests. See `docs/DATA_ELEMENT_GUIDE.md` for implementation details.
+
 ---
 
 ## Table of Contents
