@@ -17,6 +17,8 @@ personal/
 # See temp/.gitignore for what's tracked vs ignored within temp/
 # Note: temp/ has its own .gitignore to selectively track PR screenshots
 packages/browser-automation/temp/
+# Monorepo root temp/ directory has selective tracking via temp/.gitignore
+# (Do not add "temp/" here - it would override temp/.gitignore)
 # Prevent nested package directory errors (e.g., packages/*/packages/*/)
 packages/*/packages/
 
