@@ -155,15 +155,22 @@
     "estimated_duration": "15-45 seconds",
     "user_guidance": "This agent creates well-formatted PRs with automatic change analysis and issue linking. It can also validate PRs against issue requirements.",
     "image_embedding_guide": {
-      "description": "When embedding images in PR descriptions or comments, use blob URLs with ?raw=true parameter",
-      "url_format": "https://github.com/{owner}/{repo}/blob/{branch}/{path}?raw=true",
-      "critical_note": "MUST use blob URLs with ?raw=true, NOT raw.githubusercontent.com URLs. The ?raw=true parameter forces GitHub to serve the raw file for markdown rendering.",
-      "example": "![Screenshot](https://github.com/ojfbot/cv-builder/blob/phase-2-extended-automation/packages/temp/screenshots/2025-11-17T02-36-21/tab-interactive.png?raw=true)",
+      "description": "When embedding images in PR descriptions or comments, use blob URLs with ?raw=true parameter and commit SHA",
+      "url_format": "https://github.com/{owner}/{repo}/blob/{commit-sha}/{path}?raw=true",
+      "critical_note": "MUST use blob URLs with ?raw=true, NOT raw.githubusercontent.com URLs. MUST use commit SHA, NOT branch name. MUST push to remote BEFORE creating PR comment or images will 404.",
+      "example": "![Screenshot](https://github.com/ojfbot/cv-builder/blob/1ba7ff2e15dcd90654fa751905e2fe361f9656c2/packages/temp/screenshots/2025-11-17T03-00-48/chat-with-input.png?raw=true)",
       "workflow": [
         "1. Ensure images are committed to the repository",
-        "2. Get current branch name with: git rev-parse --abbrev-ref HEAD",
-        "3. Construct blob URL: https://github.com/{owner}/{repo}/blob/{branch}/{path}?raw=true",
-        "4. Use in markdown: ![Alt Text](blob-url-with-raw-true)"
+        "2. CRITICAL: Push commit to remote with `git push origin <branch>` - URLs will NOT work until pushed",
+        "3. Get commit SHA with: git rev-parse HEAD",
+        "4. Construct blob URL: https://github.com/{owner}/{repo}/blob/{commit-sha}/{path}?raw=true",
+        "5. Use in markdown: ![Alt Text](blob-url-with-raw-true)"
+      ],
+      "common_mistakes": [
+        "Using branch name instead of commit SHA - images will 404",
+        "Not pushing to remote before creating comment - images will 404",
+        "Missing ?raw=true parameter - GitHub serves HTML page instead of image",
+        "Using raw.githubusercontent.com URLs for private repos - always 404"
       ]
     },
     "workflow_selection": {
