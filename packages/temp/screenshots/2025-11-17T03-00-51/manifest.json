@@ -1,0 +1,21 @@
+{
+  "sessionId": "2025-11-17T03-00-51",
+  "created": "2025-11-17T03:00:51.166Z",
+  "screenshots": [
+    {
+      "filename": "theme-dark.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T03-00-51/theme-dark.png",
+      "fileSize": 81853,
+      "format": "png",
+      "timestamp": "2025-11-17T03:00:51.166Z"
+    },
+    {
+      "filename": "final-state.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T03-00-51/final-state.png",
+      "fileSize": 80522,
+      "format": "png",
+      "timestamp": "2025-11-17T03:00:51.764Z"
+    }
+  ],
+  "metadata": {}
+}
