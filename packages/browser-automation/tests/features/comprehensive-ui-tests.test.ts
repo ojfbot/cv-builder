@@ -11,6 +11,11 @@ import { createTestSuite, createTestRunner } from '../../src/test-runner/index.j
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const CV_BUILDER_URL = process.env.CV_BUILDER_URL || 'http://localhost:3000';
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+const filterArg = args.find(arg => arg.startsWith('--filter='));
+const TEST_FILTER = filterArg ? filterArg.split('=')[1] : undefined;
+
 // Helper function for delays
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -141,9 +146,15 @@ async function main() {
     const chatExists = await client.elementExists('[data-element="chat-send-button"]');
 
     if (chatExists) {
-      // Type something to make chat more visible
-      await client.fill('[data-element="chat-input"]', 'Test message for screenshot');
+      // Click the input to focus it first
+      await client.click('[data-element="chat-input"]');
       await wait(500);
+
+      // Type text using keyboard simulation (more realistic than fill)
+      await client.type('[data-element="chat-input"]', 'Test message for screenshot');
+
+      // Wait longer for text to fully render in the input
+      await wait(2000);
 
       const screenshot = await client.screenshot({
         name: 'chat-with-input',
@@ -176,40 +187,56 @@ async function main() {
   // 3. Theme Toggle Tests
   // ========================================
 
-  suite.test('Capture current theme (light mode)', async () => {
+  suite.test('Capture initial theme state', async () => {
     // Navigate back to Interactive tab for theme testing
     await client.click('[data-element="interactive-tab"]');
     await wait(500);
 
+    // Capture current theme (likely dark/g100)
     const screenshot = await client.screenshot({
-      name: 'theme-light',
+      name: 'theme-initial',
       fullPage: false,
     });
     console.log(`✓ Screenshot saved: ${screenshot.path}`);
   });
 
-  suite.test('Toggle to dark theme and capture', async () => {
-    // Try to find and click theme toggle button
-    // Note: CV Builder may not have theme toggle implemented yet
-    // This test will check for the button and skip if not found
-
-    const themeToggleExists = await client.elementExists('[data-element="theme-toggle"]');
+  suite.test('Toggle to light theme and capture', async () => {
+    // Find theme toggle button by aria-label
+    const themeToggleExists = await client.elementExists('[aria-label="Toggle theme"]');
 
     if (themeToggleExists) {
-      await client.click('[data-element="theme-toggle"]');
-      await wait(500);
+      // Click to toggle theme
+      await client.click('[aria-label="Toggle theme"]');
+      // Wait for theme transition
+      await wait(800);
+
+      const screenshot = await client.screenshot({
+        name: 'theme-light',
+        fullPage: false,
+      });
+      console.log(`✓ Screenshot saved: ${screenshot.path}`);
+    } else {
+      console.log('⚠️  Theme toggle button not found - skipping light theme screenshot');
+    }
+  });
+
+  suite.test('Toggle back to dark theme and capture', async () => {
+    // Find theme toggle button by aria-label
+    const themeToggleExists = await client.elementExists('[aria-label="Toggle theme"]');
+
+    if (themeToggleExists) {
+      // Click to toggle theme back
+      await client.click('[aria-label="Toggle theme"]');
+      // Wait for theme transition
+      await wait(800);
 
       const screenshot = await client.screenshot({
         name: 'theme-dark',
         fullPage: false,
       });
       console.log(`✓ Screenshot saved: ${screenshot.path}`);
-
-      // Toggle back to light
-      await client.click('[data-element="theme-toggle"]');
-      await wait(500);
     } else {
-      console.log('⚠️  Theme toggle not implemented - skipping dark theme screenshot');
+      console.log('⚠️  Theme toggle button not found - skipping dark theme screenshot');
     }
   });
 
@@ -233,7 +260,12 @@ async function main() {
   const runner = createTestRunner({
     reporters: ['console'],
     verbose: true,
+    filter: TEST_FILTER,
   });
+
+  if (TEST_FILTER) {
+    console.log(`\n🔍 Running filtered tests: "${TEST_FILTER}"\n`);
+  }
 
   const result = await runner.run(suite);
 
