@@ -70,6 +70,7 @@ function App() {
         <div className="app-container" style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Header aria-label="CV Builder">
             <HeaderMenuButton
+              data-element="sidebar-toggle"
               aria-label={sideNavExpanded ? 'Close menu' : 'Open menu'}
               onClick={onClickSideNavExpand}
               isActive={sideNavExpanded}

@@ -1,0 +1,21 @@
+{
+  "sessionId": "2025-11-17T03-25-54",
+  "created": "2025-11-17T03:25:54.153Z",
+  "screenshots": [
+    {
+      "filename": "tab-pipelines.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T03-25-54/tab-pipelines.png",
+      "fileSize": 62970,
+      "format": "png",
+      "timestamp": "2025-11-17T03:25:54.153Z"
+    },
+    {
+      "filename": "tab-toolbox.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T03-25-54/tab-toolbox.png",
+      "fileSize": 60846,
+      "format": "png",
+      "timestamp": "2025-11-17T03:25:54.554Z"
+    }
+  ],
+  "metadata": {}
+}
