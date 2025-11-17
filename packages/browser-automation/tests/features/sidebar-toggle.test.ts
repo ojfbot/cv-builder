@@ -27,12 +27,12 @@ async function main() {
     console.log('Navigating to CV Builder app...');
     await client.navigate(CV_BUILDER_URL, { waitFor: 'networkidle' });
     await client.waitForSelector('.app-container', { state: 'attached', timeout: 10000 });
-    await wait(1000);
+    await wait(300);
 
     // Navigate to Bio tab for sidebar testing
     console.log('Navigating to Bio tab...');
     await client.click('[data-element="bio-tab"]');
-    await wait(500);
+    await wait(300);
   });
 
   // ========================================
@@ -44,7 +44,7 @@ async function main() {
     const sidebarExists = await client.elementExists('[data-element="sidebar"]');
 
     if (sidebarExists) {
-      await wait(500);
+      await wait(300);
     }
 
     const screenshot = await client.screenshot({
@@ -61,7 +61,7 @@ async function main() {
     if (toggleExists) {
       await client.click('[data-element="sidebar-toggle"]');
       // Wait for collapse animation
-      await wait(800);
+      await wait(300);
 
       const screenshot = await client.screenshot({
         name: 'sidebar-collapsed',
@@ -79,7 +79,7 @@ async function main() {
     if (toggleExists) {
       await client.click('[data-element="sidebar-toggle"]');
       // Wait for expand animation
-      await wait(800);
+      await wait(300);
 
       const screenshot = await client.screenshot({
         name: 'sidebar-expanded-restored',

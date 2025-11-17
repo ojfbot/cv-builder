@@ -27,12 +27,12 @@ async function main() {
     console.log('Navigating to CV Builder app...');
     await client.navigate(CV_BUILDER_URL, { waitFor: 'networkidle' });
     await client.waitForSelector('.app-container', { state: 'attached', timeout: 10000 });
-    await wait(1000);
+    await wait(300);
 
     // Navigate to Bio tab where chat window is visible
     console.log('Navigating to Bio tab for chat testing...');
     await client.click('[data-element="bio-tab"]');
-    await wait(500);
+    await wait(300);
   });
 
   // ========================================
@@ -56,13 +56,13 @@ async function main() {
     if (chatExists) {
       // Click the input to focus it first
       await client.click('[data-element="chat-input"]');
-      await wait(500);
+      await wait(300);
 
       // Type text using keyboard simulation
       await client.type('[data-element="chat-input"]', 'Test message for screenshot');
 
       // Wait for text to fully render in the input
-      await wait(2000);
+      await wait(1500);
 
       const screenshot = await client.screenshot({
         name: 'chat-with-input',
@@ -81,7 +81,7 @@ async function main() {
 
     if (closeExists) {
       await client.click('[data-element="chat-close-button"]');
-      await wait(500);
+      await wait(300);
 
       const screenshot = await client.screenshot({
         name: 'chat-closed',
