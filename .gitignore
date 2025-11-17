@@ -15,7 +15,10 @@ personal/
 
 # Temporary working directory
 # See temp/.gitignore for what's tracked vs ignored within temp/
-packages/browser-automation/temp/screenshots/
+# Note: temp/ has its own .gitignore to selectively track PR screenshots
+packages/browser-automation/temp/
+# Prevent nested package directory errors (e.g., packages/*/packages/*/)
+packages/*/packages/
 
 # Dependencies
 node_modules/
