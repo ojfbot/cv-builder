@@ -32,12 +32,16 @@ function BadgeButton({ badgeAction, onExecute, className = '', size = 'md' }: Ba
   // Map variant to Carbon Design System tag types
   const carbonType = badgeAction.variant || 'purple'
 
+  // Generate data-element attribute from label (kebab-case)
+  const dataElement = `badge-${badgeAction.label.toLowerCase().replace(/\s+/g, '-')}`
+
   return (
     <Tag
       type={carbonType}
       className={`badge-button ${size} ${badgeAction.disabled ? 'disabled' : ''} ${className}`}
       onClick={handleClick}
       title={badgeAction.tooltip}
+      data-element={dataElement}
     >
       {badgeAction.icon && <span className="badge-icon">{badgeAction.icon}</span>}
       <span className="badge-label">{badgeAction.label}</span>
