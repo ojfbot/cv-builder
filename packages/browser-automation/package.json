@@ -19,6 +19,11 @@
     "test:cv-builder": "tsx tests/apps/cv-builder-integration.test.ts",
     "test:ui-nav": "tsx tests/ui/cv-builder-navigation.test.ts",
     "test:comprehensive": "tsx tests/features/comprehensive-ui-tests.test.ts",
+    "test:tabs": "tsx tests/features/tab-navigation.test.ts",
+    "test:chat": "tsx tests/features/chat-window.test.ts",
+    "test:theme": "tsx tests/features/theme-toggle.test.ts",
+    "test:sidebar": "tsx tests/features/sidebar-toggle.test.ts",
+    "test:ui": "npm run test:tabs && npm run test:chat && npm run test:theme && npm run test:sidebar",
     "test:all": "npm run test && npm run test:phase2 && npm run test:phase3 && npm run test:cv-builder && npm run test:ui-nav",
     "test:watch": "tsx watch tests/integration/basic-workflow.test.ts"
   },
