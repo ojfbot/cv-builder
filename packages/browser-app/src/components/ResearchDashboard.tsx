@@ -143,10 +143,11 @@ function ResearchDashboard() {
   }))
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content" data-element="research-dashboard">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading className="section-header">Research Database</Heading>
         <Button
+          data-element="research-refresh-button"
           kind="ghost"
           size="sm"
           renderIcon={Renew}
@@ -166,7 +167,7 @@ function ResearchDashboard() {
 
       <DataTable rows={rows} headers={headers}>
         {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
-          <Table {...getTableProps()}>
+          <Table {...getTableProps()} data-element="research-table">
             <TableHead>
               <TableRow>
                 {headers.map((header: any) => (
@@ -188,7 +189,7 @@ function ResearchDashboard() {
                 </TableRow>
               ) : (
                 rows.map((row: any) => (
-                  <TableRow {...getRowProps({ row })} key={row.id}>
+                  <TableRow {...getRowProps({ row })} key={row.id} data-element="research-row">
                     {row.cells.map((cell: any) => (
                       <TableCell key={cell.id}>{cell.value}</TableCell>
                     ))}
@@ -202,6 +203,7 @@ function ResearchDashboard() {
 
       {/* View Modal */}
       <Modal
+        data-element="research-view-modal"
         open={viewModalOpen}
         onRequestClose={() => setViewModalOpen(false)}
         modalHeading={selectedEntry?.title}
