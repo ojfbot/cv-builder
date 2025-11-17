@@ -652,6 +652,7 @@ function InteractiveChat() {
               onBlur={() => setTimeout(() => setInputFocused(false), 200)}
               rows={3}
               disabled={!isInitialized}
+              data-element="chat-input"
             />
             <div className="input-actions">
               <IconButton
@@ -676,6 +677,7 @@ function InteractiveChat() {
                 size="sm"
                 hasIconOnly
                 iconDescription="Send message"
+                data-element="chat-send-button"
               />
             </div>
           </div>

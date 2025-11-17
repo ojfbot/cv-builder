@@ -1,40 +1,43 @@
 {
   "app": "cv-builder",
   "storeType": "redux",
-  "accessPath": "window.__REDUX_DEVTOOLS_EXTENSION__?.getState?.() || window.store?.getState?.()",
+  "accessPath": "window.store",
   "alternativeAccessPaths": [
-    "window.store",
-    "window.__REDUX_STORE__",
-    "document.getElementById('root')?._reactRootContainer?._internalRoot?.current?.memoizedState?.element?.type?.store"
+    "window.__REDUX_STORE__"
   ],
   "version": "1.0.0",
   "updated": "2025-11-16T12:00:00Z",
   "queries": {
     "currentTab": {
-      "path": "state.ui.activeTab",
-      "type": "string",
-      "values": ["bio", "jobs", "outputs", "chat"],
-      "description": "Currently active dashboard tab"
-    },
-    "chatExpanded": {
-      "path": "state.ui.chatExpanded",
-      "type": "boolean",
-      "description": "Whether chat window is expanded to full-screen"
-    },
-    "chatVisible": {
-      "path": "state.ui.chatVisible",
-      "type": "boolean",
-      "description": "Whether condensed chat sidebar is visible"
+      "path": "navigation.currentTab",
+      "type": "number",
+      "values": [0, 1, 2, 3],
+      "description": "Currently active dashboard tab (0=Bio, 1=Jobs, 2=Outputs, 3=Interactive)"
     },
     "sidebarOpen": {
-      "path": "state.ui.sidebarOpen",
+      "path": "navigation.sidebarOpen",
       "type": "boolean",
       "description": "Whether navigation sidebar is open"
     },
-    "theme": {
-      "path": "state.ui.theme",
+    "chatExpanded": {
+      "path": "chat.isExpanded",
+      "type": "boolean",
+      "description": "Whether chat window is expanded to full-screen"
+    },
+    "chatInput": {
+      "path": "chat.draftInput",
       "type": "string",
-      "values": ["light", "dark", "system"],
+      "description": "Current chat input text (draft)"
+    },
+    "chatLoading": {
+      "path": "chat.isLoading",
+      "type": "boolean",
+      "description": "Whether chat is processing a message"
+    },
+    "theme": {
+      "path": "navigation.theme",
+      "type": "string",
+      "values": ["light", "dark"],
       "description": "Current UI theme"
     },
     "isAuthenticated": {

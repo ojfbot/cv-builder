@@ -19,5 +19,10 @@ export const store = configureStore({
     }),
 })
 
+// Expose store to window for browser automation testing
+if (typeof window !== 'undefined') {
+  ;(window as any).store = store
+}
+
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
