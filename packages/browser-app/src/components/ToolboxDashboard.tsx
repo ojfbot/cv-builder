@@ -53,7 +53,7 @@ function ToolboxDashboard() {
         <TabPanels>
           <TabPanel data-element="toolbox-actions-panel">
             <DataTable rows={actionsRows} headers={actionsHeaders}>
-              {({ rows, headers, getTableProps, getHeaderProps }: any) => (
+              {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
                 <Table {...getTableProps()} data-element="toolbox-actions-table">
                   <TableHead>
                     <TableRow>
