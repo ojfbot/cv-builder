@@ -85,6 +85,7 @@ function App() {
                 <Settings size={20} />
               </HeaderGlobalAction>
               <HeaderGlobalAction
+                data-element="theme-toggle"
                 aria-label="Toggle theme"
                 tooltipAlignment="end"
                 onClick={toggleTheme}

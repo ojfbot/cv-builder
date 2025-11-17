@@ -27,12 +27,12 @@ async function main() {
     console.log('Navigating to CV Builder app...');
     await client.navigate(CV_BUILDER_URL, { waitFor: 'networkidle' });
     await client.waitForSelector('.app-container', { state: 'attached', timeout: 10000 });
-    await wait(1000);
+    await wait(300);
 
     // Navigate to Interactive tab for theme testing
     console.log('Navigating to Interactive tab...');
     await client.click('[data-element="interactive-tab"]');
-    await wait(500);
+    await wait(300);
   });
 
   // ========================================
@@ -48,13 +48,13 @@ async function main() {
   });
 
   suite.test('Toggle to light theme and capture', async () => {
-    const themeToggleExists = await client.elementExists('[aria-label="Toggle theme"]');
+    const themeToggleExists = await client.elementExists('[data-element="theme-toggle"]');
 
     if (themeToggleExists) {
       // Click to toggle theme
-      await client.click('[aria-label="Toggle theme"]');
+      await client.click('[data-element="theme-toggle"]');
       // Wait for theme transition
-      await wait(800);
+      await wait(500);
 
       const screenshot = await client.screenshot({
         name: 'theme-light',
@@ -67,13 +67,13 @@ async function main() {
   });
 
   suite.test('Toggle back to dark theme and capture', async () => {
-    const themeToggleExists = await client.elementExists('[aria-label="Toggle theme"]');
+    const themeToggleExists = await client.elementExists('[data-element="theme-toggle"]');
 
     if (themeToggleExists) {
       // Click to toggle theme back
-      await client.click('[aria-label="Toggle theme"]');
+      await client.click('[data-element="theme-toggle"]');
       // Wait for theme transition
-      await wait(800);
+      await wait(500);
 
       const screenshot = await client.screenshot({
         name: 'theme-dark',
