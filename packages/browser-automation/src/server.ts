@@ -15,6 +15,8 @@ import interactRoutes from './routes/interact.js';
 import waitRoutes from './routes/wait.js';
 import docsRoutes from './routes/docs.js';
 import githubRoutes from './routes/github.js';
+import elementsRoutes from './routes/elements.js';
+import storeRoutes from './routes/store.js';
 import { browserManager } from './automation/browser.js';
 import { scheduleCleanup } from './automation/cleanup.js';
 
@@ -44,6 +46,8 @@ app.use('/api', queryRoutes);
 app.use('/api', captureRoutes);
 app.use('/api', interactRoutes);
 app.use('/api', waitRoutes);
+app.use('/api', elementsRoutes); // Phase 2: Element mapping
+app.use('/api', storeRoutes); // Phase 2: Store queries
 app.use('/api/github', githubRoutes);
 
 /**
@@ -95,7 +99,7 @@ app.post('/api/close', async (_req: Request, res: Response) => {
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({
     name: 'CV Builder Browser Automation Service',
-    version: '0.3.0',
+    version: '0.4.0',
     description: 'Playwright-based browser automation for UI testing and screenshot capture',
     endpoints: {
       health: 'GET /health',
@@ -117,6 +121,22 @@ app.get('/', (_req: Request, res: Response) => {
         wait: 'POST /api/wait',
         waitLoad: 'POST /api/wait/load',
         waitElement: 'POST /api/wait/element',
+      },
+      elements: {
+        map: 'GET /api/elements/map',
+        search: 'GET /api/elements/search',
+        validate: 'POST /api/elements/validate',
+        update: 'POST /api/elements/update',
+        categories: 'GET /api/elements/categories',
+        category: 'GET /api/elements/category/:name',
+        get: 'GET /api/elements/get/:path',
+      },
+      store: {
+        schema: 'GET /api/store/schema',
+        query: 'POST /api/store/query',
+        wait: 'POST /api/store/wait',
+        snapshot: 'GET /api/store/snapshot (dev mode only)',
+        validate: 'POST /api/store/validate',
       },
       docs: 'GET /api-docs (Swagger UI)',
       openapi: 'GET /openapi.yaml, GET /openapi.json',
