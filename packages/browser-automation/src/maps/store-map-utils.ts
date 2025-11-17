@@ -46,20 +46,28 @@ export async function saveStoreMap(map: StoreMap): Promise<void> {
  * Query store state by query name
  */
 export async function queryStore(page: Page, storeMap: StoreMap, query: StoreQuery): Promise<any> {
-  const accessPath = storeMap.accessPath;
   const queryPath = query.path;
 
   try {
     const result = await page.evaluate(
-      ({ accessPath, queryPath }) => {
-        // Access the store
-        const store = eval(accessPath);
+      (queryPath) => {
+        // Access Redux state via DevTools extension
+        // The extension provides the getState() method when DevTools is connected
+        const extension = (window as any).__REDUX_DEVTOOLS_EXTENSION__;
 
-        // Get state (handle both Redux and other store types)
-        let state = store;
-        if (typeof store.getState === 'function') {
-          state = store.getState();
+        if (!extension) {
+          throw new Error('Redux DevTools extension not found. Please install Redux DevTools browser extension.');
         }
+
+        // Get the store instance from the extension
+        // The extension tracks all stores and provides access to their state
+        const stores = extension.stores;
+        if (!stores || stores.length === 0) {
+          throw new Error('No Redux stores found. Make sure the app has initialized its store with Redux DevTools enabled.');
+        }
+
+        // Get the first (and typically only) store's state
+        const state = stores[0].getState();
 
         // Navigate the query path
         const parts = queryPath.split('.');
@@ -73,7 +81,7 @@ export async function queryStore(page: Page, storeMap: StoreMap, query: StoreQue
 
         return value;
       },
-      { accessPath, queryPath }
+      queryPath
     );
 
     return result;
@@ -124,20 +132,24 @@ export async function waitForStoreState(
  * Get full store snapshot
  */
 export async function getStoreSnapshot(page: Page, storeMap: StoreMap): Promise<any> {
-  const accessPath = storeMap.accessPath;
-
   try {
-    const snapshot = await page.evaluate((accessPath) => {
-      const store = eval(accessPath);
+    const snapshot = await page.evaluate(() => {
+      // Access Redux state via DevTools extension
+      const extension = (window as any).__REDUX_DEVTOOLS_EXTENSION__;
 
-      // Handle Redux
-      if (typeof store.getState === 'function') {
-        return store.getState();
+      if (!extension) {
+        throw new Error('Redux DevTools extension not found. Please install Redux DevTools browser extension.');
       }
 
-      // Handle other stores
-      return store;
-    }, accessPath);
+      // Get the store instance from the extension
+      const stores = extension.stores;
+      if (!stores || stores.length === 0) {
+        throw new Error('No Redux stores found. Make sure the app has initialized its store with Redux DevTools enabled.');
+      }
+
+      // Get the first (and typically only) store's state
+      return stores[0].getState();
+    });
 
     return snapshot;
   } catch (error) {
@@ -153,36 +165,39 @@ export async function validateStoreMap(page: Page, storeMap: StoreMap): Promise<
   let accessible = false;
   let typeMatches = false;
 
-  // Check if store is accessible
+  // Check if Redux DevTools extension is accessible
   try {
-    const storeExists = await page.evaluate((accessPath) => {
+    const storeExists = await page.evaluate(() => {
       try {
-        const store = eval(accessPath);
-        return store !== undefined && store !== null;
+        const extension = (window as any).__REDUX_DEVTOOLS_EXTENSION__;
+        if (!extension) return false;
+
+        const stores = extension.stores;
+        return stores && stores.length > 0;
       } catch {
         return false;
       }
-    }, storeMap.accessPath);
+    });
 
     accessible = storeExists;
   } catch {
     accessible = false;
   }
 
-  // Check store type
+  // Check store type via DevTools
   if (accessible) {
     try {
-      const actualStoreType = await page.evaluate((accessPath) => {
-        const store = eval(accessPath);
+      const actualStoreType = await page.evaluate(() => {
+        const extension = (window as any).__REDUX_DEVTOOLS_EXTENSION__;
+        const stores = extension.stores;
 
-        // Detect Redux
-        if (typeof store.getState === 'function' && typeof store.dispatch === 'function') {
+        // Detect Redux via DevTools
+        if (stores && stores.length > 0 && typeof stores[0].getState === 'function') {
           return 'redux';
         }
 
-        // For other types, we'd need more detection logic
         return 'custom';
-      }, storeMap.accessPath);
+      });
 
       typeMatches = actualStoreType === storeMap.storeType || storeMap.storeType === 'custom';
     } catch {

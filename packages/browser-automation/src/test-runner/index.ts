@@ -11,3 +11,4 @@ export { JSONReporter } from './reporters/JSONReporter.js';
 export { MarkdownReporter } from './reporters/MarkdownReporter.js';
 export { createAssertions, AssertionError } from './assertions/index.js';
 export * from './helpers.js';
+export { TEST_TIMEOUTS, RETRY_CONFIG, POLLING_CONFIG } from './constants.js';

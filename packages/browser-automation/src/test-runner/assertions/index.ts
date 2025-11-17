@@ -5,6 +5,7 @@
 import { BrowserAutomationClient } from '../../client/BrowserAutomationClient.js';
 import { ScreenshotResult } from '../../client/types.js';
 import { AssertionAPI } from '../types.js';
+import { isDeepStrictEqual } from 'node:util';
 
 export class AssertionError extends Error {
   constructor(message: string) {
@@ -192,21 +193,224 @@ export class Assertions implements AssertionAPI {
   }
 
   /**
-   * Assert that page title equals expected
+   * Assert that page title equals expected value
    */
-  async titleEquals(_title: string, _message?: string): Promise<void> {
-    // Note: Health endpoint doesn't return title, we'd need to extend the API
-    // For now, this is a placeholder
-    throw new Error('titleEquals not yet implemented - API needs extension');
+  async titleEquals(expectedTitle: string, message?: string): Promise<void> {
+    const actualTitle = await this.client.pageTitle();
+    if (actualTitle !== expectedTitle) {
+      throw new AssertionError(
+        message ||
+          `Expected page title to equal "${expectedTitle}", but got "${actualTitle}"`
+      );
+    }
   }
 
   /**
    * Assert that page title contains text
    */
-  async titleContains(_text: string, _message?: string): Promise<void> {
-    // Note: Health endpoint doesn't return title, we'd need to extend the API
-    // For now, this is a placeholder
-    throw new Error('titleContains not yet implemented - API needs extension');
+  async titleContains(text: string, message?: string): Promise<void> {
+    const title = await this.client.pageTitle();
+    if (!title.includes(text)) {
+      throw new AssertionError(
+        message || `Expected page title to contain "${text}", but got "${title}"`
+      );
+    }
+  }
+
+  // ========================================
+  // Redux Store Assertions
+  // ========================================
+
+  /**
+   * Assert that a store query matches expected value
+   * Uses deep strict equality (order-independent, type-safe)
+   */
+  async storeEquals(queryName: string, expectedValue: any, message?: string): Promise<void> {
+    const actualValue = await this.client.storeQuery(queryName);
+    if (!isDeepStrictEqual(actualValue, expectedValue)) {
+      throw new AssertionError(
+        message ||
+          `Expected store query "${queryName}" to equal ${JSON.stringify(expectedValue)}, but got ${JSON.stringify(actualValue)}`
+      );
+    }
+  }
+
+  /**
+   * Assert that a store query value is truthy
+   */
+  async storeTruthy(queryName: string, message?: string): Promise<void> {
+    const value = await this.client.storeQuery(queryName);
+    if (!value) {
+      throw new AssertionError(
+        message || `Expected store query "${queryName}" to be truthy, but got ${JSON.stringify(value)}`
+      );
+    }
+  }
+
+  /**
+   * Assert that a store query value is falsy
+   */
+  async storeFalsy(queryName: string, message?: string): Promise<void> {
+    const value = await this.client.storeQuery(queryName);
+    if (value) {
+      throw new AssertionError(
+        message || `Expected store query "${queryName}" to be falsy, but got ${JSON.stringify(value)}`
+      );
+    }
+  }
+
+  /**
+   * Assert that a store array contains an item
+   * Uses deep strict equality for comparison (order-independent, type-safe)
+   */
+  async storeContains(queryName: string, item: any, message?: string): Promise<void> {
+    const array = await this.client.storeQuery(queryName);
+    if (!Array.isArray(array)) {
+      throw new AssertionError(
+        `Store query "${queryName}" did not return an array, got ${typeof array}`
+      );
+    }
+    const found = array.some((el: any) => isDeepStrictEqual(el, item));
+    if (!found) {
+      throw new AssertionError(
+        message ||
+          `Expected store array "${queryName}" to contain ${JSON.stringify(item)}, but it was not found`
+      );
+    }
+  }
+
+  /**
+   * Assert that a store array has a specific length
+   */
+  async storeArrayLength(queryName: string, length: number, message?: string): Promise<void> {
+    const array = await this.client.storeQuery(queryName);
+    if (!Array.isArray(array)) {
+      throw new AssertionError(
+        `Store query "${queryName}" did not return an array, got ${typeof array}`
+      );
+    }
+    if (array.length !== length) {
+      throw new AssertionError(
+        message ||
+          `Expected store array "${queryName}" to have length ${length}, but got ${array.length}`
+      );
+    }
+  }
+
+  /**
+   * Wait for store state to match value (with assertion)
+   */
+  async storeEventuallyEquals(
+    queryName: string,
+    expectedValue: any,
+    options: { timeout?: number; message?: string } = {}
+  ): Promise<void> {
+    try {
+      await this.client.storeWait(queryName, expectedValue, {
+        timeout: options.timeout || 30000,
+      });
+    } catch (error) {
+      // Re-throw with consistent error message without querying again (race condition)
+      throw new AssertionError(
+        options.message ||
+          `Expected store query "${queryName}" to eventually equal ${JSON.stringify(expectedValue)}, but timed out after ${options.timeout || 30000}ms`
+      );
+    }
+  }
+
+  // ========================================
+  // Enhanced DOM Assertions
+  // ========================================
+
+  /**
+   * Assert that an element has a specific class
+   * Handles edge cases: empty class="", multiple spaces, leading/trailing whitespace
+   */
+  async elementHasClass(selector: string, className: string, message?: string): Promise<void> {
+    const classAttr = await this.client.elementAttribute(selector, 'class');
+    if (!classAttr) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" to have class "${className}", but element has no class attribute`
+      );
+    }
+    // Trim, split on whitespace, and filter out empty strings
+    const classes = classAttr.trim().split(/\s+/).filter(Boolean);
+    if (!classes.includes(className)) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" to have class "${className}", but got classes: ${classAttr}`
+      );
+    }
+  }
+
+  /**
+   * Assert that an element does NOT have a specific class
+   * Handles edge cases: empty class="", multiple spaces, leading/trailing whitespace
+   */
+  async elementNotHasClass(selector: string, className: string, message?: string): Promise<void> {
+    const classAttr = await this.client.elementAttribute(selector, 'class');
+    if (!classAttr) {
+      // Element has no class attribute, so it doesn't have the class (assertion passes)
+      return;
+    }
+    // Trim, split on whitespace, and filter out empty strings
+    const classes = classAttr.trim().split(/\s+/).filter(Boolean);
+    if (classes.includes(className)) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" NOT to have class "${className}", but it was present`
+      );
+    }
+  }
+
+  /**
+   * Assert that element's value equals (for inputs)
+   */
+  async elementValueEquals(selector: string, value: string, message?: string): Promise<void> {
+    const actualValue = await this.client.elementAttribute(selector, 'value');
+    if (actualValue !== value) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" value to equal "${value}", but got "${actualValue}"`
+      );
+    }
+  }
+
+  /**
+   * Assert that element's placeholder contains text
+   */
+  async elementPlaceholderContains(
+    selector: string,
+    text: string,
+    message?: string
+  ): Promise<void> {
+    const placeholder = await this.client.elementAttribute(selector, 'placeholder');
+    if (!placeholder) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" placeholder to contain "${text}", but element has no placeholder attribute`
+      );
+    }
+    if (!placeholder.includes(text)) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" placeholder to contain "${text}", but got "${placeholder}"`
+      );
+    }
+  }
+
+  /**
+   * Assert that element has keyboard focus
+   */
+  async elementHasFocus(selector: string, message?: string): Promise<void> {
+    const hasFocus = await this.client.elementHasFocus(selector);
+    if (!hasFocus) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" to have focus, but document.activeElement does not match`
+      );
+    }
   }
 }
 

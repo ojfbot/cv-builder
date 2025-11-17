@@ -3,6 +3,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { RETRY_CONFIG, TEST_TIMEOUTS, POLLING_CONFIG } from '../test-runner/constants.js';
 import {
   ClientConfig,
   NavigateOptions,
@@ -37,7 +38,7 @@ export class BrowserAutomationClient {
 
     this.axios = axios.create({
       baseURL: this.config.baseUrl,
-      timeout: this.config.timeout || 30000,
+      timeout: this.config.timeout || TEST_TIMEOUTS.DEFAULT,
       headers: {
         'Content-Type': 'application/json',
         ...this.config.headers,
@@ -156,13 +157,42 @@ export class BrowserAutomationClient {
   /**
    * Get element attribute value
    */
-  async elementAttribute(selector: string, attribute: string): Promise<string> {
+  async elementAttribute(selector: string, attribute: string): Promise<string | null> {
     try {
       const response = await this.axios.get<AttributeResult>('/api/element/attribute', {
         params: { selector, attribute },
       });
 
-      return response.data.value || '';
+      return response.data.value || null;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get page title
+   */
+  async pageTitle(): Promise<string> {
+    try {
+      const response = await this.axios.get<{ success: boolean; title: string }>('/api/page/title');
+      return response.data.title || '';
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Check if element has focus
+   */
+  async elementHasFocus(selector: string): Promise<boolean> {
+    try {
+      const response = await this.axios.get<{ success: boolean; hasFocus: boolean }>(
+        '/api/element/has-focus',
+        {
+          params: { selector },
+        }
+      );
+      return response.data.hasFocus;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -290,7 +320,10 @@ export class BrowserAutomationClient {
       });
     } catch (error) {
       if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
-        throw new TimeoutError(`waitForSelector(${selector})`, options.timeout || 30000);
+        throw new TimeoutError(
+          `waitForSelector(${selector})`,
+          options.timeout || TEST_TIMEOUTS.DEFAULT
+        );
       }
       throw this.handleError(error);
     }
@@ -307,7 +340,7 @@ export class BrowserAutomationClient {
       });
     } catch (error) {
       if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
-        throw new TimeoutError(`waitForText("${text}")`, options.timeout || 30000);
+        throw new TimeoutError(`waitForText("${text}")`, options.timeout || TEST_TIMEOUTS.DEFAULT);
       }
       throw this.handleError(error);
     }
@@ -367,11 +400,114 @@ export class BrowserAutomationClient {
   }
 
   /**
-   * Close the browser
+   * Close the browser with retry for reliability
    */
-  async close(): Promise<void> {
+  async close(options: { force?: boolean; maxRetries?: number } = {}): Promise<void> {
+    const maxRetries = options.maxRetries ?? RETRY_CONFIG.MAX_RETRIES;
+    const baseDelay = RETRY_CONFIG.CLOSE_BASE_DELAY;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await this.axios.post('/api/close', { force: options.force });
+        return; // Success
+      } catch (error) {
+        // If this is the last attempt or a critical error, handle it
+        if (attempt === maxRetries) {
+          // Log error but don't throw - we want cleanup to always succeed
+          console.warn(
+            `Failed to close browser after ${maxRetries + 1} attempts:`,
+            error instanceof Error ? error.message : String(error)
+          );
+          return; // Return gracefully instead of throwing
+        }
+
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  /**
+   * Query Redux store state with retry mechanism
+   */
+  async storeQuery(
+    queryName: string,
+    app: string = 'cv-builder',
+    options: { maxRetries?: number; retryDelay?: number } = {}
+  ): Promise<any> {
+    const maxRetries = options.maxRetries ?? RETRY_CONFIG.MAX_RETRIES;
+    const baseDelay = options.retryDelay ?? RETRY_CONFIG.BASE_DELAY;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await this.axios.post('/api/store/query', {
+          app,
+          query: queryName,
+        });
+        return response.data.result;
+      } catch (error) {
+        // If this is the last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw this.handleError(error);
+        }
+
+        // Exponential backoff: 100ms, 200ms, 400ms, etc.
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  /**
+   * Wait for store state to match expected value with retry mechanism
+   */
+  async storeWait(
+    queryName: string,
+    expectedValue: any,
+    options: {
+      app?: string;
+      timeout?: number;
+      pollInterval?: number;
+      maxRetries?: number;
+      retryDelay?: number;
+    } = {}
+  ): Promise<void> {
+    const maxRetries = options.maxRetries ?? RETRY_CONFIG.MAX_RETRIES;
+    const baseDelay = options.retryDelay ?? RETRY_CONFIG.BASE_DELAY;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await this.axios.post('/api/store/wait', {
+          app: options.app || 'cv-builder',
+          query: queryName,
+          value: expectedValue,
+          timeout: options.timeout || TEST_TIMEOUTS.API_RESPONSE,
+          pollInterval: options.pollInterval || POLLING_CONFIG.DEFAULT_INTERVAL,
+        });
+        return; // Success, exit early
+      } catch (error) {
+        // If this is the last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw this.handleError(error);
+        }
+
+        // Exponential backoff: 100ms, 200ms, 400ms, etc.
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  /**
+   * Get Redux store snapshot (dev mode only)
+   */
+  async storeSnapshot(app: string = 'cv-builder'): Promise<any> {
     try {
-      await this.axios.post('/api/close');
+      const response = await this.axios.get('/api/store/snapshot', {
+        params: { app },
+      });
+      return response.data.snapshot;
     } catch (error) {
       throw this.handleError(error);
     }

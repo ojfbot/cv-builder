@@ -55,23 +55,41 @@ export class TestRunner {
   }
 
   /**
-   * Run a single test suite
+   * Run a single test suite with error handling and cleanup
    */
   async run(suite: TestSuite): Promise<SuiteResult> {
-    // Notify reporters
-    for (const reporter of this.reporters) {
-      reporter.onSuiteStart(suite.getName());
+    try {
+      // Notify reporters
+      for (const reporter of this.reporters) {
+        reporter.onSuiteStart(suite.getName());
+      }
+
+      // Execute suite
+      const result = await suite.run(this.config.filter);
+
+      // Notify reporters
+      for (const reporter of this.reporters) {
+        reporter.onSuiteEnd(result);
+      }
+
+      return result;
+    } catch (error) {
+      // Ensure reporters are notified even on catastrophic failure
+      const errorResult: SuiteResult = {
+        name: suite.getName(),
+        tests: [],
+        duration: 0,
+        summary: { total: 0, passed: 0, failed: 1, skipped: 0 },
+        startTime: new Date(),
+        endTime: new Date(),
+      };
+
+      for (const reporter of this.reporters) {
+        reporter.onSuiteEnd(errorResult);
+      }
+
+      throw error;
     }
-
-    // Execute suite
-    const result = await suite.run(this.config.filter);
-
-    // Notify reporters
-    for (const reporter of this.reporters) {
-      reporter.onSuiteEnd(result);
-    }
-
-    return result;
   }
 
   /**

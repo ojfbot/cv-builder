@@ -1,0 +1,15 @@
+# Temp Directory - Selective Tracking
+#
+# By default, ignore everything in temp/
+# Then selectively un-ignore PR screenshot directories
+
+# Ignore all files and directories by default
+*
+
+# Un-ignore PR screenshot directories (tracked for documentation)
+!screenshots/
+!screenshots/pr-*/
+!screenshots/pr-*/**
+
+# Un-ignore this .gitignore file
+!.gitignore

@@ -33,3 +33,6 @@ Thumbs.db
 test-results/
 playwright-report/
 playwright/.cache/
+
+# Test screenshots (use temp/screenshots/ for PR documentation)
+screenshots/

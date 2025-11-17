@@ -17,6 +17,7 @@ function ApiKeySettings({ open, onClose }: ApiKeySettingsProps) {
 
   return (
     <Modal
+      data-element="settings-modal"
       open={open}
       modalHeading="API Connection Status"
       modalLabel="Settings"

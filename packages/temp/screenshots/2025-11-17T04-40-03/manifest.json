@@ -1,0 +1,21 @@
+{
+  "sessionId": "2025-11-17T04-40-03",
+  "created": "2025-11-17T04:40:03.061Z",
+  "screenshots": [
+    {
+      "filename": "engage-chat-empty-input.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T04-40-03/engage-chat-empty-input.png",
+      "fileSize": 80852,
+      "format": "png",
+      "timestamp": "2025-11-17T04:40:03.061Z"
+    },
+    {
+      "filename": "engage-chat-with-text.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T04-40-03/engage-chat-with-text.png",
+      "fileSize": 79501,
+      "format": "png",
+      "timestamp": "2025-11-17T04:40:03.312Z"
+    }
+  ],
+  "metadata": {}
+}

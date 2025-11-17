@@ -1,247 +1,104 @@
 {
   "app": "cv-builder",
   "storeType": "redux",
-  "accessPath": "window.__REDUX_DEVTOOLS_EXTENSION__?.getState?.() || window.store?.getState?.()",
+  "accessPath": "window.__REDUX_DEVTOOLS_EXTENSION__?.instanceConnection?.getState()",
   "alternativeAccessPaths": [
-    "window.store",
-    "window.__REDUX_STORE__",
-    "document.getElementById('root')?._reactRootContainer?._internalRoot?.current?.memoizedState?.element?.type?.store"
+    "window.__REDUX_DEVTOOLS_EXTENSION__?.instanceConnection",
+    "window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__"
   ],
-  "version": "1.0.0",
-  "updated": "2025-11-16T12:00:00Z",
+  "version": "2.0.0",
+  "updated": "2025-11-16T14:00:00Z",
+  "notes": "Access Redux store via DevTools extension for security. Requires Redux DevTools browser extension installed.",
   "queries": {
     "currentTab": {
-      "path": "state.ui.activeTab",
+      "path": "navigation.currentTab",
       "type": "string",
-      "values": ["bio", "jobs", "outputs", "chat"],
-      "description": "Currently active dashboard tab"
+      "values": ["bio", "jobs", "outputs", "interactive"],
+      "description": "Currently active dashboard tab key (TabKey enum)"
     },
-    "chatExpanded": {
-      "path": "state.ui.chatExpanded",
-      "type": "boolean",
-      "description": "Whether chat window is expanded to full-screen"
-    },
-    "chatVisible": {
-      "path": "state.ui.chatVisible",
-      "type": "boolean",
-      "description": "Whether condensed chat sidebar is visible"
-    },
-    "sidebarOpen": {
-      "path": "state.ui.sidebarOpen",
-      "type": "boolean",
-      "description": "Whether navigation sidebar is open"
-    },
-    "theme": {
-      "path": "state.ui.theme",
+    "previousTab": {
+      "path": "navigation.previousTab",
       "type": "string",
-      "values": ["light", "dark", "system"],
-      "description": "Current UI theme"
+      "values": ["bio", "jobs", "outputs", "interactive"],
+      "description": "Previously active dashboard tab key"
     },
-    "isAuthenticated": {
-      "path": "state.auth.isAuthenticated",
-      "type": "boolean",
-      "description": "User authentication status"
-    },
-    "currentUser": {
-      "path": "state.auth.user",
-      "type": "object",
-      "description": "Current user object with profile information"
-    },
-    "userId": {
-      "path": "state.auth.user.id",
-      "type": "string",
-      "description": "Current user's unique identifier"
-    },
-    "userName": {
-      "path": "state.auth.user.name",
-      "type": "string",
-      "description": "Current user's display name"
-    },
-    "bioData": {
-      "path": "state.bio.data",
-      "type": "object",
-      "description": "User's bio/resume information"
-    },
-    "bioFullName": {
-      "path": "state.bio.data.fullName",
-      "type": "string",
-      "description": "User's full name from bio"
-    },
-    "bioEmail": {
-      "path": "state.bio.data.email",
-      "type": "string",
-      "description": "User's email address from bio"
-    },
-    "bioPhone": {
-      "path": "state.bio.data.phone",
-      "type": "string",
-      "description": "User's phone number from bio"
-    },
-    "bioExperiences": {
-      "path": "state.bio.data.experiences",
-      "type": "array",
-      "description": "Array of work experiences"
-    },
-    "bioEducation": {
-      "path": "state.bio.data.education",
-      "type": "array",
-      "description": "Array of education entries"
-    },
-    "bioSkills": {
-      "path": "state.bio.data.skills",
-      "type": "array",
-      "description": "Array of skills"
-    },
-    "bioLoading": {
-      "path": "state.bio.loading",
-      "type": "boolean",
-      "description": "Whether bio data is currently loading"
-    },
-    "bioError": {
-      "path": "state.bio.error",
-      "type": "string",
-      "description": "Bio loading error message (if any)"
-    },
-    "jobs": {
-      "path": "state.jobs.list",
-      "type": "array",
-      "description": "List of saved job postings"
-    },
-    "jobCount": {
-      "path": "state.jobs.list.length",
+    "currentTabIndex": {
+      "path": "navigation.currentTabIndex",
       "type": "number",
-      "description": "Number of saved job postings"
+      "values": [0, 1, 2, 3],
+      "description": "Currently active dashboard tab index (0=Bio, 1=Jobs, 2=Outputs, 3=Interactive)"
     },
-    "selectedJob": {
-      "path": "state.jobs.selectedJob",
-      "type": "object",
-      "description": "Currently selected job for viewing/editing"
-    },
-    "selectedJobId": {
-      "path": "state.jobs.selectedJob.id",
-      "type": "string",
-      "description": "ID of currently selected job"
-    },
-    "jobsLoading": {
-      "path": "state.jobs.loading",
-      "type": "boolean",
-      "description": "Whether jobs are currently loading"
-    },
-    "jobsError": {
-      "path": "state.jobs.error",
-      "type": "string",
-      "description": "Jobs loading error message (if any)"
-    },
-    "outputs": {
-      "path": "state.outputs.list",
-      "type": "array",
-      "description": "List of generated resumes and documents"
-    },
-    "outputCount": {
-      "path": "state.outputs.list.length",
+    "previousTabIndex": {
+      "path": "navigation.previousTabIndex",
       "type": "number",
-      "description": "Number of generated outputs"
+      "values": [0, 1, 2, 3],
+      "description": "Previously active dashboard tab index"
     },
-    "selectedOutput": {
-      "path": "state.outputs.selectedOutput",
-      "type": "object",
-      "description": "Currently selected output for preview"
-    },
-    "selectedOutputId": {
-      "path": "state.outputs.selectedOutput.id",
+    "bioViewMode": {
+      "path": "navigation.bioViewMode",
       "type": "string",
-      "description": "ID of currently selected output"
-    },
-    "outputsLoading": {
-      "path": "state.outputs.loading",
-      "type": "boolean",
-      "description": "Whether outputs are currently loading"
-    },
-    "outputsError": {
-      "path": "state.outputs.error",
-      "type": "string",
-      "description": "Outputs loading error message (if any)"
+      "values": ["landing", "tiles", "files"],
+      "description": "Bio panel view mode (landing, tiles, or files view)"
     },
     "chatMessages": {
-      "path": "state.chat.messages",
+      "path": "chat.messages",
       "type": "array",
-      "description": "Array of chat messages (user and assistant)"
+      "description": "Array of chat messages with role (user/assistant) and content"
     },
     "chatMessageCount": {
-      "path": "state.chat.messages.length",
+      "path": "chat.messages.length",
       "type": "number",
       "description": "Number of chat messages"
     },
+    "draftInput": {
+      "path": "chat.draftInput",
+      "type": "string",
+      "description": "Current chat input text (draft message being composed)"
+    },
+    "chatExpanded": {
+      "path": "chat.isExpanded",
+      "type": "boolean",
+      "description": "Whether chat window is expanded to full-screen"
+    },
+    "chatSummary": {
+      "path": "chat.chatSummary",
+      "type": "string",
+      "description": "Generated summary of chat conversation (2-3 words)"
+    },
     "chatLoading": {
-      "path": "state.chat.loading",
+      "path": "chat.isLoading",
       "type": "boolean",
       "description": "Whether chat is processing a message"
     },
-    "chatError": {
-      "path": "state.chat.error",
+    "streamingContent": {
+      "path": "chat.streamingContent",
       "type": "string",
-      "description": "Chat error message (if any)"
+      "description": "Content currently being streamed from assistant"
     },
-    "chatSessionId": {
-      "path": "state.chat.sessionId",
-      "type": "string",
-      "description": "Current chat session identifier"
-    },
-    "chatInput": {
-      "path": "state.chat.input",
-      "type": "string",
-      "description": "Current chat input text"
-    },
-    "modalOpen": {
-      "path": "state.modal.isOpen",
-      "type": "boolean",
-      "description": "Whether any modal is currently open"
-    },
-    "modalType": {
-      "path": "state.modal.type",
-      "type": "string",
-      "values": ["upload", "confirmation", "error", "info"],
-      "description": "Type of currently open modal"
-    },
-    "modalData": {
-      "path": "state.modal.data",
-      "type": "object",
-      "description": "Data context for current modal"
-    },
-    "notifications": {
-      "path": "state.notifications.list",
-      "type": "array",
-      "description": "Array of active notifications"
-    },
-    "notificationCount": {
-      "path": "state.notifications.list.length",
+    "unreadCount": {
+      "path": "chat.unreadCount",
       "type": "number",
-      "description": "Number of active notifications"
+      "description": "Number of unread chat messages"
     },
-    "hasErrors": {
-      "path": "state.errors.hasErrors",
+    "lastReadMessageIndex": {
+      "path": "chat.lastReadMessageIndex",
+      "type": "number",
+      "description": "Index of last message user read"
+    },
+    "scrollPosition": {
+      "path": "chat.scrollPosition",
+      "type": "number",
+      "description": "Saved scroll position in chat"
+    },
+    "orchestratorInitialized": {
+      "path": "agent.isInitialized",
       "type": "boolean",
-      "description": "Whether there are any application errors"
+      "description": "Whether the BrowserOrchestrator agent is initialized"
     },
-    "globalError": {
-      "path": "state.errors.global",
+    "agentError": {
+      "path": "agent.error",
       "type": "string",
-      "description": "Global application error message (if any)"
-    },
-    "appInitialized": {
-      "path": "state.app.initialized",
-      "type": "boolean",
-      "description": "Whether the application has completed initialization"
-    },
-    "appVersion": {
-      "path": "state.app.version",
-      "type": "string",
-      "description": "Current application version"
-    },
-    "apiConnected": {
-      "path": "state.app.apiConnected",
-      "type": "boolean",
-      "description": "Whether API connection is established"
+      "description": "Agent initialization error message (if any)"
     }
   }
 }

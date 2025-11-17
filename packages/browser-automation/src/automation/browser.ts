@@ -52,6 +52,15 @@ class BrowserManager {
       userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) CV-Builder-Automation',
     });
 
+    // Inject Redux DevTools emulation for automated testing
+    // This provides a secure interface similar to Redux DevTools extension
+    // The app's store will register itself with this emulated extension
+    await this.context.addInitScript(() => {
+      (window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
+        stores: [], // Store will push itself here during initialization
+      };
+    });
+
     this.page = await this.context.newPage();
 
     console.log('Browser launched successfully');

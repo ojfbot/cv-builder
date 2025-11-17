@@ -91,6 +91,25 @@ export interface AssertionAPI {
   urlContains(fragment: string, message?: string): Promise<void>;
   titleEquals(title: string, message?: string): Promise<void>;
   titleContains(text: string, message?: string): Promise<void>;
+
+  // Redux store assertions
+  storeEquals(queryName: string, expectedValue: any, message?: string): Promise<void>;
+  storeTruthy(queryName: string, message?: string): Promise<void>;
+  storeFalsy(queryName: string, message?: string): Promise<void>;
+  storeContains(queryName: string, item: any, message?: string): Promise<void>;
+  storeArrayLength(queryName: string, length: number, message?: string): Promise<void>;
+  storeEventuallyEquals(
+    queryName: string,
+    expectedValue: any,
+    options?: { timeout?: number; message?: string }
+  ): Promise<void>;
+
+  // Enhanced DOM assertions
+  elementHasClass(selector: string, className: string, message?: string): Promise<void>;
+  elementNotHasClass(selector: string, className: string, message?: string): Promise<void>;
+  elementValueEquals(selector: string, value: string, message?: string): Promise<void>;
+  elementPlaceholderContains(selector: string, text: string, message?: string): Promise<void>;
+  elementHasFocus(selector: string, message?: string): Promise<void>;
 }
 
 /**

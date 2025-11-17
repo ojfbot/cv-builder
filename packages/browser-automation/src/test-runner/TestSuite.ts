@@ -3,7 +3,15 @@
  */
 
 import { TestCase } from './TestCase.js';
-import { TestFunction, HookFunction, SuiteOptions, SuiteResult, TestStatus, AssertionAPI } from './types.js';
+import {
+  TestFunction,
+  HookFunction,
+  SuiteOptions,
+  SuiteResult,
+  TestStatus,
+  AssertionAPI,
+} from './types.js';
+import { TEST_TIMEOUTS } from './constants.js';
 
 export class TestSuite {
   private name: string;
@@ -19,7 +27,7 @@ export class TestSuite {
     this.name = name;
     this.assertionAPI = assertionAPI;
     this.options = {
-      timeout: 30000,
+      timeout: TEST_TIMEOUTS.DEFAULT,
       retries: 0,
       parallel: false,
       ...options,

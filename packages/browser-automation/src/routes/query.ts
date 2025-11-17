@@ -185,4 +185,63 @@ router.get('/element/attribute', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/page/title
+ * Get current page title
+ */
+router.get('/page/title', async (req: Request, res: Response) => {
+  try {
+    const page = await browserManager.getPage();
+    const title = await page.evaluate(() => document.title);
+
+    res.json({
+      success: true,
+      title,
+    });
+  } catch (error) {
+    console.error('Get page title error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get page title',
+    });
+  }
+});
+
+/**
+ * GET /api/element/has-focus
+ * Check if element has keyboard focus
+ */
+router.get('/element/has-focus', async (req: Request, res: Response) => {
+  try {
+    const { selector } = req.query;
+
+    if (!selector || typeof selector !== 'string') {
+      res.status(400).json({
+        success: false,
+        error: 'selector query parameter is required',
+      });
+      return;
+    }
+
+    const page = await browserManager.getPage();
+
+    const hasFocus = await page.evaluate((sel) => {
+      const element = document.querySelector(sel);
+      return document.activeElement === element && element !== null;
+    }, selector);
+
+    res.json({
+      success: true,
+      hasFocus,
+      selector,
+    });
+  } catch (error) {
+    console.error('Check focus error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to check focus',
+    });
+  }
+});
+
 export default router;

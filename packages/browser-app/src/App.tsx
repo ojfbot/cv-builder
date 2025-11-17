@@ -79,6 +79,7 @@ function App() {
             <HeaderName prefix="">CV Builder</HeaderName>
             <HeaderGlobalBar>
               <HeaderGlobalAction
+                data-element="settings-button"
                 aria-label="Settings"
                 tooltipAlignment="end"
                 onClick={() => setSettingsOpen(true)}
