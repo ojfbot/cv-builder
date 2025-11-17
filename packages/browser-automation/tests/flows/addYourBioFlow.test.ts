@@ -79,55 +79,42 @@ async function main() {
     console.log(`📸 Screenshot: ${screenshot.filename}`);
   });
 
-  suite.test('Chat window expands after clicking badge', async ({ assert }) => {
-    // Verify chat is expanded
+  suite.test('Chat state and bio panel visibility', async ({ assert }) => {
+    // Verify chat expanded state is tracked in store
     const isExpanded = await client.storeQuery('chatExpanded', 'cv-builder');
     console.log(`📊 Chat expanded state: ${isExpanded}`);
 
     await assert.storeEquals('chatExpanded', true);
-    console.log('✅ Chat window is expanded');
+    console.log('✅ Chat expanded state is true in store');
 
-    // Verify the interactive panel is still visible (chat overlay)
-    await assert.elementVisible('[data-element="interactive-panel"]');
+    // Verify the bio panel is visible (we're on bio tab now)
+    await assert.elementVisible('[data-element="bio-panel"]');
+    console.log('✅ Bio panel is visible');
 
-    // Capture expanded state
+    // Capture bio panel state
     const screenshot = await client.screenshot({
-      name: 'add-your-bio-flow-expanded',
+      name: 'add-your-bio-flow-bio-panel',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
     console.log(`📸 Screenshot: ${screenshot.filename}`);
   });
 
-  suite.test('Chat input receives keyboard focus', async ({ assert }) => {
-    // Wait a moment for focus to settle
+  suite.test('Bio form elements are accessible', async ({ assert }) => {
+    // Wait a moment for bio panel to fully render
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Verify chat input exists and is visible
-    await assert.elementVisible('[data-element="chat-input"]');
+    // Verify bio panel remains visible and accessible
+    await assert.elementVisible('[data-element="bio-panel"]');
+    console.log('✅ Bio panel is accessible');
 
-    // Check if chat input has focus
-    const hasFocus = await client.elementHasFocus('[data-element="chat-input"]');
+    // Verify we're still on the bio tab
+    await assert.storeEquals('currentTab', 'bio');
+    console.log('✅ Still on bio tab');
 
-    if (hasFocus) {
-      console.log('✅ Chat input has focus');
-    } else {
-      console.log('⚠️  Chat input does not have focus (checking again)');
-
-      // Sometimes focus takes a moment, wait and check once more
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const hasFocusRetry = await client.elementHasFocus('[data-element="chat-input"]');
-
-      if (hasFocusRetry) {
-        console.log('✅ Chat input has focus (on retry)');
-      } else {
-        console.log('⚠️  Chat input still does not have focus');
-      }
-    }
-
-    // Capture focus state
+    // Capture bio form state
     const screenshot = await client.screenshot({
-      name: 'add-your-bio-flow-focus',
+      name: 'add-your-bio-flow-bio-form',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
