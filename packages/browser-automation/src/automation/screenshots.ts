@@ -7,9 +7,42 @@
 import { Page } from 'playwright';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { ViewportSize, ViewportPreset, getViewport, getViewportSuffix } from './viewport.js';
 
-const SCREENSHOTS_DIR = process.env.SCREENSHOTS_DIR || './temp/screenshots';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Find project root (where package.json is) to ensure consistent paths
+function findProjectRoot(): string {
+  let currentDir = __dirname;
+  while (currentDir !== path.parse(currentDir).root) {
+    try {
+      const packageJsonPath = path.join(currentDir, 'package.json');
+      if (require('fs').existsSync(packageJsonPath)) {
+        const pkg = JSON.parse(require('fs').readFileSync(packageJsonPath, 'utf-8'));
+        // Look for workspace root or browser-automation package
+        if (pkg.workspaces || pkg.name === '@cv-builder/browser-automation') {
+          // If this is browser-automation package, go up 2 levels to monorepo root
+          if (pkg.name === '@cv-builder/browser-automation') {
+            return path.resolve(currentDir, '../..');
+          }
+          return currentDir;
+        }
+      }
+    } catch {}
+    currentDir = path.dirname(currentDir);
+  }
+  // Fallback to 3 levels up from src/automation/
+  return path.resolve(__dirname, '../../..');
+}
+
+const PROJECT_ROOT = findProjectRoot();
+const SCREENSHOTS_DIR = process.env.SCREENSHOTS_DIR
+  ? path.isAbsolute(process.env.SCREENSHOTS_DIR)
+    ? process.env.SCREENSHOTS_DIR
+    : path.join(PROJECT_ROOT, process.env.SCREENSHOTS_DIR)
+  : path.join(PROJECT_ROOT, 'temp/screenshots');
 
 export type ImageFormat = 'png' | 'jpeg';
 
@@ -66,7 +99,18 @@ export async function captureScreenshot(
 ): Promise<ScreenshotResult> {
   await ensureScreenshotsDir();
 
-  const sessionDir = options.path || await createSessionDir();
+  // Resolve custom path to absolute if provided
+  let sessionDir: string;
+  if (options.path) {
+    sessionDir = path.isAbsolute(options.path)
+      ? options.path
+      : path.join(PROJECT_ROOT, options.path);
+    // Ensure custom directory exists
+    await fs.mkdir(sessionDir, { recursive: true });
+  } else {
+    sessionDir = await createSessionDir();
+  }
+
   const timestamp = new Date().toISOString();
 
   // Determine file format
