@@ -205,6 +205,8 @@
         "url_format_note": "CRITICAL: Must use blob URLs with ?raw=true parameter, NOT raw.githubusercontent.com URLs. The ?raw=true parameter forces GitHub to serve the raw file which allows markdown image rendering. Format: https://github.com/{owner}/{repo}/blob/{commit-sha}/{path}?raw=true. MUST use commit SHA (from `git rev-parse HEAD`) NOT branch name. Commit MUST be pushed to remote before URLs will work.",
         "commit_detection": "Uses `git rev-parse HEAD` to get commit SHA for URLs",
         "push_requirement": "CRITICAL: After committing screenshots, MUST push to remote with `git push origin <branch>` BEFORE creating PR comment. URLs will 404 if commit is not pushed.",
+        "markdown_template_collapsible": "<details>\n<summary><b>[Section Title]</b></summary>\n\n<details>\n<summary>[Screenshot Title]</summary>\n\n![Alt Text](image-url)\n\n[Description]\n</details>\n\n</details>",
+        "markdown_format_instructions": "CRITICAL: Use collapsible <details> sections to keep PR threads concise. Nest screenshots under category sections, all collapsed by default. Example: Main section 'Sidebar Toggle Tests (4/4)' contains nested <details> for each screenshot. Users expand only what they need to see.",
         "markdown_template": "## 📸 Screenshots\n\n### [Title]\n![Alt Text](image-url)\n\n[Description]",
         "critical_fix": "Always use detected branch name in URLs, not hardcoded branch names"
       }
