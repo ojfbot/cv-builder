@@ -1,0 +1,28 @@
+{
+  "sessionId": "2025-11-17T03-43-08",
+  "created": "2025-11-17T03:43:08.085Z",
+  "screenshots": [
+    {
+      "filename": "tab-jobs.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T03-43-08/tab-jobs.png",
+      "fileSize": 57794,
+      "format": "png",
+      "timestamp": "2025-11-17T03:43:08.085Z"
+    },
+    {
+      "filename": "tab-outputs.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T03-43-08/tab-outputs.png",
+      "fileSize": 57295,
+      "format": "png",
+      "timestamp": "2025-11-17T03:43:08.486Z"
+    },
+    {
+      "filename": "tab-research.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T03-43-08/tab-research.png",
+      "fileSize": 63633,
+      "format": "png",
+      "timestamp": "2025-11-17T03:43:08.869Z"
+    }
+  ],
+  "metadata": {}
+}
