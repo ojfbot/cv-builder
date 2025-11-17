@@ -12,7 +12,10 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "cli": "tsx src/cli/index.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "tsx tests/integration/basic-workflow.test.ts",
+    "test:all": "tsx tests/**/*.test.ts",
+    "test:watch": "tsx watch tests/integration/basic-workflow.test.ts"
   },
   "keywords": [
     "playwright",
