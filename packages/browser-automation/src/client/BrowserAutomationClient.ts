@@ -169,6 +169,35 @@ export class BrowserAutomationClient {
   }
 
   /**
+   * Get page title
+   */
+  async pageTitle(): Promise<string> {
+    try {
+      const response = await this.axios.get<{ success: boolean; title: string }>('/api/page/title');
+      return response.data.title || '';
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Check if element has focus
+   */
+  async elementHasFocus(selector: string): Promise<boolean> {
+    try {
+      const response = await this.axios.get<{ success: boolean; hasFocus: boolean }>(
+        '/api/element/has-focus',
+        {
+          params: { selector },
+        }
+      );
+      return response.data.hasFocus;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
    * Count matching elements
    */
   async elementCount(selector: string): Promise<number> {

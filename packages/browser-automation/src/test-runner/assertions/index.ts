@@ -192,21 +192,28 @@ export class Assertions implements AssertionAPI {
   }
 
   /**
-   * Assert that page title equals expected
+   * Assert that page title equals expected value
    */
-  async titleEquals(_title: string, _message?: string): Promise<void> {
-    // Note: Health endpoint doesn't return title, we'd need to extend the API
-    // For now, this is a placeholder
-    throw new Error('titleEquals not yet implemented - API needs extension');
+  async titleEquals(expectedTitle: string, message?: string): Promise<void> {
+    const actualTitle = await this.client.pageTitle();
+    if (actualTitle !== expectedTitle) {
+      throw new AssertionError(
+        message ||
+          `Expected page title to equal "${expectedTitle}", but got "${actualTitle}"`
+      );
+    }
   }
 
   /**
    * Assert that page title contains text
    */
-  async titleContains(_text: string, _message?: string): Promise<void> {
-    // Note: Health endpoint doesn't return title, we'd need to extend the API
-    // For now, this is a placeholder
-    throw new Error('titleContains not yet implemented - API needs extension');
+  async titleContains(text: string, message?: string): Promise<void> {
+    const title = await this.client.pageTitle();
+    if (!title.includes(text)) {
+      throw new AssertionError(
+        message || `Expected page title to contain "${text}", but got "${title}"`
+      );
+    }
   }
 
   // ========================================
@@ -317,6 +324,12 @@ export class Assertions implements AssertionAPI {
    */
   async elementHasClass(selector: string, className: string, message?: string): Promise<void> {
     const classAttr = await this.client.elementAttribute(selector, 'class');
+    if (!classAttr) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" to have class "${className}", but element has no class attribute`
+      );
+    }
     const classes = classAttr.split(/\s+/);
     if (!classes.includes(className)) {
       throw new AssertionError(
@@ -331,6 +344,10 @@ export class Assertions implements AssertionAPI {
    */
   async elementNotHasClass(selector: string, className: string, message?: string): Promise<void> {
     const classAttr = await this.client.elementAttribute(selector, 'class');
+    if (!classAttr) {
+      // Element has no class attribute, so it doesn't have the class (assertion passes)
+      return;
+    }
     const classes = classAttr.split(/\s+/);
     if (classes.includes(className)) {
       throw new AssertionError(
@@ -362,6 +379,12 @@ export class Assertions implements AssertionAPI {
     message?: string
   ): Promise<void> {
     const placeholder = await this.client.elementAttribute(selector, 'placeholder');
+    if (!placeholder) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" placeholder to contain "${text}", but element has no placeholder attribute`
+      );
+    }
     if (!placeholder.includes(text)) {
       throw new AssertionError(
         message ||
@@ -371,12 +394,16 @@ export class Assertions implements AssertionAPI {
   }
 
   /**
-   * Assert that element has focus
+   * Assert that element has keyboard focus
    */
   async elementHasFocus(selector: string, message?: string): Promise<void> {
-    // This would require extending the API to check document.activeElement
-    // For now, we can check if the element exists and is visible
-    await this.elementVisible(selector, message);
+    const hasFocus = await this.client.elementHasFocus(selector);
+    if (!hasFocus) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" to have focus, but document.activeElement does not match`
+      );
+    }
   }
 }
 
