@@ -61,7 +61,7 @@ function DashboardContent() {
 
   return (
     <>
-      <div className="dashboard-wrapper">
+      <div className="dashboard-wrapper" data-element="app-container">
         <Heading className="page-header">CV Builder Dashboard</Heading>
 
         <Tabs
@@ -72,7 +72,10 @@ function DashboardContent() {
             {TAB_ORDER.map(tabKey => {
               const tab = getTabByKey(tabKey)
               return (
-                <Tab key={tabKey}>
+                <Tab
+                  key={tabKey}
+                  data-element={`${tabKey}-tab`}
+                >
                   {tab.icon} {tab.label}
                 </Tab>
               )
@@ -80,7 +83,10 @@ function DashboardContent() {
           </TabList>
           <TabPanels>
             {TAB_ORDER.map(tabKey => (
-              <TabPanel key={tabKey}>
+              <TabPanel
+                key={tabKey}
+                data-element={`${tabKey}-panel`}
+              >
                 {renderTabContent(tabKey)}
               </TabPanel>
             ))}

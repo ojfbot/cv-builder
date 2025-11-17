@@ -24,10 +24,10 @@ function JobsDashboard() {
   const rows: any[] = []
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content" data-element="jobs-dashboard">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading className="section-header">Job Listings</Heading>
-        <Button renderIcon={DocumentAdd} kind="primary">
+        <Button data-element="add-job-button" renderIcon={DocumentAdd} kind="primary">
           Add Job Listing
         </Button>
       </div>
@@ -42,8 +42,8 @@ function JobsDashboard() {
 
       <DataTable rows={rows} headers={headers}>
         {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
-          <TableContainer>
-            <Table {...getTableProps()}>
+          <TableContainer data-element="jobs-table-container">
+            <Table {...getTableProps()} data-element="jobs-table">
               <TableHead>
                 <TableRow>
                   {headers.map((header: any) => (
@@ -64,7 +64,7 @@ function JobsDashboard() {
                   </TableRow>
                 ) : (
                   rows.map((row: any) => (
-                    <TableRow {...getRowProps({ row })} key={row.id}>
+                    <TableRow {...getRowProps({ row })} key={row.id} data-element="job-row">
                       {row.cells.map((cell: any) => (
                         <TableCell key={cell.id}>{cell.value}</TableCell>
                       ))}

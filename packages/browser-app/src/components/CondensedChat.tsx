@@ -407,7 +407,11 @@ function CondensedChat() {
   }, [isExpanded, dispatch])
 
   return (
-    <div className={`condensed-chat ${isExpanded ? 'expanded' : ''}`}>
+    <div
+      className={`condensed-chat ${isExpanded ? 'expanded' : ''}`}
+      data-element="chat-window"
+      data-state={isExpanded ? 'expanded' : 'collapsed'}
+    >
       <div
         className="condensed-header"
         onClick={() => {
@@ -436,6 +440,7 @@ function CondensedChat() {
           {isExpanded && (
             <IconButton
               label="Minimize chat"
+              data-element="chat-close-button"
               onClick={(e) => {
                 e.stopPropagation()
                 console.log('[CondensedChat] Minimize button clicked')
@@ -451,7 +456,7 @@ function CondensedChat() {
       </div>
 
       {isExpanded && (
-        <div className="chat-messages-container" ref={messagesContainerRef}>
+        <div className="chat-messages-container" data-element="chat-messages" ref={messagesContainerRef}>
           {messages.map((msg, idx) => (
             <Tile
               key={idx}
@@ -532,6 +537,7 @@ function CondensedChat() {
               disabled={!isInitialized}
               rows={3}
               className="condensed-chat-textarea"
+              data-element="chat-input"
             />
           ) : (
             <TextInput
@@ -550,6 +556,7 @@ function CondensedChat() {
               onFocus={handleInputFocus}
               disabled={!isInitialized}
               size="md"
+              data-element="chat-input"
             />
           )}
           <div className="input-actions-condensed">
@@ -575,6 +582,7 @@ function CondensedChat() {
               hasIconOnly
               iconDescription="Send"
               className="send-button-inline-condensed"
+              data-element="chat-send-button"
             />
           </div>
         </div>
