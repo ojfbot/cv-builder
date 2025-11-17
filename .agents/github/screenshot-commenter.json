@@ -88,6 +88,24 @@
         "required": true
       },
       {
+        "step": "push-to-remote",
+        "action": "action:push-screenshots-to-remote",
+        "description": "Push committed screenshots to remote repository (REQUIRED before generating URLs)",
+        "required": true,
+        "git_commands": [
+          "git push origin $(git rev-parse --abbrev-ref HEAD)"
+        ]
+      },
+      {
+        "step": "get-commit-sha",
+        "action": "action:get-commit-sha",
+        "description": "Get commit SHA for generating blob URLs",
+        "required": true,
+        "git_commands": [
+          "git rev-parse HEAD"
+        ]
+      },
+      {
         "step": "extract-metadata",
         "action": "action:extract-screenshot-metadata",
         "description": "Extract capture time, file size, and session info from screenshots",
@@ -170,21 +188,23 @@
         "steps": [
           "1. Ask for PR/issue number",
           "2. AUTO-DETECT screenshot location (searches temp/screenshots/*, docs/screenshots/*, packages/*/temp/screenshots/*, packages/*/docs/screenshots/* and uses most recently modified)",
-          "3. Detect current git branch using `git rev-parse --abbrev-ref HEAD`",
+          "3. Get current git commit SHA using `git rev-parse HEAD`",
           "4. Copy screenshots from detected location to temp/pr-{number}/ directory",
           "5. Commit the screenshot files to the current branch",
-          "6. Generate markdown comment body with image embeds using blob URLs with ?raw=true parameter (CRITICAL: format MUST be: https://github.com/OWNER/REPO/blob/{branch}/path/to/image.png?raw=true - the ?raw=true is REQUIRED for images to render in markdown)",
-          "7. Post the comment to the specified PR or issue",
-          "8. Report success with comment URL"
+          "6. CRITICAL: Push the commit to remote repository using `git push origin <branch>` BEFORE generating comment URLs. URLs will NOT work until commit is pushed.",
+          "7. Generate markdown comment body with image embeds using blob URLs with ?raw=true parameter (CRITICAL: format MUST be: https://github.com/OWNER/REPO/blob/{commit-sha}/path/to/image.png?raw=true - the ?raw=true is REQUIRED for images to render in markdown. Use COMMIT SHA, not branch name.)",
+          "8. Post the comment to the specified PR or issue",
+          "9. Report success with comment URL"
         ],
         "error_handling": {
           "no_screenshots_found": "Warn user and ask for alternative directory",
           "commit_failed": "Report error and suggest manual commit",
           "comment_post_failed": "Show generated markdown and suggest manual posting"
         },
-        "url_format": "https://github.com/OWNER/REPO/blob/{detected-branch}/path/to/image.png?raw=true",
-        "url_format_note": "CRITICAL: Must use blob URLs with ?raw=true parameter, NOT raw.githubusercontent.com URLs. The ?raw=true parameter forces GitHub to serve the raw file which allows markdown image rendering. Format: https://github.com/{owner}/{repo}/blob/{branch}/{path}?raw=true",
-        "branch_detection": "Uses `git rev-parse --abbrev-ref HEAD` to automatically detect current branch",
+        "url_format": "https://github.com/OWNER/REPO/blob/{commit-sha}/path/to/image.png?raw=true",
+        "url_format_note": "CRITICAL: Must use blob URLs with ?raw=true parameter, NOT raw.githubusercontent.com URLs. The ?raw=true parameter forces GitHub to serve the raw file which allows markdown image rendering. Format: https://github.com/{owner}/{repo}/blob/{commit-sha}/{path}?raw=true. MUST use commit SHA (from `git rev-parse HEAD`) NOT branch name. Commit MUST be pushed to remote before URLs will work.",
+        "commit_detection": "Uses `git rev-parse HEAD` to get commit SHA for URLs",
+        "push_requirement": "CRITICAL: After committing screenshots, MUST push to remote with `git push origin <branch>` BEFORE creating PR comment. URLs will 404 if commit is not pushed.",
         "markdown_template": "## 📸 Screenshots\n\n### [Title]\n![Alt Text](image-url)\n\n[Description]",
         "critical_fix": "Always use detected branch name in URLs, not hardcoded branch names"
       }
