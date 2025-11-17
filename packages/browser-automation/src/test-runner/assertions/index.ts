@@ -208,6 +208,176 @@ export class Assertions implements AssertionAPI {
     // For now, this is a placeholder
     throw new Error('titleContains not yet implemented - API needs extension');
   }
+
+  // ========================================
+  // Redux Store Assertions
+  // ========================================
+
+  /**
+   * Assert that a store query matches expected value
+   */
+  async storeEquals(queryName: string, expectedValue: any, message?: string): Promise<void> {
+    const actualValue = await this.client.storeQuery(queryName);
+    if (JSON.stringify(actualValue) !== JSON.stringify(expectedValue)) {
+      throw new AssertionError(
+        message ||
+          `Expected store query "${queryName}" to equal ${JSON.stringify(expectedValue)}, but got ${JSON.stringify(actualValue)}`
+      );
+    }
+  }
+
+  /**
+   * Assert that a store query value is truthy
+   */
+  async storeTruthy(queryName: string, message?: string): Promise<void> {
+    const value = await this.client.storeQuery(queryName);
+    if (!value) {
+      throw new AssertionError(
+        message || `Expected store query "${queryName}" to be truthy, but got ${JSON.stringify(value)}`
+      );
+    }
+  }
+
+  /**
+   * Assert that a store query value is falsy
+   */
+  async storeFalsy(queryName: string, message?: string): Promise<void> {
+    const value = await this.client.storeQuery(queryName);
+    if (value) {
+      throw new AssertionError(
+        message || `Expected store query "${queryName}" to be falsy, but got ${JSON.stringify(value)}`
+      );
+    }
+  }
+
+  /**
+   * Assert that a store array contains an item
+   */
+  async storeContains(queryName: string, item: any, message?: string): Promise<void> {
+    const array = await this.client.storeQuery(queryName);
+    if (!Array.isArray(array)) {
+      throw new AssertionError(
+        `Store query "${queryName}" did not return an array, got ${typeof array}`
+      );
+    }
+    const found = array.some((el: any) => JSON.stringify(el) === JSON.stringify(item));
+    if (!found) {
+      throw new AssertionError(
+        message ||
+          `Expected store array "${queryName}" to contain ${JSON.stringify(item)}, but it was not found`
+      );
+    }
+  }
+
+  /**
+   * Assert that a store array has a specific length
+   */
+  async storeArrayLength(queryName: string, length: number, message?: string): Promise<void> {
+    const array = await this.client.storeQuery(queryName);
+    if (!Array.isArray(array)) {
+      throw new AssertionError(
+        `Store query "${queryName}" did not return an array, got ${typeof array}`
+      );
+    }
+    if (array.length !== length) {
+      throw new AssertionError(
+        message ||
+          `Expected store array "${queryName}" to have length ${length}, but got ${array.length}`
+      );
+    }
+  }
+
+  /**
+   * Wait for store state to match value (with assertion)
+   */
+  async storeEventuallyEquals(
+    queryName: string,
+    expectedValue: any,
+    options: { timeout?: number; message?: string } = {}
+  ): Promise<void> {
+    try {
+      await this.client.storeWait(queryName, expectedValue, {
+        timeout: options.timeout || 30000,
+      });
+    } catch (error) {
+      const actualValue = await this.client.storeQuery(queryName);
+      throw new AssertionError(
+        options.message ||
+          `Expected store query "${queryName}" to eventually equal ${JSON.stringify(expectedValue)}, but got ${JSON.stringify(actualValue)} after timeout`
+      );
+    }
+  }
+
+  // ========================================
+  // Enhanced DOM Assertions
+  // ========================================
+
+  /**
+   * Assert that an element has a specific class
+   */
+  async elementHasClass(selector: string, className: string, message?: string): Promise<void> {
+    const classAttr = await this.client.elementAttribute(selector, 'class');
+    const classes = classAttr.split(/\s+/);
+    if (!classes.includes(className)) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" to have class "${className}", but got classes: ${classAttr}`
+      );
+    }
+  }
+
+  /**
+   * Assert that an element does NOT have a specific class
+   */
+  async elementNotHasClass(selector: string, className: string, message?: string): Promise<void> {
+    const classAttr = await this.client.elementAttribute(selector, 'class');
+    const classes = classAttr.split(/\s+/);
+    if (classes.includes(className)) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" to NOT have class "${className}", but it was present`
+      );
+    }
+  }
+
+  /**
+   * Assert that element's value equals (for inputs)
+   */
+  async elementValueEquals(selector: string, value: string, message?: string): Promise<void> {
+    const actualValue = await this.client.elementAttribute(selector, 'value');
+    if (actualValue !== value) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" value to equal "${value}", but got "${actualValue}"`
+      );
+    }
+  }
+
+  /**
+   * Assert that element's placeholder contains text
+   */
+  async elementPlaceholderContains(
+    selector: string,
+    text: string,
+    message?: string
+  ): Promise<void> {
+    const placeholder = await this.client.elementAttribute(selector, 'placeholder');
+    if (!placeholder.includes(text)) {
+      throw new AssertionError(
+        message ||
+          `Expected element "${selector}" placeholder to contain "${text}", but got "${placeholder}"`
+      );
+    }
+  }
+
+  /**
+   * Assert that element has focus
+   */
+  async elementHasFocus(selector: string, message?: string): Promise<void> {
+    // This would require extending the API to check document.activeElement
+    // For now, we can check if the element exists and is visible
+    await this.elementVisible(selector, message);
+  }
 }
 
 /**

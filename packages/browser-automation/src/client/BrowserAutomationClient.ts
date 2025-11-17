@@ -378,6 +378,60 @@ export class BrowserAutomationClient {
   }
 
   /**
+   * Query Redux store state
+   */
+  async storeQuery(queryName: string, app: string = 'cv-builder'): Promise<any> {
+    try {
+      const response = await this.axios.post('/api/store/query', {
+        app,
+        query: queryName,
+      });
+      return response.data.result;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Wait for store state to match expected value
+   */
+  async storeWait(
+    queryName: string,
+    expectedValue: any,
+    options: {
+      app?: string;
+      timeout?: number;
+      pollInterval?: number;
+    } = {}
+  ): Promise<void> {
+    try {
+      await this.axios.post('/api/store/wait', {
+        app: options.app || 'cv-builder',
+        query: queryName,
+        value: expectedValue,
+        timeout: options.timeout || 30000,
+        pollInterval: options.pollInterval || 100,
+      });
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get Redux store snapshot (dev mode only)
+   */
+  async storeSnapshot(app: string = 'cv-builder'): Promise<any> {
+    try {
+      const response = await this.axios.get('/api/store/snapshot', {
+        params: { app },
+      });
+      return response.data.snapshot;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
    * Handle errors and convert to appropriate error types
    */
   private handleError(error: unknown): Error {
