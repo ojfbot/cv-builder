@@ -1,0 +1,52 @@
+{
+  "sessionId": "2025-11-17T01-39-06",
+  "created": "2025-11-17T01:39:06.176Z",
+  "screenshots": [
+    {
+      "filename": "test-viewport-desktop-desktop.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T01-39-06/test-viewport-desktop-desktop.png",
+      "fileSize": 21305,
+      "viewport": "desktop",
+      "format": "png",
+      "timestamp": "2025-11-17T01:39:06.176Z"
+    },
+    {
+      "filename": "test-viewport-mobile-mobile.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T01-39-06/test-viewport-mobile-mobile.png",
+      "fileSize": 15178,
+      "viewport": "mobile",
+      "format": "png",
+      "timestamp": "2025-11-17T01:39:06.363Z"
+    },
+    {
+      "filename": "test-viewport-tablet-tablet.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T01-39-06/test-viewport-tablet-tablet.png",
+      "fileSize": 18099,
+      "viewport": "tablet",
+      "format": "png",
+      "timestamp": "2025-11-17T01:39:06.395Z"
+    },
+    {
+      "filename": "test-jpeg-quality.jpg",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T01-39-06/test-jpeg-quality.jpg",
+      "fileSize": 15286,
+      "format": "jpeg",
+      "timestamp": "2025-11-17T01:39:06.416Z"
+    },
+    {
+      "filename": "test-element.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T01-39-06/test-element.png",
+      "fileSize": 2745,
+      "format": "png",
+      "timestamp": "2025-11-17T01:39:06.455Z"
+    },
+    {
+      "filename": "test-fullpage.png",
+      "path": "/Users/yuri/ojfbot/cv-builder/packages/temp/screenshots/2025-11-17T01-39-06/test-fullpage.png",
+      "fileSize": 18099,
+      "format": "png",
+      "timestamp": "2025-11-17T01:39:06.479Z"
+    }
+  ],
+  "metadata": {}
+}

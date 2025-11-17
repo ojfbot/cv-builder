@@ -1,405 +1,433 @@
 {
   "app": "cv-builder",
   "version": "1.0.0",
-  "updated": "2025-11-16T12:00:00Z",
+  "updated": "2025-11-17T02:00:00Z",
+  "strategy": "data-element",
+  "note": "Primary selectors use data-element attributes to avoid CSS class fragility. Alternatives provided as fallback for gradual migration.",
   "elements": {
     "root": {
       "appContainer": {
-        "selector": "#root",
-        "alternatives": [".cds--content", "main", "[role='main']"],
+        "selector": "[data-element='app-container']",
+        "alternatives": ["#root"],
         "description": "Main React app container element",
         "type": "container",
-        "testId": "app-root"
+        "dataElement": "app-container"
       }
     },
     "navigation": {
       "tabs": {
         "bio": {
-          "selector": "[data-testid='bio-tab']",
-          "alternatives": [".tab-bio", "button:has-text('Bio')", "[role='tab']:has-text('Bio')"],
+          "selector": "[data-element='bio-tab']",
+          "alternatives": ["[data-testid='bio-tab']", "[role='tab']:has-text('Bio')"],
           "description": "Bio information tab in dashboard navigation",
           "type": "tab",
           "role": "tab",
-          "testId": "bio-tab",
+          "dataElement": "bio-tab",
           "states": {
-            "active": "[data-testid='bio-tab'][aria-selected='true']",
-            "inactive": "[data-testid='bio-tab'][aria-selected='false']"
+            "active": "[data-element='bio-tab'][aria-selected='true']",
+            "inactive": "[data-element='bio-tab'][aria-selected='false']"
           }
         },
         "jobs": {
-          "selector": "[data-testid='jobs-tab']",
-          "alternatives": [".tab-jobs", "button:has-text('Jobs')", "[role='tab']:has-text('Jobs')"],
+          "selector": "[data-element='jobs-tab']",
+          "alternatives": ["[data-testid='jobs-tab']", "[role='tab']:has-text('Jobs')"],
           "description": "Job listings tab showing saved job postings",
           "type": "tab",
           "role": "tab",
-          "testId": "jobs-tab",
+          "dataElement": "jobs-tab",
           "states": {
-            "active": "[data-testid='jobs-tab'][aria-selected='true']",
-            "inactive": "[data-testid='jobs-tab'][aria-selected='false']"
+            "active": "[data-element='jobs-tab'][aria-selected='true']",
+            "inactive": "[data-element='jobs-tab'][aria-selected='false']"
           }
         },
         "outputs": {
-          "selector": "[data-testid='outputs-tab']",
-          "alternatives": [".tab-outputs", "button:has-text('Outputs')", "[role='tab']:has-text('Outputs')"],
+          "selector": "[data-element='outputs-tab']",
+          "alternatives": ["[data-testid='outputs-tab']", "[role='tab']:has-text('Outputs')"],
           "description": "Generated resumes and documents tab",
           "type": "tab",
           "role": "tab",
-          "testId": "outputs-tab",
+          "dataElement": "outputs-tab",
           "states": {
-            "active": "[data-testid='outputs-tab'][aria-selected='true']",
-            "inactive": "[data-testid='outputs-tab'][aria-selected='false']"
+            "active": "[data-element='outputs-tab'][aria-selected='true']",
+            "inactive": "[data-element='outputs-tab'][aria-selected='false']"
           }
         },
         "chat": {
-          "selector": "[data-testid='chat-tab']",
-          "alternatives": [".tab-chat", "button:has-text('Chat')", "[role='tab']:has-text('Chat')"],
+          "selector": "[data-element='chat-tab']",
+          "alternatives": ["[data-testid='chat-tab']", "[role='tab']:has-text('Chat')"],
           "description": "AI chat interface tab for interactive conversations",
           "type": "tab",
           "role": "tab",
-          "testId": "chat-tab",
+          "dataElement": "chat-tab",
           "states": {
-            "active": "[data-testid='chat-tab'][aria-selected='true']",
-            "inactive": "[data-testid='chat-tab'][aria-selected='false']"
+            "active": "[data-element='chat-tab'][aria-selected='true']",
+            "inactive": "[data-element='chat-tab'][aria-selected='false']"
           }
         }
       },
       "tabPanels": {
         "bioPanel": {
-          "selector": "[data-testid='bio-panel']",
-          "alternatives": ["[role='tabpanel']:has-text('Bio')", ".bio-panel"],
+          "selector": "[data-element='bio-panel']",
+          "alternatives": ["[data-testid='bio-panel']", "[role='tabpanel'][aria-labelledby*='bio']"],
           "description": "Bio tab content panel",
           "type": "panel",
           "role": "tabpanel",
-          "testId": "bio-panel"
+          "dataElement": "bio-panel"
         },
         "jobsPanel": {
-          "selector": "[data-testid='jobs-panel']",
-          "alternatives": ["[role='tabpanel']:has-text('Jobs')", ".jobs-panel"],
+          "selector": "[data-element='jobs-panel']",
+          "alternatives": ["[data-testid='jobs-panel']", "[role='tabpanel'][aria-labelledby*='jobs']"],
           "description": "Jobs tab content panel",
           "type": "panel",
           "role": "tabpanel",
-          "testId": "jobs-panel"
+          "dataElement": "jobs-panel"
         },
         "outputsPanel": {
-          "selector": "[data-testid='outputs-panel']",
-          "alternatives": ["[role='tabpanel']:has-text('Outputs')", ".outputs-panel"],
+          "selector": "[data-element='outputs-panel']",
+          "alternatives": ["[data-testid='outputs-panel']", "[role='tabpanel'][aria-labelledby*='outputs']"],
           "description": "Outputs tab content panel",
           "type": "panel",
           "role": "tabpanel",
-          "testId": "outputs-panel"
+          "dataElement": "outputs-panel"
         },
         "chatPanel": {
-          "selector": "[data-testid='chat-panel']",
-          "alternatives": ["[role='tabpanel']:has-text('Chat')", ".chat-panel"],
+          "selector": "[data-element='chat-panel']",
+          "alternatives": ["[data-testid='chat-panel']", "[role='tabpanel'][aria-labelledby*='chat']"],
           "description": "Chat tab content panel with full-screen chat interface",
           "type": "panel",
           "role": "tabpanel",
-          "testId": "chat-panel"
+          "dataElement": "chat-panel"
         }
       }
     },
     "bio": {
       "form": {
         "container": {
-          "selector": ".bio-form",
-          "alternatives": ["[data-testid='bio-form']", "form.bio"],
+          "selector": "[data-element='bio-form']",
+          "alternatives": ["[data-testid='bio-form']", "form[name='bio']"],
           "description": "Bio information form container",
           "type": "form",
+          "dataElement": "bio-form",
           "children": {
             "nameInput": {
-              "selector": "[name='fullName']",
-              "alternatives": ["#fullName", "[data-testid='name-input']"],
+              "selector": "[data-element='bio-name-input']",
+              "alternatives": ["[name='fullName']", "[data-testid='name-input']"],
               "description": "Full name input field",
-              "type": "input"
+              "type": "input",
+              "dataElement": "bio-name-input"
             },
             "emailInput": {
-              "selector": "[name='email']",
-              "alternatives": ["#email", "[data-testid='email-input']"],
+              "selector": "[data-element='bio-email-input']",
+              "alternatives": ["[name='email']", "[data-testid='email-input']"],
               "description": "Email address input field",
-              "type": "input"
+              "type": "input",
+              "dataElement": "bio-email-input"
             },
             "phoneInput": {
-              "selector": "[name='phone']",
-              "alternatives": ["#phone", "[data-testid='phone-input']"],
+              "selector": "[data-element='bio-phone-input']",
+              "alternatives": ["[name='phone']", "[data-testid='phone-input']"],
               "description": "Phone number input field",
-              "type": "input"
+              "type": "input",
+              "dataElement": "bio-phone-input"
             },
             "submitButton": {
-              "selector": "button[type='submit']",
-              "alternatives": ["[data-testid='bio-submit']", ".bio-submit-button"],
+              "selector": "[data-element='bio-submit-button']",
+              "alternatives": ["button[type='submit']", "[data-testid='bio-submit']"],
               "description": "Submit bio form button",
-              "type": "button"
+              "type": "button",
+              "dataElement": "bio-submit-button"
             }
           }
         }
       },
       "display": {
         "name": {
-          "selector": ".bio-name",
-          "alternatives": ["[data-testid='bio-name']", ".bio-display .name"],
+          "selector": "[data-element='bio-display-name']",
+          "alternatives": ["[data-testid='bio-name']"],
           "description": "Bio name display element",
-          "type": "text"
+          "type": "text",
+          "dataElement": "bio-display-name"
         },
         "email": {
-          "selector": ".bio-email",
-          "alternatives": ["[data-testid='bio-email']", ".bio-display .email"],
+          "selector": "[data-element='bio-display-email']",
+          "alternatives": ["[data-testid='bio-email']"],
           "description": "Bio email display element",
-          "type": "text"
+          "type": "text",
+          "dataElement": "bio-display-email"
         }
       }
     },
     "jobs": {
       "list": {
         "container": {
-          "selector": ".jobs-list",
-          "alternatives": ["[data-testid='jobs-list']", ".job-listings"],
+          "selector": "[data-element='jobs-list']",
+          "alternatives": ["[data-testid='jobs-list']"],
           "description": "Jobs list container showing all saved jobs",
-          "type": "container"
+          "type": "container",
+          "dataElement": "jobs-list"
         },
         "jobCard": {
-          "selector": ".job-card",
-          "alternatives": ["[data-testid='job-card']", ".job-listing-item"],
+          "selector": "[data-element='job-card']",
+          "alternatives": ["[data-testid='job-card']"],
           "description": "Individual job listing card",
-          "type": "container"
+          "type": "container",
+          "dataElement": "job-card"
         },
         "addJobButton": {
-          "selector": "[data-testid='add-job-button']",
-          "alternatives": [".add-job-btn", "button:has-text('Add Job')"],
+          "selector": "[data-element='add-job-button']",
+          "alternatives": ["[data-testid='add-job-button']"],
           "description": "Button to add a new job listing",
-          "type": "button"
+          "type": "button",
+          "dataElement": "add-job-button"
         }
       },
       "detail": {
         "title": {
-          "selector": ".job-title",
-          "alternatives": ["[data-testid='job-title']", "h2.job-title"],
+          "selector": "[data-element='job-title']",
+          "alternatives": ["[data-testid='job-title']"],
           "description": "Job title heading",
-          "type": "text"
+          "type": "text",
+          "dataElement": "job-title"
         },
         "company": {
-          "selector": ".job-company",
-          "alternatives": ["[data-testid='job-company']", ".company-name"],
+          "selector": "[data-element='job-company']",
+          "alternatives": ["[data-testid='job-company']"],
           "description": "Company name for job posting",
-          "type": "text"
+          "type": "text",
+          "dataElement": "job-company"
         },
         "description": {
-          "selector": ".job-description",
-          "alternatives": ["[data-testid='job-description']", ".description"],
+          "selector": "[data-element='job-description']",
+          "alternatives": ["[data-testid='job-description']"],
           "description": "Job description text",
-          "type": "text"
+          "type": "text",
+          "dataElement": "job-description"
         }
       }
     },
     "outputs": {
       "list": {
         "container": {
-          "selector": ".outputs-list",
-          "alternatives": ["[data-testid='outputs-list']", ".resume-outputs"],
+          "selector": "[data-element='outputs-list']",
+          "alternatives": ["[data-testid='outputs-list']"],
           "description": "List of generated resumes and documents",
-          "type": "container"
+          "type": "container",
+          "dataElement": "outputs-list"
         },
         "outputCard": {
-          "selector": ".output-card",
-          "alternatives": ["[data-testid='output-card']", ".resume-card"],
+          "selector": "[data-element='output-card']",
+          "alternatives": ["[data-testid='output-card']"],
           "description": "Individual output/resume card",
-          "type": "container"
+          "type": "container",
+          "dataElement": "output-card"
         },
         "generateButton": {
-          "selector": "[data-testid='generate-resume-button']",
-          "alternatives": [".generate-btn", "button:has-text('Generate Resume')"],
+          "selector": "[data-element='generate-resume-button']",
+          "alternatives": ["[data-testid='generate-resume-button']"],
           "description": "Button to generate a new resume",
-          "type": "button"
+          "type": "button",
+          "dataElement": "generate-resume-button"
         }
       },
       "preview": {
         "container": {
-          "selector": ".resume-preview",
-          "alternatives": ["[data-testid='resume-preview']", ".output-preview"],
+          "selector": "[data-element='resume-preview']",
+          "alternatives": ["[data-testid='resume-preview']"],
           "description": "Resume preview pane",
-          "type": "container"
+          "type": "container",
+          "dataElement": "resume-preview"
         },
         "downloadButton": {
-          "selector": "[data-testid='download-button']",
-          "alternatives": [".download-btn", "button:has-text('Download')"],
+          "selector": "[data-element='download-button']",
+          "alternatives": ["[data-testid='download-button']"],
           "description": "Download resume button",
-          "type": "button"
+          "type": "button",
+          "dataElement": "download-button"
         }
       }
     },
     "chat": {
       "window": {
         "container": {
-          "selector": ".chat-window",
-          "alternatives": ["[data-testid='chat-window']", ".chat-container"],
+          "selector": "[data-element='chat-window']",
+          "alternatives": ["[data-testid='chat-window']"],
           "description": "Chat interface main container",
           "type": "container",
+          "dataElement": "chat-window",
           "states": {
-            "collapsed": "[data-state='collapsed']",
-            "expanded": "[data-state='expanded']"
+            "collapsed": "[data-element='chat-window'][data-state='collapsed']",
+            "expanded": "[data-element='chat-window'][data-state='expanded']"
           }
         },
         "condensed": {
-          "selector": ".chat-condensed",
-          "alternatives": ["[data-testid='chat-condensed']", ".chat-minimized"],
+          "selector": "[data-element='chat-condensed']",
+          "alternatives": ["[data-testid='chat-condensed']"],
           "description": "Condensed chat window (sidebar mode)",
-          "type": "container"
+          "type": "container",
+          "dataElement": "chat-condensed"
         },
         "fullScreen": {
-          "selector": ".chat-fullscreen",
-          "alternatives": ["[data-testid='chat-fullscreen']", ".chat-expanded"],
+          "selector": "[data-element='chat-fullscreen']",
+          "alternatives": ["[data-testid='chat-fullscreen']"],
           "description": "Full-screen chat window (Interactive/Chat tab)",
-          "type": "container"
+          "type": "container",
+          "dataElement": "chat-fullscreen"
         }
       },
       "controls": {
         "expandButton": {
-          "selector": ".chat-expand-button",
+          "selector": "[data-element='chat-expand-button']",
           "alternatives": ["[data-testid='chat-expand']", "button[aria-label='Expand chat']"],
           "description": "Button to expand chat window to full-screen",
-          "type": "button"
+          "type": "button",
+          "dataElement": "chat-expand-button"
         },
         "closeButton": {
-          "selector": ".chat-close-button",
+          "selector": "[data-element='chat-close-button']",
           "alternatives": ["[data-testid='chat-close']", "button[aria-label='Close chat']"],
           "description": "Button to close or minimize chat window",
-          "type": "button"
+          "type": "button",
+          "dataElement": "chat-close-button"
         },
         "sendButton": {
-          "selector": ".chat-send-button",
+          "selector": "[data-element='chat-send-button']",
           "alternatives": ["[data-testid='chat-send']", "button[aria-label='Send message']"],
           "description": "Send chat message button",
-          "type": "button"
+          "type": "button",
+          "dataElement": "chat-send-button"
         }
       },
       "input": {
         "messageInput": {
-          "selector": ".chat-input",
-          "alternatives": ["[data-testid='chat-input']", "textarea.chat-input"],
+          "selector": "[data-element='chat-input']",
+          "alternatives": ["[data-testid='chat-input']", "textarea[placeholder*='message']"],
           "description": "Chat message input field",
-          "type": "input"
+          "type": "input",
+          "dataElement": "chat-input"
         }
       },
       "messages": {
         "container": {
-          "selector": ".chat-messages",
-          "alternatives": ["[data-testid='chat-messages']", ".message-list"],
+          "selector": "[data-element='chat-messages']",
+          "alternatives": ["[data-testid='chat-messages']"],
           "description": "Chat messages container",
-          "type": "container"
+          "type": "container",
+          "dataElement": "chat-messages"
         },
         "userMessage": {
-          "selector": ".message-user",
-          "alternatives": ["[data-testid='user-message']", ".message.user"],
+          "selector": "[data-element='message-user']",
+          "alternatives": ["[data-testid='user-message']"],
           "description": "User chat message bubble",
-          "type": "container"
+          "type": "container",
+          "dataElement": "message-user"
         },
         "assistantMessage": {
-          "selector": ".message-assistant",
-          "alternatives": ["[data-testid='assistant-message']", ".message.assistant"],
+          "selector": "[data-element='message-assistant']",
+          "alternatives": ["[data-testid='assistant-message']"],
           "description": "AI assistant message bubble",
-          "type": "container"
+          "type": "container",
+          "dataElement": "message-assistant"
         }
       }
     },
     "modals": {
       "uploadResume": {
         "container": {
-          "selector": "[data-testid='upload-resume-modal']",
-          "alternatives": ["[role='dialog']", ".upload-modal"],
+          "selector": "[data-element='upload-resume-modal']",
+          "alternatives": ["[data-testid='upload-resume-modal']", "[role='dialog']"],
           "description": "Resume upload modal dialog",
           "type": "modal",
-          "role": "dialog"
+          "role": "dialog",
+          "dataElement": "upload-resume-modal"
         },
         "fileInput": {
-          "selector": "[type='file']",
-          "alternatives": ["[data-testid='file-input']", ".file-upload-input"],
+          "selector": "[data-element='file-upload-input']",
+          "alternatives": ["[type='file']", "[data-testid='file-input']"],
           "description": "File upload input for resume",
-          "type": "input"
+          "type": "input",
+          "dataElement": "file-upload-input"
         },
         "uploadButton": {
-          "selector": "[data-testid='upload-button']",
-          "alternatives": ["button:has-text('Upload')", ".upload-btn"],
+          "selector": "[data-element='upload-confirm-button']",
+          "alternatives": ["[data-testid='upload-button']"],
           "description": "Confirm upload button",
-          "type": "button"
+          "type": "button",
+          "dataElement": "upload-confirm-button"
         },
         "cancelButton": {
-          "selector": "[data-testid='cancel-button']",
-          "alternatives": ["button:has-text('Cancel')", ".cancel-btn"],
+          "selector": "[data-element='upload-cancel-button']",
+          "alternatives": ["[data-testid='cancel-button']"],
           "description": "Cancel upload button",
-          "type": "button"
+          "type": "button",
+          "dataElement": "upload-cancel-button"
         }
       },
       "confirmation": {
         "container": {
-          "selector": "[data-testid='confirmation-modal']",
-          "alternatives": ["[role='alertdialog']", ".confirmation-dialog"],
+          "selector": "[data-element='confirmation-modal']",
+          "alternatives": ["[data-testid='confirmation-modal']", "[role='alertdialog']"],
           "description": "Confirmation dialog modal",
           "type": "modal",
-          "role": "alertdialog"
+          "role": "alertdialog",
+          "dataElement": "confirmation-modal"
         },
         "confirmButton": {
-          "selector": "[data-testid='confirm-button']",
-          "alternatives": ["button:has-text('Confirm')", ".confirm-btn"],
+          "selector": "[data-element='confirm-button']",
+          "alternatives": ["[data-testid='confirm-button']"],
           "description": "Confirm action button",
-          "type": "button"
+          "type": "button",
+          "dataElement": "confirm-button"
         },
         "cancelButton": {
-          "selector": "[data-testid='cancel-confirmation']",
-          "alternatives": ["button:has-text('Cancel')", ".cancel-confirm-btn"],
+          "selector": "[data-element='confirmation-cancel-button']",
+          "alternatives": ["[data-testid='cancel-confirmation']"],
           "description": "Cancel action button",
-          "type": "button"
+          "type": "button",
+          "dataElement": "confirmation-cancel-button"
         }
       }
     },
     "common": {
-      "buttons": {
-        "primary": {
-          "selector": ".cds--btn--primary",
-          "alternatives": ["[data-testid='primary-button']", ".btn-primary"],
-          "description": "Primary Carbon Design System button",
-          "type": "button"
-        },
-        "secondary": {
-          "selector": ".cds--btn--secondary",
-          "alternatives": ["[data-testid='secondary-button']", ".btn-secondary"],
-          "description": "Secondary Carbon Design System button",
-          "type": "button"
-        }
-      },
       "loading": {
         "spinner": {
-          "selector": ".cds--loading",
-          "alternatives": ["[data-testid='loading-spinner']", ".loading-indicator"],
+          "selector": "[data-element='loading-spinner']",
+          "alternatives": ["[data-testid='loading-spinner']", ".cds--loading"],
           "description": "Loading spinner indicator",
-          "type": "container"
+          "type": "container",
+          "dataElement": "loading-spinner"
         },
         "overlay": {
-          "selector": ".cds--loading-overlay",
-          "alternatives": ["[data-testid='loading-overlay']", ".loading-backdrop"],
+          "selector": "[data-element='loading-overlay']",
+          "alternatives": ["[data-testid='loading-overlay']", ".cds--loading-overlay"],
           "description": "Loading overlay covering content",
-          "type": "container"
+          "type": "container",
+          "dataElement": "loading-overlay"
         }
       },
       "notifications": {
         "toast": {
-          "selector": ".cds--toast-notification",
-          "alternatives": ["[data-testid='notification']", ".notification-toast"],
+          "selector": "[data-element='notification-toast']",
+          "alternatives": ["[data-testid='notification']", "[role='status']"],
           "description": "Toast notification message",
           "type": "container",
-          "role": "status"
+          "role": "status",
+          "dataElement": "notification-toast"
         },
         "error": {
-          "selector": ".cds--toast-notification--error",
-          "alternatives": ["[data-testid='error-notification']", ".notification-error"],
+          "selector": "[data-element='notification-error']",
+          "alternatives": ["[data-testid='error-notification']", "[role='alert']"],
           "description": "Error notification",
           "type": "container",
-          "role": "alert"
+          "role": "alert",
+          "dataElement": "notification-error"
         },
         "success": {
-          "selector": ".cds--toast-notification--success",
-          "alternatives": ["[data-testid='success-notification']", ".notification-success"],
+          "selector": "[data-element='notification-success']",
+          "alternatives": ["[data-testid='success-notification']"],
           "description": "Success notification",
           "type": "container",
-          "role": "status"
+          "role": "status",
+          "dataElement": "notification-success"
         }
       }
     }

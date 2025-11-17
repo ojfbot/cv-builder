@@ -40,7 +40,7 @@ export interface ElementStates {
  * Descriptor for a single UI element
  */
 export interface ElementDescriptor {
-  /** Primary CSS selector */
+  /** Primary CSS selector (preferably data-element attribute) */
   selector: string;
   /** Fallback selectors if primary fails */
   alternatives?: string[];
@@ -54,7 +54,9 @@ export interface ElementDescriptor {
   states?: ElementStates;
   /** Nested child elements */
   children?: ElementGroup;
-  /** Data test ID (if available) */
+  /** Data element attribute value (recommended for stable selectors) */
+  dataElement?: string;
+  /** Data test ID (legacy, prefer dataElement) */
   testId?: string;
 }
 
