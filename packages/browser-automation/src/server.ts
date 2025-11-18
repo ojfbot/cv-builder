@@ -105,8 +105,17 @@ app.post('/api/close', async (_req: Request, res: Response) => {
 /**
  * Clear browser storage endpoint
  * Clears localStorage, sessionStorage, cookies, and indexedDB
+ * Only available in development mode for security
  */
 app.post('/api/storage/clear', async (_req: Request, res: Response) => {
+  // Only allow storage clearing in development mode
+  if (NODE_ENV !== 'development') {
+    return res.status(403).json({
+      success: false,
+      error: 'Storage clearing is only available in development mode',
+    });
+  }
+
   try {
     await browserManager.clearStorage();
     res.status(200).json({
@@ -126,8 +135,17 @@ app.post('/api/storage/clear', async (_req: Request, res: Response) => {
 /**
  * Reset browser context endpoint
  * Creates a completely new browser context with clean state
+ * Only available in development mode for security
  */
 app.post('/api/context/reset', async (_req: Request, res: Response) => {
+  // Only allow context reset in development mode
+  if (NODE_ENV !== 'development') {
+    return res.status(403).json({
+      success: false,
+      error: 'Context reset is only available in development mode',
+    });
+  }
+
   try {
     await browserManager.resetContext();
     res.status(200).json({

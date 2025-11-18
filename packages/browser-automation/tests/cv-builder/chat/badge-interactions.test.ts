@@ -17,6 +17,7 @@
  */
 
 import { createTestSuite, createTestRunner } from '../../../src/test-runner/index.js';
+import { TEST_TIMING, wait } from '../../test-constants.js';
 
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
@@ -44,16 +45,16 @@ async function main() {
   async function resetToWelcomeMessage() {
     console.log('🔄 Resetting to welcome message...');
 
-    // Clear storage to ensure clean state between badge tests
-    await client.clearStorage();
-
     // Reload the page to get fresh state
     await client.reload();
     await client.waitForSelector('[data-element="app-container"]', { timeout: 5000 });
 
+    // Clear storage AFTER reload to ensure clean state between badge tests
+    await client.clearStorage();
+
     // Navigate back to Interactive tab
     await client.click('[role="tab"]:has-text("Interactive")');
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await wait(TEST_TIMING.UI_SETTLE);
     console.log('✅ Reset complete');
   }
 
@@ -97,7 +98,7 @@ async function main() {
     console.log('🖱️  Clicked Upload Resume badge');
 
     // Wait for response
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await wait(TEST_TIMING.NAVIGATION);
 
     // Verify we stayed on Interactive tab
     await assert.storeEquals('currentTab', 'interactive');
@@ -145,7 +146,7 @@ async function main() {
     console.log('🖱️  Clicked Add Your Bio badge');
 
     // Wait for navigation and expansion
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await wait(TEST_TIMING.CONTENT_LOAD);
 
     // Verify navigation to Bio tab
     const currentTab = await client.storeQuery('currentTab', 'cv-builder');
@@ -173,11 +174,11 @@ async function main() {
     }
 
     // Test keyboard focus on CondensedChat input
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await wait(TEST_TIMING.CHAT_RESPONSE);
 
     const condensedChatInputSelector = '[data-element="condensed-chat-input-wrapper"] [data-element="chat-input"]';
     await client.click(condensedChatInputSelector);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await wait(TEST_TIMING.UI_SETTLE);
 
     await client.type(condensedChatInputSelector, 'Test bio input');
     const inputValue = await client.page?.evaluate((selector) => {
@@ -216,7 +217,7 @@ async function main() {
     console.log('🖱️  Clicked Show Help badge');
 
     // Wait for response
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await wait(TEST_TIMING.NAVIGATION);
 
     // Verify we stayed on Interactive tab
     await assert.storeEquals('currentTab', 'interactive');
@@ -257,7 +258,7 @@ async function main() {
     console.log('🖱️  Clicked Generate Resume badge');
 
     // Wait for navigation
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await wait(TEST_TIMING.NAVIGATION);
 
     // Verify navigation to Outputs tab
     const currentTab = await client.storeQuery('currentTab', 'cv-builder');
@@ -286,7 +287,7 @@ async function main() {
     console.log('🖱️  Clicked Tailor Resume badge');
 
     // Wait for navigation
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await wait(TEST_TIMING.NAVIGATION);
 
     // Verify navigation to Jobs tab
     const currentTab = await client.storeQuery('currentTab', 'cv-builder');
@@ -325,7 +326,7 @@ async function main() {
     console.log('🖱️  Clicked Learning Path badge');
 
     // Wait for navigation
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await wait(TEST_TIMING.NAVIGATION);
 
     // Verify navigation to Research tab
     const currentTab = await client.storeQuery('currentTab', 'cv-builder');
@@ -364,7 +365,7 @@ async function main() {
     console.log('🖱️  Clicked Interview Prep badge');
 
     // Wait for navigation
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await wait(TEST_TIMING.NAVIGATION);
 
     // Verify navigation to Jobs tab
     const currentTab = await client.storeQuery('currentTab', 'cv-builder');
