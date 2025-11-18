@@ -3,9 +3,12 @@
  *
  * Manages Playwright browser lifecycle with singleton pattern.
  * Handles browser launch, page creation, and cleanup.
+ * Includes observability features (console logging, error tracking) in dev mode.
  */
 
 import { Browser, BrowserContext, Page, chromium } from 'playwright';
+import { ConsoleLogger } from '../observability/console-logger.js';
+import { ErrorTracker } from '../observability/error-tracker.js';
 
 const HEADLESS = process.env.HEADLESS === 'true';
 const BROWSER_APP_URL = process.env.BROWSER_APP_URL || 'http://localhost:3000';
@@ -24,6 +27,10 @@ class BrowserManager {
   private page: Page | null = null;
   private currentSession: Session | null = null;
   private sessionCleanupTimer: NodeJS.Timeout | null = null;
+
+  // Observability features (dev mode only)
+  private consoleLogger: ConsoleLogger | null = null;
+  private errorTracker: ErrorTracker | null = null;
 
   /**
    * Launch browser instance if not already running
@@ -63,7 +70,32 @@ class BrowserManager {
 
     this.page = await this.context.newPage();
 
-    console.log('Browser launched successfully');
+    // Initialize observability in dev mode
+    if (process.env.NODE_ENV === 'development') {
+      this.initializeObservability();
+      console.log('Browser launched successfully (observability enabled)');
+    } else {
+      console.log('Browser launched successfully');
+    }
+  }
+
+  /**
+   * Initialize observability features (console logging, error tracking)
+   * Only called in development mode for security
+   */
+  private initializeObservability(): void {
+    if (!this.page) {
+      console.warn('[OBSERVABILITY] Cannot initialize - no page available');
+      return;
+    }
+
+    try {
+      this.consoleLogger = new ConsoleLogger(this.page);
+      this.errorTracker = new ErrorTracker(this.page);
+      console.log('[OBSERVABILITY] Console logging and error tracking enabled');
+    } catch (error) {
+      console.error('[OBSERVABILITY] Failed to initialize:', error);
+    }
   }
 
   /**
@@ -186,6 +218,17 @@ class BrowserManager {
     console.log('Closing browser...');
 
     try {
+      // Cleanup observability
+      if (this.consoleLogger) {
+        this.consoleLogger.detach();
+        this.consoleLogger = null;
+      }
+
+      if (this.errorTracker) {
+        this.errorTracker.detach();
+        this.errorTracker = null;
+      }
+
       if (this.page) {
         await this.page.close();
         this.page = null;
@@ -206,6 +249,8 @@ class BrowserManager {
       this.browser = null;
       this.context = null;
       this.page = null;
+      this.consoleLogger = null;
+      this.errorTracker = null;
     }
   }
 
@@ -232,10 +277,39 @@ class BrowserManager {
       session: this.currentSession,
     };
   }
+
+  /**
+   * Get console logger (dev mode only)
+   */
+  getConsoleLogger(): ConsoleLogger | null {
+    return this.consoleLogger;
+  }
+
+  /**
+   * Get error tracker (dev mode only)
+   */
+  getErrorTracker(): ErrorTracker | null {
+    return this.errorTracker;
+  }
+
+  /**
+   * Check if observability is enabled
+   */
+  isObservabilityEnabled(): boolean {
+    return this.consoleLogger !== null && this.errorTracker !== null;
+  }
 }
 
 // Singleton instance
 export const browserManager = new BrowserManager();
+
+/**
+ * Get the singleton BrowserManager instance
+ * (for use in route handlers that need observability access)
+ */
+export function getBrowserManager(): BrowserManager {
+  return browserManager;
+}
 
 // Cleanup on process termination
 process.on('SIGTERM', async () => {

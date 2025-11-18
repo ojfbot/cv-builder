@@ -13,12 +13,14 @@ import {
   validateStoreMap,
 } from '../maps/index.js';
 import { browserManager } from '../automation/browser.js';
+import { requireDevMode as devModeMiddleware, evaluateLimiter } from '../middleware/index.js';
 
 const router = express.Router();
 
 /**
  * Middleware to check if running in development mode
  * Some endpoints (like snapshot) should only be available in dev mode
+ * @deprecated Use middleware/dev-only.ts instead
  */
 function requireDevMode(_req: Request, res: Response, next: express.NextFunction): void {
   const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev';
@@ -289,6 +291,114 @@ router.post('/store/validate', async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Validation failed',
+    });
+  }
+});
+
+/**
+ * POST /api/store/evaluate
+ *
+ * Execute arbitrary JavaScript in the browser context (dev mode only, rate limited)
+ *
+ * **SECURITY WARNING**: This endpoint allows code execution in the browser context.
+ * It is restricted to development mode and rate limited to prevent abuse.
+ *
+ * Use cases:
+ * - Debugging application state
+ * - Testing complex state queries
+ * - Inspecting non-Redux state
+ *
+ * Prefer using /api/store/query for structured state access when possible.
+ *
+ * Body:
+ * - expression: JavaScript expression to evaluate (required)
+ * - timeout: Timeout in milliseconds (default: 5000, max: 30000)
+ *
+ * @example
+ * POST /api/store/evaluate
+ * {
+ *   "expression": "document.querySelectorAll('.active-tab').length",
+ *   "timeout": 5000
+ * }
+ */
+router.post('/store/evaluate', devModeMiddleware, evaluateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { expression, timeout = 5000 } = req.body;
+
+    if (!expression || typeof expression !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Expression is required and must be a string',
+        example: '{ "expression": "window.location.href" }',
+      });
+    }
+
+    // Validate timeout
+    const safeTimeout = Math.min(Math.max(timeout, 100), 30000);
+
+    if (safeTimeout !== timeout) {
+      console.warn(`[EVALUATE] Timeout adjusted: ${timeout}ms → ${safeTimeout}ms`);
+    }
+
+    // Get current page
+    const page = await browserManager.getPage();
+
+    if (!page) {
+      return res.status(400).json({
+        success: false,
+        error: 'No browser page available. Navigate to a page first.',
+      });
+    }
+
+    const startTime = Date.now();
+
+    // Execute expression in browser context (sandboxed by Playwright)
+    const result = await page.evaluate(
+      (expr) => {
+        try {
+          // eslint-disable-next-line no-eval
+          return { success: true, value: eval(expr) };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Evaluation failed',
+            name: error instanceof Error ? error.name : 'Error',
+          };
+        }
+      },
+      expression
+    );
+
+    const executionTime = Date.now() - startTime;
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Evaluation failed in browser context',
+        details: result.error,
+        errorName: result.name,
+        expression,
+        executionTime,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      result: result.value,
+      type: typeof result.value,
+      executionTime,
+      expression,
+      devModeOnly: true,
+      securityNote: 'This endpoint is restricted to development mode and rate limited',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[EVALUATE] Execution error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Evaluation failed',
+      hint: 'Check browser console for details',
     });
   }
 });

@@ -17,6 +17,7 @@ import docsRoutes from './routes/docs.js';
 import githubRoutes from './routes/github.js';
 import elementsRoutes from './routes/elements.js';
 import storeRoutes from './routes/store.js';
+import consoleRoutes from './routes/console.js';
 import { browserManager } from './automation/browser.js';
 import { scheduleCleanup } from './automation/cleanup.js';
 
@@ -48,6 +49,7 @@ app.use('/api', interactRoutes);
 app.use('/api', waitRoutes);
 app.use('/api', elementsRoutes); // Phase 2: Element mapping
 app.use('/api', storeRoutes); // Phase 2: Store queries
+app.use('/api', consoleRoutes); // Phase 4: Observability (dev mode only)
 app.use('/api/github', githubRoutes);
 
 /**
@@ -56,12 +58,20 @@ app.use('/api/github', githubRoutes);
  */
 app.get('/health', async (_req: Request, res: Response) => {
   const browserStatus = browserManager.getStatus();
+  const observabilityEnabled = browserManager.isObservabilityEnabled();
+
   res.status(200).json({
     status: browserStatus.running ? 'ready' : 'idle',
     service: 'browser-automation',
-    version: '0.2.0',
+    version: '0.4.0',
     environment: NODE_ENV,
     browser: browserStatus,
+    observability: {
+      enabled: observabilityEnabled,
+      consoleLogger: observabilityEnabled,
+      errorTracker: observabilityEnabled,
+      devModeOnly: true,
+    },
     config: {
       browserAppUrl: BROWSER_APP_URL,
       headless: HEADLESS,
@@ -137,6 +147,13 @@ app.get('/', (_req: Request, res: Response) => {
         wait: 'POST /api/store/wait',
         snapshot: 'GET /api/store/snapshot (dev mode only)',
         validate: 'POST /api/store/validate',
+        evaluate: 'POST /api/store/evaluate (dev mode only)',
+      },
+      observability: {
+        logs: 'GET /api/console/logs (dev mode only)',
+        errors: 'GET /api/console/errors (dev mode only)',
+        stats: 'GET /api/console/stats (dev mode only)',
+        clear: 'POST /api/console/clear (dev mode only)',
       },
       docs: 'GET /api-docs (Swagger UI)',
       openapi: 'GET /openapi.yaml, GET /openapi.json',
