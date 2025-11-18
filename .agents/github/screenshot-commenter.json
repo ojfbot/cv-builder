@@ -63,7 +63,7 @@
       {
         "step": "detect-current-branch",
         "action": "action:get-git-branch",
-        "description": "Detect current branch for raw.githubusercontent.com URLs",
+        "description": "Detect current branch for display purposes (NOT for URLs - use commit SHA instead)",
         "required": true,
         "git_commands": [
           "git rev-parse --abbrev-ref HEAD"
@@ -99,11 +99,13 @@
       {
         "step": "get-commit-sha",
         "action": "action:get-commit-sha",
-        "description": "Get commit SHA for generating blob URLs",
+        "description": "Get commit SHA AFTER push for generating permanent blob URLs (CRITICAL: must run AFTER push step completes)",
         "required": true,
+        "must_run_after": "push-to-remote",
         "git_commands": [
           "git rev-parse HEAD"
-        ]
+        ],
+        "note": "This SHA is used in all image URLs. Using commit SHA (not branch) ensures URLs survive branch deletion/rebase."
       },
       {
         "step": "extract-metadata",
@@ -188,12 +190,12 @@
         "steps": [
           "1. Ask for PR/issue number",
           "2. AUTO-DETECT screenshot location (searches temp/screenshots/*, docs/screenshots/*, packages/*/temp/screenshots/*, packages/*/docs/screenshots/* and uses most recently modified)",
-          "3. Get current git commit SHA using `git rev-parse HEAD`",
-          "4. Copy screenshots from detected location to temp/pr-{number}/ directory",
-          "5. Commit the screenshot files to the current branch",
-          "6. CRITICAL: Push the commit to remote repository using `git push origin <branch>` BEFORE generating comment URLs. URLs will NOT work until commit is pushed.",
-          "7. Generate markdown comment body with image embeds using blob URLs with ?raw=true parameter (CRITICAL: format MUST be: https://github.com/OWNER/REPO/blob/{commit-sha}/path/to/image.png?raw=true - the ?raw=true is REQUIRED for images to render in markdown. Use COMMIT SHA, not branch name.)",
-          "8. Post the comment to the specified PR or issue",
+          "3. Copy screenshots from detected location to temp/pr-{number}/ directory (or packages/browser-automation/temp/pr-{number}/ for backward compat)",
+          "4. Commit the screenshot files to the current branch using `git add` and `git commit`",
+          "5. CRITICAL STEP 1: Push the commit to remote repository using `git push` - this MUST happen BEFORE generating URLs or images will 404",
+          "6. CRITICAL STEP 2: Get commit SHA AFTER pushing using `git rev-parse HEAD` - this ensures we use the pushed commit's SHA",
+          "7. CRITICAL STEP 3: Generate markdown comment with blob URLs using format: https://github.com/{owner}/{repo}/blob/{COMMIT-SHA}/{path}?raw=true - MUST use commit SHA from step 6, NOT branch name",
+          "8. Post the comment to the specified PR or issue using `gh pr comment` or `gh issue comment`",
           "9. Report success with comment URL"
         ],
         "error_handling": {
@@ -201,10 +203,21 @@
           "commit_failed": "Report error and suggest manual commit",
           "comment_post_failed": "Show generated markdown and suggest manual posting"
         },
-        "url_format": "https://github.com/OWNER/REPO/blob/{commit-sha}/path/to/image.png?raw=true",
-        "url_format_note": "CRITICAL: Must use blob URLs with ?raw=true parameter, NOT raw.githubusercontent.com URLs. The ?raw=true parameter forces GitHub to serve the raw file which allows markdown image rendering. Format: https://github.com/{owner}/{repo}/blob/{commit-sha}/{path}?raw=true. MUST use commit SHA (from `git rev-parse HEAD`) NOT branch name. Commit MUST be pushed to remote before URLs will work.",
-        "commit_detection": "Uses `git rev-parse HEAD` to get commit SHA for URLs",
-        "push_requirement": "CRITICAL: After committing screenshots, MUST push to remote with `git push origin <branch>` BEFORE creating PR comment. URLs will 404 if commit is not pushed.",
+        "url_format": "https://github.com/{owner}/{repo}/blob/{COMMIT-SHA}/{path}?raw=true",
+        "url_format_critical_requirements": [
+          "1. MUST use blob URLs with ?raw=true parameter (NOT raw.githubusercontent.com)",
+          "2. MUST use COMMIT SHA (from `git rev-parse HEAD` AFTER push), NOT branch name",
+          "3. MUST push commit to remote BEFORE generating URLs (URLs 404 if commit not pushed)",
+          "4. MUST fetch commit SHA AFTER push completes (ensures correct SHA is used)"
+        ],
+        "execution_order": "CRITICAL ORDER: 1) Commit files → 2) Push to remote → 3) Get commit SHA → 4) Generate URLs → 5) Post comment",
+        "common_failures": [
+          "❌ Using branch name instead of commit SHA → Images 404 after branch deleted",
+          "❌ Generating URLs before pushing → Images 404 until push happens",
+          "❌ Getting commit SHA before committing → Uses wrong/old commit",
+          "❌ Missing ?raw=true parameter → GitHub serves HTML page not image",
+          "❌ Using raw.githubusercontent.com for private repos → Always 404s"
+        ],
         "markdown_template_collapsible": "<details>\n<summary><b>[Section Title]</b></summary>\n\n<details>\n<summary>[Screenshot Title]</summary>\n\n![Alt Text](image-url)\n\n[Description]\n</details>\n\n</details>",
         "markdown_format_instructions": "CRITICAL: Use collapsible <details> sections to keep PR threads concise. Nest screenshots under category sections, all collapsed by default. Example: Main section 'Sidebar Toggle Tests (4/4)' contains nested <details> for each screenshot. Users expand only what they need to see.",
         "markdown_template": "## 📸 Screenshots\n\n### [Title]\n![Alt Text](image-url)\n\n[Description]",
