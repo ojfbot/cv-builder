@@ -11,9 +11,11 @@
  *
  * This is a "flow" test (not just an "interaction") because it tests
  * the complete multi-step user journey with predictable state changes.
+ *
+ * Part of the semantic test organization structure (bio-form suite).
  */
 
-import { createTestSuite, createTestRunner } from '../../src/test-runner/index.js';
+import { createTestSuite, createTestRunner } from '../../../src/test-runner/index.js';
 
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
@@ -42,9 +44,15 @@ async function main() {
     // Verify we're on the interactive tab
     await assert.storeEquals('currentTab', 'interactive');
 
-    // Capture initial state
+    // Capture initial state with semantic path
     const screenshot = await client.screenshot({
       name: 'add-your-bio-flow-initial',
+      test: {
+        app: 'cv-builder',
+        suite: 'bio-form',
+        case: 'add-your-bio-flow-initial'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -70,9 +78,15 @@ async function main() {
     await assert.storeEquals('currentTab', 'bio');
     console.log('✅ Navigation changed from interactive to bio tab');
 
-    // Capture navigation state
+    // Capture navigation state with semantic path
     const screenshot = await client.screenshot({
       name: 'add-your-bio-flow-navigation',
+      test: {
+        app: 'cv-builder',
+        suite: 'bio-form',
+        case: 'add-your-bio-flow-navigation'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -90,9 +104,15 @@ async function main() {
     await assert.storeEquals('chatExpanded', true);
     console.log('✅ Chat window is expanded');
 
-    // Capture expanded state
+    // Capture expanded state with semantic path
     const screenshot = await client.screenshot({
       name: 'add-your-bio-flow-expanded',
+      test: {
+        app: 'cv-builder',
+        suite: 'bio-form',
+        case: 'add-your-bio-flow-expanded'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -148,9 +168,15 @@ async function main() {
       console.log(`⚠️  Chat input value unexpected: "${inputValue}"`);
     }
 
-    // Capture state with text input
+    // Capture state with text input with semantic path
     const screenshot = await client.screenshot({
       name: 'add-your-bio-flow-focus',
+      test: {
+        app: 'cv-builder',
+        suite: 'bio-form',
+        case: 'add-your-bio-flow-focus'
+      },
+      viewport: 'desktop',
       fullPage: true,
     });
     assert.screenshotCaptured(screenshot);
@@ -187,9 +213,15 @@ async function main() {
       console.log('⚠️  No bio-specific content detected, but message count is present');
     }
 
-    // Capture assistant response
+    // Capture assistant response with semantic path
     const screenshot = await client.screenshot({
       name: 'add-your-bio-flow-response',
+      test: {
+        app: 'cv-builder',
+        suite: 'bio-form',
+        case: 'add-your-bio-flow-response'
+      },
+      viewport: 'desktop',
       fullPage: true,
     });
     assert.screenshotCaptured(screenshot);
@@ -206,9 +238,15 @@ async function main() {
 
     console.log('✅ Add Your Bio flow completed successfully');
 
-    // Final screenshot of complete flow
+    // Final screenshot of complete flow with semantic path
     const screenshot = await client.screenshot({
       name: 'add-your-bio-flow-complete',
+      test: {
+        app: 'cv-builder',
+        suite: 'bio-form',
+        case: 'add-your-bio-flow-complete'
+      },
+      viewport: 'desktop',
       fullPage: true,
     });
     assert.screenshotCaptured(screenshot);

@@ -1,16 +1,17 @@
 /**
- * Toggle Sidebar - User Interaction Flow
+ * Sidebar Toggle Interactions Test
  *
  * Tests sidebar expansion/collapse with search input and Redux store verification.
+ * Part of the semantic test organization structure.
  */
 
-import { createTestSuite, createTestRunner } from '../../src/test-runner/index.js';
+import { createTestSuite, createTestRunner } from '../../../src/test-runner/index.js';
 
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
 async function main() {
-  const { suite, client } = createTestSuite('Toggle Sidebar', API_URL);
+  const { suite, client } = createTestSuite('Sidebar Toggle Interactions', API_URL);
 
   suite.beforeAll(async () => {
     console.log('🚀 Navigating to CV Builder app...');
@@ -23,9 +24,15 @@ async function main() {
     // Verify DOM: Sidebar navigation is not visible (collapsed)
     await assert.elementHidden('.cds--side-nav__navigation');
 
-    // Capture collapsed state
+    // Capture collapsed state with semantic path
     const screenshot = await client.screenshot({
       name: 'toggle-sidebar-collapsed',
+      test: {
+        app: 'cv-builder',
+        suite: 'sidebar',
+        case: 'collapsed'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -44,9 +51,15 @@ async function main() {
 
     // Note: Sidebar state is local to App.tsx, not in Redux store
 
-    // Capture expanded state
+    // Capture expanded state with semantic path
     const screenshot = await client.screenshot({
       name: 'toggle-sidebar-expanded',
+      test: {
+        app: 'cv-builder',
+        suite: 'sidebar',
+        case: 'expanded'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -65,9 +78,15 @@ async function main() {
 
     // Note: Sidebar state is local to App.tsx, not in Redux store
 
-    // Capture collapsed state again
+    // Capture collapsed state again with semantic path
     const screenshot = await client.screenshot({
       name: 'toggle-sidebar-collapsed-again',
+      test: {
+        app: 'cv-builder',
+        suite: 'sidebar',
+        case: 'collapsed-again'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -81,7 +100,7 @@ async function main() {
   const runner = createTestRunner({ reporters: ['console'], verbose: true });
   const result = await runner.run(suite);
 
-  console.log(`\n✅ Toggle Sidebar: ${result.summary.passed}/${result.summary.total} passed`);
+  console.log(`\n✅ Sidebar Toggle Interactions: ${result.summary.passed}/${result.summary.total} passed`);
   process.exit(result.summary.failed > 0 ? 1 : 0);
 }
 

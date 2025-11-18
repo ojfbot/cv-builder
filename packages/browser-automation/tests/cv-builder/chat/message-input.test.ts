@@ -1,16 +1,17 @@
 /**
- * Engage Chat - User Interaction Flow
+ * Chat Message Input Test
  *
- * Tests chat input, message sending, and Redux store synchronization.
+ * Tests chat input, message typing, and Redux store synchronization.
+ * Part of the semantic test organization structure.
  */
 
-import { createTestSuite, createTestRunner } from '../../src/test-runner/index.js';
+import { createTestSuite, createTestRunner } from '../../../src/test-runner/index.js';
 
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
 async function main() {
-  const { suite, client } = createTestSuite('Engage Chat', API_URL);
+  const { suite, client } = createTestSuite('Chat Message Input', API_URL);
 
   suite.beforeAll(async () => {
     console.log('🚀 Navigating to CV Builder app...');
@@ -30,9 +31,15 @@ async function main() {
     // Verify Redux store: draftInput is empty string
     await assert.storeEquals('draftInput', '');
 
-    // Capture screenshot
+    // Capture screenshot with semantic path
     const screenshot = await client.screenshot({
       name: 'engage-chat-empty-input',
+      test: {
+        app: 'cv-builder',
+        suite: 'chat',
+        case: 'empty-input'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -51,9 +58,15 @@ async function main() {
     // Verify Redux store: draftInput matches
     await assert.storeEventuallyEquals('draftInput', testMessage, { timeout: 2000 });
 
-    // Capture screenshot
+    // Capture screenshot with semantic path
     const screenshot = await client.screenshot({
       name: 'engage-chat-with-text',
+      test: {
+        app: 'cv-builder',
+        suite: 'chat',
+        case: 'with-text'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -78,7 +91,7 @@ async function main() {
   const runner = createTestRunner({ reporters: ['console'], verbose: true });
   const result = await runner.run(suite);
 
-  console.log(`\n✅ Engage Chat: ${result.summary.passed}/${result.summary.total} passed`);
+  console.log(`\n✅ Chat Message Input: ${result.summary.passed}/${result.summary.total} passed`);
   process.exit(result.summary.failed > 0 ? 1 : 0);
 }
 

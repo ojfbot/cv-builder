@@ -1,16 +1,17 @@
 /**
- * Open Settings - User Interaction Flow
+ * Settings Modal Interactions Test
  *
  * Tests settings modal open/close behavior and connection status display.
+ * Part of the semantic test organization structure.
  */
 
-import { createTestSuite, createTestRunner } from '../../src/test-runner/index.js';
+import { createTestSuite, createTestRunner } from '../../../src/test-runner/index.js';
 
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
 async function main() {
-  const { suite, client } = createTestSuite('Open Settings', API_URL);
+  const { suite, client } = createTestSuite('Settings Modal Interactions', API_URL);
 
   suite.beforeAll(async () => {
     console.log('🚀 Navigating to CV Builder app...');
@@ -31,9 +32,15 @@ async function main() {
     // Verify modal visible
     await assert.elementVisible('[data-element="settings-modal"]');
 
-    // Capture screenshot
+    // Capture screenshot with semantic path
     const screenshot = await client.screenshot({
       name: 'open-settings-modal',
+      test: {
+        app: 'cv-builder',
+        suite: 'settings',
+        case: 'modal-open'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -46,9 +53,15 @@ async function main() {
 
     await assert.elementExists(notification);
 
-    // Capture screenshot showing status
+    // Capture screenshot showing status with semantic path
     const screenshot = await client.screenshot({
       name: 'open-settings-status',
+      test: {
+        app: 'cv-builder',
+        suite: 'settings',
+        case: 'connection-status'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -67,9 +80,15 @@ async function main() {
     // Verify hidden
     await assert.elementHidden('[data-element="settings-modal"]');
 
-    // Capture screenshot
+    // Capture screenshot with semantic path
     const screenshot = await client.screenshot({
       name: 'open-settings-closed',
+      test: {
+        app: 'cv-builder',
+        suite: 'settings',
+        case: 'modal-closed'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -83,7 +102,7 @@ async function main() {
   const runner = createTestRunner({ reporters: ['console'], verbose: true });
   const result = await runner.run(suite);
 
-  console.log(`\n✅ Open Settings: ${result.summary.passed}/${result.summary.total} passed`);
+  console.log(`\n✅ Settings Modal Interactions: ${result.summary.passed}/${result.summary.total} passed`);
   process.exit(result.summary.failed > 0 ? 1 : 0);
 }
 
