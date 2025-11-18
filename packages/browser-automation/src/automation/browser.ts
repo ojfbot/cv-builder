@@ -305,8 +305,11 @@ class BrowserManager {
    */
   async clearStorage(): Promise<void> {
     if (!this.context) {
-      console.warn('Cannot clear storage - no browser context available');
-      return;
+      throw new Error('Cannot clear storage - no browser context available');
+    }
+
+    if (!this.page) {
+      throw new Error('Cannot clear storage - no page available');
     }
 
     console.log('Clearing browser storage...');
@@ -344,9 +347,26 @@ class BrowserManager {
             );
           }
         });
+
+        // Verify storage is actually cleared (prevent race conditions)
+        const verificationResult = await this.page.evaluate(() => {
+          const localStorageEmpty = localStorage.length === 0;
+          const sessionStorageEmpty = sessionStorage.length === 0;
+          return {
+            localStorageEmpty,
+            sessionStorageEmpty,
+            success: localStorageEmpty && sessionStorageEmpty,
+          };
+        });
+
+        if (!verificationResult.success) {
+          throw new Error(
+            `Storage clearing verification failed: localStorage=${verificationResult.localStorageEmpty}, sessionStorage=${verificationResult.sessionStorageEmpty}`
+          );
+        }
       }
 
-      console.log('Browser storage cleared successfully');
+      console.log('Browser storage cleared and verified successfully');
     } catch (error) {
       console.error('Error clearing browser storage:', error);
       throw error;
@@ -359,8 +379,7 @@ class BrowserManager {
    */
   async resetContext(): Promise<void> {
     if (!this.browser) {
-      console.warn('Cannot reset context - no browser available');
-      return;
+      throw new Error('Cannot reset context - no browser available');
     }
 
     console.log('Resetting browser context...');

@@ -26,12 +26,12 @@ async function main() {
   suite.beforeAll(async () => {
     console.log('🚀 Navigating to CV Builder app...');
 
+    await client.navigate(APP_URL);
+    await client.waitForSelector('[data-element="app-container"]', { timeout: 10000 });
+
     // Clear browser storage to ensure clean state
     console.log('🧹 Clearing browser storage for test isolation...');
     await client.clearStorage();
-
-    await client.navigate(APP_URL);
-    await client.waitForSelector('[data-element="app-container"]', { timeout: 10000 });
 
     // Navigate to Interactive tab to ensure we see the welcome message
     await client.click('[role="tab"]:has-text("Interactive")');

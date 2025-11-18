@@ -28,12 +28,12 @@ async function main() {
   suite.beforeAll(async () => {
     console.log('🚀 Navigating to CV Builder app...');
 
+    await client.navigate(APP_URL);
+    await client.waitForSelector('[data-element="app-container"]', { timeout: 10000 });
+
     // Clear browser storage to ensure clean state
     console.log('🧹 Clearing browser storage for test isolation...');
     await client.clearStorage();
-
-    await client.navigate(APP_URL);
-    await client.waitForSelector('[data-element="app-container"]', { timeout: 10000 });
 
     // Navigate to Interactive tab to ensure we see the welcome message
     await client.click('[role="tab"]:has-text("Interactive")');
@@ -45,12 +45,12 @@ async function main() {
   async function resetToWelcomeMessage() {
     console.log('🔄 Resetting to welcome message...');
 
+    // Clear storage BEFORE reload to ensure the reload starts with clean state
+    await client.clearStorage();
+
     // Reload the page to get fresh state
     await client.reload();
     await client.waitForSelector('[data-element="app-container"]', { timeout: 5000 });
-
-    // Clear storage AFTER reload to ensure clean state between badge tests
-    await client.clearStorage();
 
     // Navigate back to Interactive tab
     await client.click('[role="tab"]:has-text("Interactive")');
