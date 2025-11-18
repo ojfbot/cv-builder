@@ -27,6 +27,10 @@
     "test:sidebar": "tsx tests/cv-builder/sidebar/toggle-interactions.test.ts",
     "test:theme": "tsx tests/cv-builder/theme/theme-switching.test.ts",
     "test:comprehensive": "tsx scripts/run-comprehensive-tests.ts",
+    "test:observability": "tsx tests/unit/observability/observability.test.ts",
+    "test:dev-mode": "tsx tests/unit/middleware/dev-mode.test.ts",
+    "test:rate-limit": "tsx tests/unit/middleware/rate-limit.test.ts",
+    "test:unit": "npm run test:observability && npm run test:dev-mode",
     "test:all": "npm run test && npm run test:phase2 && npm run test:phase3 && npm run test:comprehensive && npm run test:cv-builder && npm run test:ui-nav",
     "test:watch": "tsx watch tests/integration/basic-workflow.test.ts"
   },
