@@ -351,8 +351,15 @@ Added ${copiedImages.length} screenshot(s) from ${screenshotDir}
 
     // Push to remote BEFORE generating URLs
     console.log('\n⬆️  Pushing to remote (REQUIRED for URLs to work)...');
-    execSync('git push', { stdio: 'inherit' });
-    console.log('✓ Pushed to remote');
+    try {
+      execSync('git push', { stdio: 'inherit' });
+      console.log('✓ Pushed to remote');
+    } catch (pushError) {
+      console.error('❌ Push failed:', pushError.message);
+      console.log('⚠️  URLs will not work until changes are pushed manually');
+      console.log('💡 Run `git push` manually, then re-run this script');
+      process.exit(1); // Critical failure - URLs won't work
+    }
 
     // NOW fetch commit SHA for URL generation
     commitSha = getCommitSha();
@@ -382,7 +389,7 @@ console.log('─'.repeat(80));
 
 // Wait a moment for GitHub to process the push
 console.log('\n⏳ Waiting for GitHub to process files (ensuring blob URLs are available)...');
-execSync('sleep 5');
+execSync('sleep 2');
 
 // Post comment
 console.log(`\n💬 Posting comment to PR #${prNumber}...`);
