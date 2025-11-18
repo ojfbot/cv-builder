@@ -110,10 +110,18 @@ async function cleanupPRScreenshots() {
   const calculateDirSize = async (dirPath: string): Promise<number> => {
     try {
       const result = spawnSync('du', ['-sk', dirPath], { encoding: 'utf-8' });
-      if (result.status !== 0) return 0;
+      if (result.status !== 0) {
+        console.warn(`⚠️  Failed to calculate size for ${dirPath}: ${result.stderr || 'Unknown error'}`);
+        return 0;
+      }
       const sizeKB = parseInt(result.stdout.split('\t')[0]);
+      if (isNaN(sizeKB)) {
+        console.warn(`⚠️  Invalid size output for ${dirPath}: ${result.stdout}`);
+        return 0;
+      }
       return sizeKB;
-    } catch {
+    } catch (error) {
+      console.warn(`⚠️  Error calculating size for ${dirPath}:`, error instanceof Error ? error.message : error);
       return 0;
     }
   };
