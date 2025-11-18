@@ -317,22 +317,31 @@ class BrowserManager {
 
       // Clear localStorage, sessionStorage, and indexedDB using evaluate
       if (this.page) {
-        await this.page.evaluate(() => {
+        await this.page.evaluate(async () => {
           // Clear localStorage
           localStorage.clear();
 
           // Clear sessionStorage
           sessionStorage.clear();
 
-          // Clear indexedDB (all databases)
+          // Clear indexedDB (all databases) - await completion
           if (window.indexedDB) {
-            indexedDB.databases().then((databases) => {
-              databases.forEach((db) => {
-                if (db.name) {
-                  indexedDB.deleteDatabase(db.name);
-                }
-              });
-            });
+            const databases = await indexedDB.databases();
+            await Promise.all(
+              databases
+                .filter((db) => db.name)
+                .map((db) => {
+                  return new Promise<void>((resolve, reject) => {
+                    const request = indexedDB.deleteDatabase(db.name!);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                    request.onblocked = () => {
+                      console.warn(`IndexedDB deletion blocked for ${db.name}`);
+                      resolve(); // Resolve anyway to not block cleanup
+                    };
+                  });
+                })
+            );
           }
         });
       }
