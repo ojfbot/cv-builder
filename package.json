@@ -21,9 +21,8 @@
     "docker:run": "docker run -it --rm -v $(pwd)/data:/app/data --env-file .env.local cv-builder-agents",
     "screenshots:cleanup": "tsx scripts/cleanup-screenshots.ts",
     "screenshots:cleanup:dry-run": "tsx scripts/cleanup-screenshots.ts --dry-run",
-    "screenshots:status": "tsx scripts/screenshot-status.ts",
-    "screenshots:migrate": "tsx scripts/migrate-screenshots.ts",
-    "screenshots:migrate:dry-run": "tsx scripts/migrate-screenshots.ts --dry-run"
+    "screenshots:promote": "tsx scripts/promote-screenshots-to-docs.ts",
+    "screenshots:promote:dry-run": "tsx scripts/promote-screenshots-to-docs.ts --dry-run"
   },
   "keywords": [
     "cv",

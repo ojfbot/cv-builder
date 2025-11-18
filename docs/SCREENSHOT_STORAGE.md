@@ -11,14 +11,61 @@ This document describes the screenshot storage architecture for the CV Builder m
 ## Quick Reference
 
 ```bash
+# Promote latest PR screenshots to docs/ (for regression testing baseline)
+npm run screenshots:promote
+
 # Clean up old screenshots (keeps last 3 merged PRs)
 npm run screenshots:cleanup
 
-# Preview what would be deleted
+# Preview operations
+npm run screenshots:promote:dry-run
 npm run screenshots:cleanup:dry-run
+```
 
-# View current storage status
-npm run screenshots:status
+## Critical Workflow: Complete Screenshot Coverage
+
+**Every PR MUST include a complete set of screenshots covering all test suites.**
+
+This ensures:
+- ✅ Complete regression testing baseline in docs/
+- ✅ No gaps in visual documentation
+- ✅ Every PR can serve as a rollback point
+- ✅ Historical comparison across PRs
+
+### PR Workflow for Screenshot Coverage
+
+**1. Run Complete Test Suite**
+```bash
+npm run test:ui  # Or whatever runs all UI tests
+```
+
+**2. Verify Complete Coverage**
+```bash
+# Check screenshot count
+find temp/screenshots/pr-{number} -name "*.png" | wc -l
+
+# Should match expected coverage:
+# - All test suites
+# - All viewports (desktop, mobile, tablet)
+# - All critical UI states
+```
+
+**3. Commit Screenshots to PR**
+```bash
+git add temp/screenshots/pr-{number}/
+git commit -m "test: add complete screenshot coverage for PR #{number}"
+git push
+```
+
+**4. After PR Merges - Promote to Docs**
+```bash
+# Promote to permanent baseline
+npm run screenshots:promote
+
+# Commit updated docs
+git add docs/screenshots/
+git commit -m "docs: update screenshot baseline from PR #{number}"
+git push
 ```
 
 ## Storage Tiers
@@ -120,19 +167,21 @@ await client.screenshot({
 
 ---
 
-### 3. Permanent Documentation (Curated Reference)
+### 3. Permanent Documentation (Golden Baseline)
 
 **Location:** `docs/screenshots/{app}/{suite}/`
 
 **Purpose:**
-- Golden reference screenshots for key features
+- **Golden reference** screenshots for visual regression testing
+- **Baseline** for comparing new PRs against
+- **Complete coverage** of all test suites
 - UI documentation for onboarding
-- API usage examples
-- Permanent visual regression baselines
 
 **Git Tracking:** ✅ Yes (never deleted)
 
-**Retention:** Permanent (manual curation)
+**Retention:** Permanent
+
+**Source:** Promoted from most recent PR with complete screenshot coverage
 
 **File Structure:**
 ```
@@ -148,11 +197,31 @@ docs/screenshots/
         └── capture-element.png
 ```
 
+**How to Promote:**
+
+After merging a PR with complete screenshot coverage:
+
+```bash
+# Promote latest PR to docs/
+npm run screenshots:promote
+
+# Or promote specific PR
+npm run screenshots:promote -- --pr=36
+
+# Preview what will be promoted
+npm run screenshots:promote:dry-run
+```
+
+This will:
+1. Copy all screenshots from `temp/screenshots/pr-{number}/` to `docs/screenshots/`
+2. Maintain semantic structure: `{app}/{suite}/{case}.png`
+3. Generate README.md files with metadata and visual documentation
+4. Update baseline for regression testing
+
 **When to Promote:**
-- Golden reference screenshots for key features
-- Important UI states worth preserving
-- Documentation examples
-- Manually curated by developers
+- After merging any PR with complete test coverage
+- When updating visual regression baseline
+- After significant UI changes that should become the new standard
 
 ---
 
