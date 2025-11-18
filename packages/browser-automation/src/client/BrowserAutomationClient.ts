@@ -429,6 +429,31 @@ export class BrowserAutomationClient {
   }
 
   /**
+   * Clear browser storage (localStorage, sessionStorage, cookies, indexedDB)
+   * Call this between tests to ensure complete isolation
+   */
+  async clearStorage(): Promise<void> {
+    try {
+      await this.axios.post('/api/storage/clear');
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Reset browser context (creates new context with clean state)
+   * This is more aggressive than clearStorage and ensures complete isolation
+   * Use this between test suites for maximum separation
+   */
+  async resetContext(): Promise<void> {
+    try {
+      await this.axios.post('/api/context/reset');
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
    * Query Redux store state with retry mechanism
    */
   async storeQuery(

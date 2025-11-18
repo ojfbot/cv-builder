@@ -15,6 +15,11 @@ async function main() {
 
   suite.beforeAll(async () => {
     console.log('🚀 Navigating to CV Builder app...');
+
+    // Clear browser storage to ensure clean state
+    console.log('🧹 Clearing browser storage for test isolation...');
+    await client.clearStorage();
+
     await client.navigate(APP_URL);
     await client.waitForSelector('[data-element="app-container"]', { timeout: 10000 });
 
