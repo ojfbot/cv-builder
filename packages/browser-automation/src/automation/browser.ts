@@ -298,6 +298,115 @@ class BrowserManager {
   isObservabilityEnabled(): boolean {
     return this.consoleLogger !== null && this.errorTracker !== null;
   }
+
+  /**
+   * Clear browser storage (localStorage, sessionStorage, cookies, indexedDB)
+   * This provides complete isolation between test runs
+   */
+  async clearStorage(): Promise<void> {
+    if (!this.context) {
+      console.warn('Cannot clear storage - no browser context available');
+      return;
+    }
+
+    console.log('Clearing browser storage...');
+
+    try {
+      // Clear cookies
+      await this.context.clearCookies();
+
+      // Clear localStorage, sessionStorage, and indexedDB using evaluate
+      if (this.page) {
+        await this.page.evaluate(() => {
+          // Clear localStorage
+          localStorage.clear();
+
+          // Clear sessionStorage
+          sessionStorage.clear();
+
+          // Clear indexedDB (all databases)
+          if (window.indexedDB) {
+            indexedDB.databases().then((databases) => {
+              databases.forEach((db) => {
+                if (db.name) {
+                  indexedDB.deleteDatabase(db.name);
+                }
+              });
+            });
+          }
+        });
+      }
+
+      console.log('Browser storage cleared successfully');
+    } catch (error) {
+      console.error('Error clearing browser storage:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reset browser context completely (creates new context with clean state)
+   * This is more aggressive than clearStorage and ensures complete isolation
+   */
+  async resetContext(): Promise<void> {
+    if (!this.browser) {
+      console.warn('Cannot reset context - no browser available');
+      return;
+    }
+
+    console.log('Resetting browser context...');
+
+    try {
+      // Cleanup observability from old context
+      if (this.consoleLogger) {
+        this.consoleLogger.detach();
+        this.consoleLogger = null;
+      }
+
+      if (this.errorTracker) {
+        this.errorTracker.detach();
+        this.errorTracker = null;
+      }
+
+      // Close old page
+      if (this.page) {
+        await this.page.close();
+        this.page = null;
+      }
+
+      // Close old context
+      if (this.context) {
+        await this.context.close();
+        this.context = null;
+      }
+
+      // Create new context
+      this.context = await this.browser.newContext({
+        viewport: { width: 1920, height: 1080 },
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) CV-Builder-Automation',
+      });
+
+      // Inject Redux DevTools emulation
+      await this.context.addInitScript(() => {
+        (window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
+          stores: [],
+        };
+      });
+
+      // Create new page
+      this.page = await this.context.newPage();
+
+      // Re-initialize observability
+      if (process.env.NODE_ENV === 'development') {
+        this.initializeObservability();
+      }
+
+      console.log('Browser context reset successfully');
+    } catch (error) {
+      console.error('Error resetting browser context:', error);
+      throw error;
+    }
+  }
 }
 
 // Singleton instance

@@ -19,7 +19,7 @@
     "test:cv-builder": "tsx tests/apps/cv-builder-integration.test.ts",
     "test:ui-nav": "tsx tests/ui/cv-builder-navigation.test.ts",
     "test:bio-form": "tsx tests/cv-builder/bio-form/navigation.test.ts && tsx tests/cv-builder/bio-form/add-bio-flow.test.ts",
-    "test:chat": "tsx tests/cv-builder/chat/message-input.test.ts",
+    "test:chat": "tsx tests/cv-builder/chat/message-input.test.ts && tsx tests/cv-builder/chat/show-help-flow.test.ts && tsx tests/cv-builder/chat/badge-interactions.test.ts",
     "test:interactive": "tsx tests/cv-builder/interactive/navigation.test.ts",
     "test:jobs": "tsx tests/cv-builder/jobs/navigation.test.ts",
     "test:outputs": "tsx tests/cv-builder/outputs/navigation.test.ts",
