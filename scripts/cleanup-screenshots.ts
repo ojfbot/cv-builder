@@ -15,7 +15,7 @@
  *   npm run screenshots:cleanup:dry-run   # Preview without deleting
  */
 
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -109,8 +109,9 @@ async function cleanupPRScreenshots() {
 
   const calculateDirSize = async (dirPath: string): Promise<number> => {
     try {
-      const result = execSync(`du -sk "${dirPath}"`, { encoding: 'utf-8' });
-      const sizeKB = parseInt(result.split('\t')[0]);
+      const result = spawnSync('du', ['-sk', dirPath], { encoding: 'utf-8' });
+      if (result.status !== 0) return 0;
+      const sizeKB = parseInt(result.stdout.split('\t')[0]);
       return sizeKB;
     } catch {
       return 0;
