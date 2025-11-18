@@ -213,11 +213,14 @@ Claude can load and execute specialized agents from `.agents/` directory:
 - `agent:pre-commit` - Run pre-commit validation
 - `agent:issue-manager` - Manage GitHub issues
 - `agent:pr-manager` - Handle pull requests
+- `agent:pr-educator` - Analyze PRs and generate educational senior engineering commentary
+- `agent:screenshot-commenter` - Generate test reports with embedded screenshots
 - `agent:quality-check` - Run quality validation
 - `agent:build-validator` - Validate build configuration
 
 To use an agent, simply say: "Run the pre-commit validator agent"
 or "Use the issue manager agent to create a new issue"
+or "Analyze PR #41 with the pr-educator agent"
 
 ## Key Technologies
 

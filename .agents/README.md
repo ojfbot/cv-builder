@@ -8,13 +8,17 @@ This directory contains AI agent definitions that can execute workflows and comm
 .agents/
 ├── README.md                          # This file
 ├── registry.json                      # Agent registry with metadata
+├── pr-educator.md                     # PR educational analysis agent
+├── screenshot-commenter.md            # Screenshot test report generator
 ├── quality/                           # Code quality agents
 │   ├── pre-commit-validator.json     # Pre-commit validation agent
 │   └── code-quality-enforcer.json    # Continuous quality enforcement
 ├── github/                            # GitHub workflow agents
 │   ├── issue-manager.json            # Issue creation and management
 │   ├── pr-manager.json               # Pull request workflow
-│   └── release-manager.json          # Release and versioning
+│   ├── release-manager.json          # Release and versioning
+│   └── scripts/
+│       └── upload-screenshots.cjs    # Upload screenshots to PR comments
 └── ci-cd/                            # CI/CD agents
     ├── build-validator.json          # Build validation
     └── deployment-orchestrator.json  # Deployment coordination
@@ -58,11 +62,24 @@ Agents are autonomous AI assistants that:
   - Cross-references requirements
   - Tracks PR-Issue relationships
 
+- **PR Educator**: Analyzes PRs and generates educational commentary
+  - Extracts senior engineering principles from PR implementations
+  - Explains architectural decisions and design patterns
+  - Quantifies real-world impact and ROI
+  - Creates discussion questions for team learning
+  - Writes objective, professional analysis
+
 - **Release Manager**: Coordinates releases
   - Manages version bumping
   - Generates changelogs
   - Creates release notes
   - Tags releases properly
+
+- **Screenshot Commenter**: Generates comprehensive test reports with screenshots
+  - Organizes screenshots by test suite
+  - Tracks "not yet implemented" features
+  - Creates structured markdown with collapsible sections
+  - Posts to GitHub PR comments
 
 ### CI/CD Agents
 - **Build Validator**: Ensures build integrity
