@@ -330,6 +330,8 @@ class BrowserManager {
           // Clear indexedDB (all databases) - await completion
           if (window.indexedDB) {
             const databases = await indexedDB.databases();
+            const blockedDatabases: string[] = [];
+
             await Promise.all(
               databases
                 .filter((db) => db.name)
@@ -339,14 +341,26 @@ class BrowserManager {
                     request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
                     request.onblocked = () => {
+                      blockedDatabases.push(db.name!);
                       console.warn(`IndexedDB deletion blocked for ${db.name}`);
                       resolve(); // Resolve anyway to not block cleanup
                     };
                   });
                 })
             );
+
+            // Log warning if any databases were blocked
+            if (blockedDatabases.length > 0) {
+              console.warn(
+                `Warning: ${blockedDatabases.length} IndexedDB database(s) blocked during deletion: ${blockedDatabases.join(', ')}. ` +
+                `Storage may not be fully cleared. Consider closing all browser tabs and retrying.`
+              );
+            }
           }
         });
+
+        // Allow storage events to propagate before verification (prevent race conditions)
+        await this.page.waitForTimeout(50);
 
         // Verify storage is actually cleared (prevent race conditions)
         const verificationResult = await this.page.evaluate(() => {

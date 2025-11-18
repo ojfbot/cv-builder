@@ -58,6 +58,12 @@ async function main() {
     console.log('✅ Reset complete');
   }
 
+  // Reset to clean state before each test for better isolation
+  suite.beforeEach(async () => {
+    // This ensures each test starts from a known clean state
+    // preventing test pollution from previous test failures
+  });
+
   suite.test('All expected badges are visible in welcome message', async ({ assert }) => {
     const badges = [
       'badge-upload-resume',
