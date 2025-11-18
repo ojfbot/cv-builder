@@ -155,23 +155,33 @@
     "estimated_duration": "15-45 seconds",
     "user_guidance": "This agent creates well-formatted PRs with automatic change analysis and issue linking. It can also validate PRs against issue requirements.",
     "image_embedding_guide": {
-      "description": "When embedding images in PR descriptions or comments, use blob URLs with ?raw=true parameter and commit SHA",
-      "url_format": "https://github.com/{owner}/{repo}/blob/{commit-sha}/{path}?raw=true",
-      "critical_note": "MUST use blob URLs with ?raw=true, NOT raw.githubusercontent.com URLs. MUST use commit SHA, NOT branch name. MUST push to remote BEFORE creating PR comment or images will 404.",
-      "example": "![Screenshot](https://github.com/ojfbot/cv-builder/blob/1ba7ff2e15dcd90654fa751905e2fe361f9656c2/packages/temp/screenshots/2025-11-17T03-00-48/chat-with-input.png?raw=true)",
-      "workflow": [
-        "1. Ensure images are committed to the repository",
-        "2. CRITICAL: Push commit to remote with `git push origin <branch>` - URLs will NOT work until pushed",
-        "3. Get commit SHA with: git rev-parse HEAD",
-        "4. Construct blob URL: https://github.com/{owner}/{repo}/blob/{commit-sha}/{path}?raw=true",
-        "5. Use in markdown: ![Alt Text](blob-url-with-raw-true)"
+      "description": "When embedding images in PR descriptions or comments, use blob URLs with commit SHA and ?raw=true parameter",
+      "url_format": "https://github.com/{owner}/{repo}/blob/{COMMIT-SHA}/{path}?raw=true",
+      "critical_requirements": [
+        "1. MUST use blob URLs with ?raw=true parameter (NOT raw.githubusercontent.com)",
+        "2. MUST use COMMIT SHA from `git rev-parse HEAD` (NOT branch name)",
+        "3. MUST push commit to remote BEFORE generating URLs (images 404 if not pushed)",
+        "4. MUST get commit SHA AFTER push completes (ensures correct SHA)"
       ],
-      "common_mistakes": [
-        "Using branch name instead of commit SHA - images will 404",
-        "Not pushing to remote before creating comment - images will 404",
-        "Missing ?raw=true parameter - GitHub serves HTML page instead of image",
-        "Using raw.githubusercontent.com URLs for private repos - always 404"
-      ]
+      "execution_order": "CRITICAL: 1) Commit images → 2) Push to remote → 3) Get commit SHA → 4) Generate URLs → 5) Post PR/comment",
+      "example_correct": "![Screenshot](https://github.com/ojfbot/cv-builder/blob/1ba7ff2e15dcd90654fa751905e2fe361f9656c2/temp/screenshots/pr-29/dashboard.png?raw=true)",
+      "example_wrong": "![Screenshot](https://github.com/ojfbot/cv-builder/blob/my-branch/temp/screenshots/pr-29/dashboard.png?raw=true)",
+      "why_commit_sha": "Commit SHA ensures URLs work forever, even after branch is deleted, rebased, or force-pushed. Branch names are ephemeral.",
+      "workflow_steps": [
+        "1. Ensure screenshot files are committed: `git add temp/screenshots/pr-{number}/` && `git commit -m 'docs: add screenshots'`",
+        "2. CRITICAL: Push to remote: `git push` - URLs will 404 if this step is skipped",
+        "3. Get commit SHA: `commitSha=$(git rev-parse HEAD)` - run AFTER push",
+        "4. Generate blob URL: `https://github.com/{owner}/{repo}/blob/${commitSha}/{path}?raw=true`",
+        "5. Create PR/comment with markdown: `![Alt Text](blob-url)`"
+      ],
+      "common_failures": [
+        "❌ Using branch name → Images 404 after branch deleted/rebased",
+        "❌ Not pushing before URL generation → Images 404 until manual push",
+        "❌ Getting SHA before commit → Wrong commit SHA in URL",
+        "❌ Missing ?raw=true → GitHub serves HTML instead of image",
+        "❌ Using raw.githubusercontent.com → Always 404s for private repos"
+      ],
+      "testing_urls": "After posting, verify images render by viewing the PR/comment in a browser. If images don't load, check: 1) Commit is pushed to remote, 2) Path is correct, 3) ?raw=true is present, 4) Using commit SHA not branch"
     },
     "workflow_selection": {
       "prompt": "What would you like to do?",

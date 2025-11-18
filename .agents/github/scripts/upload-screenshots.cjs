@@ -132,7 +132,7 @@ try {
   process.exit(1);
 }
 
-// Get current branch
+// Get current branch for display purposes
 let currentBranch;
 try {
   currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
@@ -140,6 +140,17 @@ try {
   console.error('Error getting current branch:', error.message);
   process.exit(1);
 }
+
+// Get commit SHA for permanent URLs (CRITICAL: must be fetched AFTER commit and push)
+let commitSha = null;
+const getCommitSha = () => {
+  try {
+    return execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+  } catch (error) {
+    console.error('Error getting commit SHA:', error.message);
+    process.exit(1);
+  }
+};
 
 // Find all image files
 const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif'];
@@ -277,14 +288,20 @@ for (const imgPath of imageFiles) {
 
 // Generate markdown comment
 const generateCommentMarkdown = () => {
+  // CRITICAL: Must fetch commit SHA AFTER push to ensure URLs work
+  if (!commitSha) {
+    console.error('ERROR: commitSha not set. This should never happen.');
+    process.exit(1);
+  }
+
   let markdown = '## 📸 Screenshots - Browser Automation in Action\n\n';
   markdown += 'The automation service successfully captured these screenshots during development and testing.\n\n';
   markdown += '---\n\n';
 
   for (const img of copiedImages) {
     const relPath = path.relative(process.cwd(), img.dest);
-    // Use GitHub blob URL which works for unmerged branches/PRs
-    const blobUrl = `https://github.com/${repoInfo.owner.login}/${repoInfo.name}/blob/${currentBranch}/${relPath}?raw=true`;
+    // CRITICAL: Use commit SHA (not branch) for permanent URLs that survive branch deletion/rebase
+    const blobUrl = `https://github.com/${repoInfo.owner.login}/${repoInfo.name}/blob/${commitSha}/${relPath}?raw=true`;
     const title = img.filename
       .replace(/-/g, ' ')
       .replace(/\.(png|jpg|jpeg|gif)$/i, '')
@@ -310,21 +327,12 @@ const generateCommentMarkdown = () => {
   markdown += `- **Source directory:** \`${screenshotDir}\`\n`;
   markdown += `- **PR documentation directory:** \`${path.relative(process.cwd(), prTempDir)}\`\n`;
   markdown += `- **Branch:** \`${currentBranch}\`\n`;
+  markdown += `- **Commit SHA:** \`${commitSha}\` (used for permanent image URLs)\n`;
 
   return markdown;
 };
 
-const commentMarkdown = generateCommentMarkdown();
-
-// Save to temp file
-const tempFile = '/tmp/github-screenshot-comment.md';
-fs.writeFileSync(tempFile, commentMarkdown);
-
-console.log('\n📝 Generated comment markdown:');
-console.log('─'.repeat(80));
-console.log(commentMarkdown);
-console.log('─'.repeat(80));
-
+// Commit images FIRST before generating markdown (so we have the commit SHA)
 // Commit images if there are new files
 const gitStatus = execSync('git status --porcelain', { encoding: 'utf-8' });
 if (gitStatus.includes(`temp/pr-${prNumber}/`)) {
@@ -341,19 +349,40 @@ Added ${copiedImages.length} screenshot(s) from ${screenshotDir}
     execSync(`git commit -m "${commitMsg}"`, { stdio: 'inherit' });
     console.log('✓ Screenshots committed');
 
-    // Push
-    console.log('\n⬆️  Pushing to remote...');
+    // Push to remote BEFORE generating URLs
+    console.log('\n⬆️  Pushing to remote (REQUIRED for URLs to work)...');
     execSync('git push', { stdio: 'inherit' });
     console.log('✓ Pushed to remote');
+
+    // NOW fetch commit SHA for URL generation
+    commitSha = getCommitSha();
+    console.log(`✓ Commit SHA: ${commitSha}`);
   } catch (error) {
     console.error('Error committing/pushing files:', error.message);
     console.log('\n⚠️  You may need to commit and push manually');
+    process.exit(1);
   }
+} else {
+  // No new files, use current commit SHA
+  commitSha = getCommitSha();
+  console.log(`\nℹ️  No new files to commit. Using current commit SHA: ${commitSha}`);
 }
 
+// NOW generate markdown with commit SHA
+const commentMarkdown = generateCommentMarkdown();
+
+// Save to temp file
+const tempFile = '/tmp/github-screenshot-comment.md';
+fs.writeFileSync(tempFile, commentMarkdown);
+
+console.log('\n📝 Generated comment markdown:');
+console.log('─'.repeat(80));
+console.log(commentMarkdown);
+console.log('─'.repeat(80));
+
 // Wait a moment for GitHub to process the push
-console.log('\n⏳ Waiting for GitHub to process files...');
-execSync('sleep 3');
+console.log('\n⏳ Waiting for GitHub to process files (ensuring blob URLs are available)...');
+execSync('sleep 5');
 
 // Post comment
 console.log(`\n💬 Posting comment to PR #${prNumber}...`);

@@ -6,10 +6,6 @@
 !README.md
 !.gitkeep
 
-# Track PR screenshot directories
-!pr-*/
-!pr-*/**
-
 # Track subdirectory structure
 !outputs/
 !outputs/.gitkeep
@@ -23,5 +19,9 @@
 !bios/.gitkeep
 !jobs/
 !jobs/.gitkeep
+
+# Track screenshot structure
 !screenshots/
 !screenshots/.gitkeep
+!screenshots/pr-*/
+!screenshots/pr-*/**
