@@ -80,6 +80,15 @@ export class ErrorTracker {
     this.consoleHandler = (msg) => {
       if (msg.type() === 'error') {
         // Only track if it looks like an error object
+        //
+        // LIMITATION: This heuristic-based detection may miss errors that:
+        // - Don't include "Error:" or "Exception:" in their message
+        // - Use custom error formats (e.g., framework-specific loggers)
+        // - Are logged as plain strings without error formatting
+        //
+        // Rationale: We filter to avoid tracking every console.error() call,
+        // which often includes non-error debugging messages. The 'pageerror'
+        // listener already captures uncaught exceptions reliably.
         const text = msg.text();
         if (text.includes('Error:') || text.includes('Exception:')) {
           this.handleConsoleError(text);
@@ -108,8 +117,8 @@ export class ErrorTracker {
 
       this.errors.push(jsError);
 
-      // Maintain buffer size - use slice when reaching 2x capacity for better performance
-      if (this.errors.length > this.maxErrors * 2) {
+      // Maintain buffer size at exactly maxErrors to prevent memory growth
+      if (this.errors.length > this.maxErrors) {
         this.errors = this.errors.slice(-this.maxErrors);
       }
 

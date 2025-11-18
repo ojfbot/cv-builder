@@ -1,13 +1,18 @@
 import { Page, ConsoleMessage } from 'playwright';
 
 /**
+ * Console log level type
+ */
+export type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
+
+/**
  * Console entry captured from the browser
  */
 export interface ConsoleEntry {
   /** ISO timestamp when the message was logged */
   timestamp: string;
   /** Console message level */
-  level: 'log' | 'info' | 'warn' | 'error' | 'debug';
+  level: LogLevel;
   /** The console message text */
   message: string;
   /** Arguments passed to console method (stringified) */
@@ -25,7 +30,7 @@ export interface ConsoleEntry {
  */
 export interface GetLogsOptions {
   /** Filter by log level */
-  level?: 'log' | 'info' | 'warn' | 'error' | 'debug';
+  level?: LogLevel;
   /** Maximum number of logs to return (most recent) */
   limit?: number;
   /** Only return logs after this timestamp */
@@ -75,7 +80,10 @@ export class ConsoleLogger {
     }
 
     this.consoleHandler = (msg: ConsoleMessage) => {
-      this.handleConsoleMessage(msg);
+      void this.handleConsoleMessage(msg).catch(err => {
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        process.stderr.write(`[ConsoleLogger] Unhandled error in console handler: ${errorMsg}\n`);
+      });
     };
 
     this.page.on('console', this.consoleHandler);
@@ -117,9 +125,8 @@ export class ConsoleLogger {
 
       this.entries.push(entry);
 
-      // Maintain buffer size - use slice when reaching 2x capacity for better performance
-      // This avoids O(n) shift() operations on every message
-      if (this.entries.length > this.maxEntries * 2) {
+      // Maintain buffer size at exactly maxEntries to prevent memory growth
+      if (this.entries.length > this.maxEntries) {
         this.entries = this.entries.slice(-this.maxEntries);
       }
     } catch (error) {
@@ -182,8 +189,8 @@ export class ConsoleLogger {
   /**
    * Get count by level
    */
-  getCountByLevel(): Record<ConsoleEntry['level'], number> {
-    const counts: Record<ConsoleEntry['level'], number> = {
+  getCountByLevel(): Record<LogLevel, number> {
+    const counts: Record<LogLevel, number> = {
       log: 0,
       info: 0,
       warn: 0,
