@@ -34,5 +34,5 @@ test-results/
 playwright-report/
 playwright/.cache/
 
-# Test screenshots (use temp/screenshots/ for PR documentation)
-screenshots/
+# Test screenshots are now tracked in git for PR documentation
+# (Previously ignored, now committed per PR in screenshots/pr-*/)
