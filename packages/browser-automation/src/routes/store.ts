@@ -13,29 +13,16 @@ import {
   validateStoreMap,
 } from '../maps/index.js';
 import { browserManager } from '../automation/browser.js';
-import { requireDevMode as devModeMiddleware, evaluateLimiter } from '../middleware/index.js';
-
-const router = express.Router();
+import { requireDevMode, evaluateLimiter } from '../middleware/index.js';
 
 /**
- * Middleware to check if running in development mode
- * Some endpoints (like snapshot) should only be available in dev mode
- * @deprecated Use middleware/dev-only.ts instead
+ * Configuration constants for state evaluation
  */
-function requireDevMode(_req: Request, res: Response, next: express.NextFunction): void {
-  const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev';
+const DEFAULT_EVALUATION_TIMEOUT_MS = 5000; // Default timeout for JavaScript evaluation
+const MAX_EVALUATION_TIMEOUT_MS = 30000; // Maximum allowed timeout
+const MAX_EXPRESSION_LENGTH = 10000; // Maximum length for evaluation expressions
 
-  if (!isDev) {
-    res.status(403).json({
-      success: false,
-      error: 'This endpoint is only available in development mode',
-      devModeOnly: true,
-    });
-    return;
-  }
-
-  next();
-}
+const router = express.Router();
 
 /**
  * GET /api/store/schema
@@ -321,9 +308,9 @@ router.post('/store/validate', async (req: Request, res: Response) => {
  *   "timeout": 5000
  * }
  */
-router.post('/store/evaluate', devModeMiddleware, evaluateLimiter, async (req: Request, res: Response) => {
+router.post('/store/evaluate', requireDevMode, evaluateLimiter, async (req: Request, res: Response) => {
   try {
-    const { expression, timeout = 5000 } = req.body;
+    const { expression, timeout = DEFAULT_EVALUATION_TIMEOUT_MS } = req.body;
 
     if (!expression || typeof expression !== 'string') {
       return res.status(400).json({
@@ -333,8 +320,18 @@ router.post('/store/evaluate', devModeMiddleware, evaluateLimiter, async (req: R
       });
     }
 
+    // Validate expression length to prevent resource exhaustion
+    if (expression.length > MAX_EXPRESSION_LENGTH) {
+      return res.status(400).json({
+        success: false,
+        error: `Expression exceeds maximum length of ${MAX_EXPRESSION_LENGTH} characters`,
+        actualLength: expression.length,
+        maxLength: MAX_EXPRESSION_LENGTH,
+      });
+    }
+
     // Validate timeout
-    const safeTimeout = Math.min(Math.max(timeout, 100), 30000);
+    const safeTimeout = Math.min(Math.max(timeout, 100), MAX_EVALUATION_TIMEOUT_MS);
 
     if (safeTimeout !== timeout) {
       console.warn(`[EVALUATE] Timeout adjusted: ${timeout}ms → ${safeTimeout}ms`);

@@ -54,6 +54,7 @@ export class ConsoleLogger {
   private entries: ConsoleEntry[] = [];
   private readonly maxEntries: number;
   private isAttached = false;
+  private consoleHandler?: (msg: ConsoleMessage) => void;
 
   /**
    * Create a new ConsoleLogger
@@ -73,10 +74,11 @@ export class ConsoleLogger {
       return;
     }
 
-    this.page.on('console', (msg: ConsoleMessage) => {
+    this.consoleHandler = (msg: ConsoleMessage) => {
       this.handleConsoleMessage(msg);
-    });
+    };
 
+    this.page.on('console', this.consoleHandler);
     this.isAttached = true;
   }
 
@@ -115,13 +117,15 @@ export class ConsoleLogger {
 
       this.entries.push(entry);
 
-      // Maintain buffer size
-      if (this.entries.length > this.maxEntries) {
-        this.entries.shift();
+      // Maintain buffer size - use slice when reaching 2x capacity for better performance
+      // This avoids O(n) shift() operations on every message
+      if (this.entries.length > this.maxEntries * 2) {
+        this.entries = this.entries.slice(-this.maxEntries);
       }
     } catch (error) {
-      // Silently ignore errors in console handler to avoid recursion
-      console.error('Error handling console message:', error);
+      // Log to stderr directly to avoid potential recursion
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      process.stderr.write(`[ConsoleLogger] Error handling console message: ${errorMsg}\n`);
     }
   }
 
@@ -154,6 +158,9 @@ export class ConsoleLogger {
     // Filter by time
     if (options?.since) {
       const sinceDate = new Date(options.since);
+      if (isNaN(sinceDate.getTime())) {
+        throw new Error(`Invalid timestamp format: ${options.since}. Expected ISO 8601 format.`);
+      }
       filtered = filtered.filter(e => new Date(e.timestamp) >= sinceDate);
     }
 
@@ -202,12 +209,12 @@ export class ConsoleLogger {
    * Detach listeners (cleanup)
    */
   detach(): void {
-    if (!this.isAttached) {
+    if (!this.isAttached || !this.consoleHandler) {
       return;
     }
 
-    // Note: Playwright doesn't provide removeListener for 'console' event
-    // The listener will be cleaned up when the page is closed
+    this.page.off('console', this.consoleHandler);
+    this.consoleHandler = undefined;
     this.isAttached = false;
   }
 }

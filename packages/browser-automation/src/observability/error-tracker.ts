@@ -1,6 +1,12 @@
 import { Page } from 'playwright';
 
 /**
+ * Configuration constants for error tracking
+ */
+const DUPLICATE_DETECTION_WINDOW_MS = 500; // Time window for detecting duplicate errors
+const DEFAULT_MAX_ERRORS = 100; // Default maximum number of errors to keep in buffer
+
+/**
  * JavaScript error captured from the browser
  */
 export interface JavaScriptError {
@@ -43,13 +49,15 @@ export class ErrorTracker {
   private errors: JavaScriptError[] = [];
   private readonly maxErrors: number;
   private isAttached = false;
+  private pageErrorHandler?: (error: Error) => void;
+  private consoleHandler?: (msg: any) => void;
 
   /**
    * Create a new ErrorTracker
    * @param page Playwright page to monitor
    * @param maxErrors Maximum number of errors to keep (default: 100)
    */
-  constructor(private page: Page, maxErrors = 100) {
+  constructor(private page: Page, maxErrors = DEFAULT_MAX_ERRORS) {
     this.maxErrors = maxErrors;
     this.attachListeners();
   }
@@ -63,12 +71,13 @@ export class ErrorTracker {
     }
 
     // Capture page errors (uncaught exceptions)
-    this.page.on('pageerror', (error: Error) => {
+    this.pageErrorHandler = (error: Error) => {
       this.handlePageError(error);
-    });
+    };
+    this.page.on('pageerror', this.pageErrorHandler);
 
     // Capture console errors as well (some frameworks log errors to console)
-    this.page.on('console', (msg) => {
+    this.consoleHandler = (msg) => {
       if (msg.type() === 'error') {
         // Only track if it looks like an error object
         const text = msg.text();
@@ -76,7 +85,8 @@ export class ErrorTracker {
           this.handleConsoleError(text);
         }
       }
-    });
+    };
+    this.page.on('console', this.consoleHandler);
 
     this.isAttached = true;
   }
@@ -98,18 +108,19 @@ export class ErrorTracker {
 
       this.errors.push(jsError);
 
-      // Maintain buffer size
-      if (this.errors.length > this.maxErrors) {
-        this.errors.shift();
+      // Maintain buffer size - use slice when reaching 2x capacity for better performance
+      if (this.errors.length > this.maxErrors * 2) {
+        this.errors = this.errors.slice(-this.maxErrors);
       }
 
-      // Log to server console for visibility
-      console.error(`[Browser Error] ${error.name}: ${error.message}`);
+      // Log to server stderr for visibility
+      process.stderr.write(`[Browser Error] ${error.name}: ${error.message}\n`);
       if (jsError.source) {
-        console.error(`  at ${jsError.source}:${jsError.line}:${jsError.column}`);
+        process.stderr.write(`  at ${jsError.source}:${jsError.line}:${jsError.column}\n`);
       }
     } catch (err) {
-      console.error('Error handling page error:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      process.stderr.write(`[ErrorTracker] Error handling page error: ${errorMsg}\n`);
     }
   }
 
@@ -132,20 +143,30 @@ export class ErrorTracker {
       };
 
       // Avoid duplicates (page error already captured)
-      const isDuplicate = this.errors.some(
-        e => e.message === jsError.message &&
-             Math.abs(new Date(e.timestamp).getTime() - new Date(jsError.timestamp).getTime()) < 100
-      );
+      const isDuplicate = this.errors.some(e => {
+        const timeDiff = Math.abs(new Date(e.timestamp).getTime() - new Date(jsError.timestamp).getTime());
+        const messageMatch = e.message === jsError.message;
+        const stackMatch = e.stack === jsError.stack;
+
+        // Consider it a duplicate if:
+        // 1. Same message AND same stack within time window, OR
+        // 2. Same message AND stack with very close timestamps
+        return (messageMatch && stackMatch && timeDiff < DUPLICATE_DETECTION_WINDOW_MS) ||
+               (messageMatch && timeDiff < 50); // Tight window for same-second duplicates
+      });
 
       if (!isDuplicate) {
         this.errors.push(jsError);
 
-        if (this.errors.length > this.maxErrors) {
-          this.errors.shift();
+        // Maintain buffer size - use slice when reaching 2x capacity for better performance
+        if (this.errors.length > this.maxErrors * 2) {
+          this.errors = this.errors.slice(-this.maxErrors);
         }
       }
     } catch (err) {
-      console.error('Error handling console error:', err);
+      // Log to stderr to avoid potential recursion
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      process.stderr.write(`[ErrorTracker] Error handling console error: ${errorMsg}\n`);
     }
   }
 
@@ -180,6 +201,16 @@ export class ErrorTracker {
 
   /**
    * Get errors grouped by message (for identifying common issues)
+   *
+   * @returns Map of error messages to arrays of matching errors
+   *
+   * @example
+   * ```typescript
+   * const grouped = tracker.getGroupedErrors();
+   * grouped.forEach((errors, message) => {
+   *   console.log(`${message}: ${errors.length} occurrences`);
+   * });
+   * ```
    */
   getGroupedErrors(): Map<string, JavaScriptError[]> {
     const grouped = new Map<string, JavaScriptError[]>();
@@ -195,7 +226,18 @@ export class ErrorTracker {
   }
 
   /**
-   * Get unique error messages with counts
+   * Get unique error messages with counts (sorted by frequency)
+   *
+   * @returns Array of error summaries with message, count, and latest timestamp
+   *
+   * @example
+   * ```typescript
+   * const summary = tracker.getErrorSummary();
+   * console.log('Top errors:');
+   * summary.slice(0, 5).forEach(err => {
+   *   console.log(`${err.message} (${err.count} times)`);
+   * });
+   * ```
    */
   getErrorSummary(): Array<{ message: string; count: number; latestTimestamp: string }> {
     const grouped = this.getGroupedErrors();
@@ -270,8 +312,16 @@ export class ErrorTracker {
       return;
     }
 
-    // Note: Playwright doesn't provide removeListener
-    // The listener will be cleaned up when the page is closed
+    if (this.pageErrorHandler) {
+      this.page.off('pageerror', this.pageErrorHandler);
+      this.pageErrorHandler = undefined;
+    }
+
+    if (this.consoleHandler) {
+      this.page.off('console', this.consoleHandler);
+      this.consoleHandler = undefined;
+    }
+
     this.isAttached = false;
   }
 }

@@ -37,6 +37,18 @@ router.get('/logs', consoleLimiter, async (req: Request, res: Response): Promise
 
     const { level, limit, since } = req.query;
 
+    // Validate log level if provided
+    const validLevels = ['log', 'info', 'warn', 'error', 'debug'] as const;
+    if (level && !validLevels.includes(level as any)) {
+      res.status(400).json({
+        error: 'Invalid log level',
+        providedLevel: level,
+        validLevels,
+        hint: `Level must be one of: ${validLevels.join(', ')}`,
+      });
+      return;
+    }
+
     const logs = consoleLogger.getLogs({
       level: level as any,
       limit: limit ? parseInt(limit as string, 10) : undefined,
@@ -59,10 +71,10 @@ router.get('/logs', consoleLimiter, async (req: Request, res: Response): Promise
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error retrieving console logs:', error);
+    process.stderr.write(`[Console API] Error retrieving logs: ${error}\n`);
     res.status(500).json({
       error: 'Failed to retrieve console logs',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      hint: 'Check server logs for details',
     });
   }
 });
@@ -124,10 +136,10 @@ router.get('/errors', errorLimiter, async (req: Request, res: Response): Promise
       });
     }
   } catch (error) {
-    console.error('Error retrieving JavaScript errors:', error);
+    process.stderr.write(`[Console API] Error retrieving errors: ${error}\n`);
     res.status(500).json({
       error: 'Failed to retrieve errors',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      hint: 'Check server logs for details',
     });
   }
 });
@@ -170,10 +182,10 @@ router.post('/clear', consoleLimiter, async (_req: Request, res: Response): Prom
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error clearing console:', error);
+    process.stderr.write(`[Console API] Error clearing console: ${error}\n`);
     res.status(500).json({
       error: 'Failed to clear console',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      hint: 'Check server logs for details',
     });
   }
 });
@@ -216,10 +228,10 @@ router.get('/stats', consoleLimiter, async (_req: Request, res: Response): Promi
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error retrieving stats:', error);
+    process.stderr.write(`[Console API] Error retrieving stats: ${error}\n`);
     res.status(500).json({
       error: 'Failed to retrieve stats',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      hint: 'Check server logs for details',
     });
   }
 });
