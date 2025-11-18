@@ -1,6 +1,15 @@
 import express, { Request, Response } from 'express';
-import { requireDevMode, addDevModeHeaders, consoleLimiter, errorLimiter } from '../middleware';
+import {
+  requireDevMode,
+  addDevModeHeaders,
+  consoleLimiter,
+  errorLimiter,
+  requireConsoleLogger,
+  requireErrorTracker,
+  requireObservability,
+} from '../middleware';
 import { getBrowserManager } from '../automation/browser';
+import { LogLevel } from '../observability/console-logger';
 
 const router = express.Router();
 
@@ -22,36 +31,46 @@ router.use(addDevModeHeaders);
  * GET /api/console/logs?level=error&limit=10
  * GET /api/console/logs?since=2025-11-17T12:00:00Z
  */
-router.get('/logs', consoleLimiter, async (req: Request, res: Response): Promise<void> => {
+router.get('/logs', consoleLimiter, requireConsoleLogger, async (req: Request, res: Response): Promise<void> => {
   try {
     const browserManager = getBrowserManager();
-    const consoleLogger = browserManager.getConsoleLogger();
-
-    if (!consoleLogger) {
-      res.status(503).json({
-        error: 'Console logger not initialized',
-        hint: 'Ensure the browser is launched and observability is enabled',
-      });
-      return;
-    }
+    const consoleLogger = browserManager.getConsoleLogger()!; // Non-null assertion safe due to middleware
 
     const { level, limit, since } = req.query;
 
     // Validate log level if provided
-    const validLevels = ['log', 'info', 'warn', 'error', 'debug'] as const;
-    if (level && !validLevels.includes(level as any)) {
-      res.status(400).json({
-        error: 'Invalid log level',
-        providedLevel: level,
-        validLevels,
-        hint: `Level must be one of: ${validLevels.join(', ')}`,
-      });
-      return;
+    const validLevels: readonly LogLevel[] = ['log', 'info', 'warn', 'error', 'debug'];
+    let parsedLevel: LogLevel | undefined;
+    if (level) {
+      if (!validLevels.includes(level as LogLevel)) {
+        res.status(400).json({
+          error: 'Invalid log level',
+          providedLevel: level,
+          validLevels,
+          hint: `Level must be one of: ${validLevels.join(', ')}`,
+        });
+        return;
+      }
+      parsedLevel = level as LogLevel;
+    }
+
+    // Validate and parse limit parameter
+    let parsedLimit: number | undefined;
+    if (limit) {
+      parsedLimit = parseInt(limit as string, 10);
+      if (isNaN(parsedLimit) || parsedLimit < 1) {
+        res.status(400).json({
+          error: 'Invalid limit parameter',
+          providedLimit: limit,
+          hint: 'Limit must be a positive integer',
+        });
+        return;
+      }
     }
 
     const logs = consoleLogger.getLogs({
-      level: level as any,
-      limit: limit ? parseInt(limit as string, 10) : undefined,
+      level: parsedLevel,
+      limit: parsedLimit,
       since: since as string,
     });
 
@@ -92,18 +111,10 @@ router.get('/logs', consoleLimiter, async (req: Request, res: Response): Promise
  * GET /api/console/errors?limit=20
  * GET /api/console/errors?summary=true
  */
-router.get('/errors', errorLimiter, async (req: Request, res: Response): Promise<void> => {
+router.get('/errors', errorLimiter, requireErrorTracker, async (req: Request, res: Response): Promise<void> => {
   try {
     const browserManager = getBrowserManager();
-    const errorTracker = browserManager.getErrorTracker();
-
-    if (!errorTracker) {
-      res.status(503).json({
-        error: 'Error tracker not initialized',
-        hint: 'Ensure the browser is launched and observability is enabled',
-      });
-      return;
-    }
+    const errorTracker = browserManager.getErrorTracker()!; // Non-null assertion safe due to middleware
 
     const { limit, summary } = req.query;
 
@@ -119,10 +130,22 @@ router.get('/errors', errorLimiter, async (req: Request, res: Response): Promise
         timestamp: new Date().toISOString(),
       });
     } else {
+      // Validate and parse limit parameter
+      let parsedLimit: number | undefined;
+      if (limit) {
+        parsedLimit = parseInt(limit as string, 10);
+        if (isNaN(parsedLimit) || parsedLimit < 1) {
+          res.status(400).json({
+            error: 'Invalid limit parameter',
+            providedLimit: limit,
+            hint: 'Limit must be a positive integer',
+          });
+          return;
+        }
+      }
+
       // Return full errors
-      const errors = errorTracker.getErrors(
-        limit ? parseInt(limit as string, 10) : undefined
-      );
+      const errors = errorTracker.getErrors(parsedLimit);
 
       res.json({
         errors,
@@ -152,19 +175,11 @@ router.get('/errors', errorLimiter, async (req: Request, res: Response): Promise
  * @example
  * POST /api/console/clear
  */
-router.post('/clear', consoleLimiter, async (_req: Request, res: Response): Promise<void> => {
+router.post('/clear', consoleLimiter, requireObservability, async (_req: Request, res: Response): Promise<void> => {
   try {
     const browserManager = getBrowserManager();
-    const consoleLogger = browserManager.getConsoleLogger();
-    const errorTracker = browserManager.getErrorTracker();
-
-    if (!consoleLogger || !errorTracker) {
-      res.status(503).json({
-        error: 'Observability not initialized',
-        hint: 'Ensure the browser is launched and observability is enabled',
-      });
-      return;
-    }
+    const consoleLogger = browserManager.getConsoleLogger()!; // Non-null assertion safe due to middleware
+    const errorTracker = browserManager.getErrorTracker()!; // Non-null assertion safe due to middleware
 
     const logCountBefore = consoleLogger.getCount();
     const errorCountBefore = errorTracker.getCount();
@@ -198,18 +213,11 @@ router.post('/clear', consoleLimiter, async (_req: Request, res: Response): Prom
  * @example
  * GET /api/console/stats
  */
-router.get('/stats', consoleLimiter, async (_req: Request, res: Response): Promise<void> => {
+router.get('/stats', consoleLimiter, requireObservability, async (_req: Request, res: Response): Promise<void> => {
   try {
     const browserManager = getBrowserManager();
-    const consoleLogger = browserManager.getConsoleLogger();
-    const errorTracker = browserManager.getErrorTracker();
-
-    if (!consoleLogger || !errorTracker) {
-      res.status(503).json({
-        error: 'Observability not initialized',
-      });
-      return;
-    }
+    const consoleLogger = browserManager.getConsoleLogger()!; // Non-null assertion safe due to middleware
+    const errorTracker = browserManager.getErrorTracker()!; // Non-null assertion safe due to middleware
 
     const logCounts = consoleLogger.getCountByLevel();
     const errorSummary = errorTracker.getErrorSummary();
