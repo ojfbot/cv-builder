@@ -45,7 +45,11 @@ Your generated reports must follow this exact structure:
 
 ### 2. Test Results by Suite
 
-Organize tests into collapsible sections by suite name (using verb-based names):
+Organize tests into collapsible sections by suite name. **CRITICAL**: Each test must include:
+- **What** the test validates
+- **Why** it's important
+- **How** it's tested (user interactions)
+- **What** each screenshot captures
 
 ```markdown
 <details>
@@ -56,15 +60,24 @@ Organize tests into collapsible sections by suite name (using verb-based names):
 **Status**: ✅ Passed
 **Duration**: 2.3s
 
+**What**: Validates tab navigation from Interactive to Bio tab
+**Why**: Ensures users can access different sections of the application
+**How**: Clicks Bio tab, verifies active state and panel visibility
+**Validates**:
+- Tab click interaction
+- Active tab styling (aria-selected="true")
+- Panel content renders correctly
+- Redux state updates (currentTab: 'bio')
+
 #### Screenshots
 
 <details>
 <summary>View Screenshots (3)</summary>
 
-**navigate-tabs-bio.png** - Bio tab active state
+**navigate-tabs-bio.png** - Bio tab active state with proper styling
 ![navigate-tabs-bio](https://github.com/ojfbot/cv-builder/blob/more-test-coverage/packages/browser-automation/screenshots/2025-11-16T20-45-30-123Z/navigate-tabs-bio.png?raw=true)
 
-**navigate-tabs-bio-panel.png** - Bio panel content visible
+**navigate-tabs-bio-panel.png** - Bio panel content visible with form fields
 ![navigate-tabs-bio-panel](https://github.com/ojfbot/cv-builder/blob/more-test-coverage/packages/browser-automation/screenshots/2025-11-16T20-45-30-123Z/navigate-tabs-bio-panel.png?raw=true)
 
 </details>
@@ -76,12 +89,21 @@ Organize tests into collapsible sections by suite name (using verb-based names):
 **Status**: ✅ Passed
 **Duration**: 1.8s
 
+**What**: Validates navigation to Jobs tab and job listings panel
+**Why**: Ensures users can view and interact with job listings
+**How**: Clicks Jobs tab, verifies panel renders with empty state or job cards
+**Validates**:
+- Tab navigation consistency
+- Jobs panel visibility
+- Empty state messaging or job cards rendering
+- Redux state management
+
 #### Screenshots
 
 <details>
 <summary>View Screenshots (2)</summary>
 
-**navigate-tabs-jobs.png** - Jobs tab active state
+**navigate-tabs-jobs.png** - Jobs tab active with empty state or job listings
 ![navigate-tabs-jobs](https://github.com/ojfbot/cv-builder/blob/more-test-coverage/packages/browser-automation/screenshots/2025-11-16T20-45-30-123Z/navigate-tabs-jobs.png?raw=true)
 
 </details>
