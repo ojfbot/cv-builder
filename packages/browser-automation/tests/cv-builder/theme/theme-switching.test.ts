@@ -1,16 +1,17 @@
 /**
- * Switch Theme - User Interaction Flow
+ * Theme Switching Test
  *
  * Tests theme toggle between light and dark modes with visual verification.
+ * Part of the semantic test organization structure.
  */
 
-import { createTestSuite, createTestRunner } from '../../src/test-runner/index.js';
+import { createTestSuite, createTestRunner } from '../../../src/test-runner/index.js';
 
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
 async function main() {
-  const { suite, client } = createTestSuite('Switch Theme', API_URL);
+  const { suite, client } = createTestSuite('Theme Switching', API_URL);
 
   suite.beforeAll(async () => {
     console.log('🚀 Navigating to CV Builder app...');
@@ -22,9 +23,15 @@ async function main() {
   suite.test('View initial dark theme', async ({ assert }) => {
     // Note: Theme state is local to App.tsx, verified via visual screenshots
 
-    // Capture initial theme state
+    // Capture initial theme state with semantic path
     const screenshot = await client.screenshot({
       name: 'switch-theme-initial-dark',
+      test: {
+        app: 'cv-builder',
+        suite: 'theme',
+        case: 'initial-dark'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -40,9 +47,15 @@ async function main() {
 
     // Note: Theme change verified via visual screenshots
 
-    // Capture light theme
+    // Capture light theme with semantic path
     const screenshot = await client.screenshot({
       name: 'switch-theme-light',
+      test: {
+        app: 'cv-builder',
+        suite: 'theme',
+        case: 'light'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -58,9 +71,15 @@ async function main() {
 
     // Note: Theme change verified via visual screenshots
 
-    // Capture dark theme again
+    // Capture dark theme again with semantic path
     const screenshot = await client.screenshot({
       name: 'switch-theme-dark',
+      test: {
+        app: 'cv-builder',
+        suite: 'theme',
+        case: 'dark'
+      },
+      viewport: 'desktop',
       fullPage: false,
     });
     assert.screenshotCaptured(screenshot);
@@ -74,7 +93,7 @@ async function main() {
   const runner = createTestRunner({ reporters: ['console'], verbose: true });
   const result = await runner.run(suite);
 
-  console.log(`\n✅ Switch Theme: ${result.summary.passed}/${result.summary.total} passed`);
+  console.log(`\n✅ Theme Switching: ${result.summary.passed}/${result.summary.total} passed`);
   process.exit(result.summary.failed > 0 ? 1 : 0);
 }
 
