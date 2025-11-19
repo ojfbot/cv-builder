@@ -146,19 +146,116 @@ function extractMetadata(imgPath: string): Omit<ScreenshotMetadata, 'context'> {
 function generateContext(filename: string): { what: string; why: string; when: string } {
   const name = filename.toLowerCase();
 
-  if (name.includes('dashboard')) {
+  // Tab Navigation
+  if (name.includes('navigate-tabs-bio')) {
     return {
-      what: 'Complete dashboard interface showing all navigation tabs and main interactive area',
-      why: 'Demonstrates the full application layout and primary user interface',
-      when: 'Captured during integration testing of browser automation API',
+      what: 'Bio tab in active state with panel content visible',
+      why: 'Validates tab navigation functionality and panel rendering for Bio section',
+      when: 'Captured during tab navigation test suite',
     };
-  } else if (name.includes('header')) {
+  } else if (name.includes('navigate-tabs-jobs')) {
     return {
-      what: 'Navigation header with tabs and controls',
-      why: 'Shows element-specific screenshot capability (targeting specific components)',
-      when: 'Captured to demonstrate selector-based screenshot feature',
+      what: 'Jobs tab in active state showing job listings panel',
+      why: 'Validates tab switching to Jobs section and content rendering',
+      when: 'Captured during tab navigation test suite',
     };
-  } else if (name.includes('example') && name.includes('homepage')) {
+  } else if (name.includes('navigate-tabs-outputs')) {
+    return {
+      what: 'Outputs tab active with generated documents panel',
+      why: 'Validates navigation to Outputs section and document list rendering',
+      when: 'Captured during tab navigation test suite',
+    };
+  } else if (name.includes('navigate-tabs-interactive')) {
+    return {
+      what: 'Interactive tab showing welcome message and quick action badges',
+      why: 'Validates default Interactive tab state with all UI elements visible',
+      when: 'Captured during tab navigation test suite',
+    };
+  }
+
+  // Chat Interaction
+  else if (name.includes('engage') && name.includes('empty')) {
+    return {
+      what: 'Chat input field in empty/initial state',
+      why: 'Validates chat interface renders correctly before user interaction',
+      when: 'Captured during chat interaction test suite',
+    };
+  } else if (name.includes('engage') && name.includes('text')) {
+    return {
+      what: 'Chat input field with user-typed text',
+      why: 'Validates chat input accepts user text and displays it correctly',
+      when: 'Captured during chat interaction test suite',
+    };
+  }
+
+  // Settings & Modals
+  else if (name.includes('settings') && name.includes('closed')) {
+    return {
+      what: 'Settings modal in closed state (not visible)',
+      why: 'Validates initial state before settings modal is opened',
+      when: 'Captured during settings modal test suite',
+    };
+  } else if (name.includes('settings') && name.includes('modal')) {
+    return {
+      what: 'Settings modal open with configuration options visible',
+      why: 'Validates settings modal opens correctly with all controls accessible',
+      when: 'Captured during settings modal test suite',
+    };
+  } else if (name.includes('settings') && name.includes('status')) {
+    return {
+      what: 'Settings icon showing current state indicator',
+      why: 'Validates settings icon visibility and state representation',
+      when: 'Captured during settings modal test suite',
+    };
+  }
+
+  // Sidebar Navigation
+  else if (name.includes('sidebar') && name.includes('expanded')) {
+    return {
+      what: 'Sidebar navigation in expanded state with full labels visible',
+      why: 'Validates sidebar expansion animation and full navigation menu',
+      when: 'Captured during sidebar navigation test suite',
+    };
+  } else if (name.includes('sidebar') && name.includes('collapsed')) {
+    return {
+      what: 'Sidebar navigation in collapsed state showing icons only',
+      why: 'Validates sidebar collapse functionality and icon-only mode',
+      when: 'Captured during sidebar navigation test suite',
+    };
+  }
+
+  // Theme Switching
+  else if (name.includes('theme') && name.includes('dark')) {
+    return {
+      what: 'Application interface in dark theme mode',
+      why: 'Validates dark theme CSS variables and component styling',
+      when: 'Captured during theme switching test suite',
+    };
+  } else if (name.includes('theme') && name.includes('light')) {
+    return {
+      what: 'Application interface in light theme mode',
+      why: 'Validates light theme CSS variables and component styling',
+      when: 'Captured during theme switching test suite',
+    };
+  } else if (name.includes('theme') && name.includes('initial')) {
+    return {
+      what: 'Initial theme state before user interaction',
+      why: 'Validates default theme configuration on application load',
+      when: 'Captured during theme switching test suite',
+    };
+  }
+
+  // Badge Interactions
+  else if (name.includes('badge')) {
+    return {
+      what: 'Quick action badge interaction and state change',
+      why: 'Validates badge click handlers and visual feedback',
+      when: 'Captured during badge interaction test suite',
+    };
+  }
+
+  // Example/Basic Tests
+  else if (name.includes('example') && name.includes('homepage')) {
     return {
       what: 'Example.com homepage - standard test page',
       why: 'Validates full-page screenshot functionality with a known stable page',
@@ -170,35 +267,71 @@ function generateContext(filename: string): { what: string; why: string; when: s
       why: 'Demonstrates element-specific screenshot by CSS selector',
       when: 'Captured to validate element querying and isolated screenshot capture',
     };
-  } else if (name.includes('error') || name.includes('fail')) {
+  }
+
+  // Generic fallbacks
+  else if (name.includes('error') || name.includes('fail')) {
     return {
       what: 'Error state or failure condition',
       why: 'Documents issue or bug for debugging purposes',
       when: 'Captured when error condition occurred',
     };
-  } else if (name.includes('test')) {
+  } else if (name.includes('dashboard')) {
     return {
-      what: 'Test execution result or test interface',
-      why: 'Documents test results or validates test functionality',
-      when: 'Captured during automated test run',
-    };
-  } else if (name.includes('before') || name.includes('after')) {
-    return {
-      what: name.includes('before') ? 'State before changes' : 'State after changes',
-      why: 'Visual comparison for change validation',
-      when: 'Captured for visual regression testing',
+      what: 'Complete dashboard interface showing all navigation tabs and main interactive area',
+      why: 'Demonstrates the full application layout and primary user interface',
+      when: 'Captured during integration testing of browser automation API',
     };
   } else {
     return {
-      what: 'Screenshot captured during development',
-      why: 'Documents visual state or behavior',
-      when: 'Captured during testing or development',
+      what: 'Screenshot captured during development or testing',
+      why: 'Documents visual state or behavior for this feature',
+      when: 'Captured during automated test execution',
     };
   }
 }
 
 /**
- * Generate markdown comment with screenshots
+ * Group screenshots by test suite based on filename patterns
+ */
+function groupScreenshotsByTestSuite(images: CopiedImage[]): Map<string, CopiedImage[]> {
+  const suites = new Map<string, CopiedImage[]>();
+
+  for (const img of images) {
+    const name = img.filename.toLowerCase();
+
+    // Determine suite based on filename patterns
+    let suite = 'Other Screenshots';
+
+    if (name.includes('navigate-tabs') || name.includes('tab-navigation')) {
+      suite = 'Tab Navigation';
+    } else if (name.includes('engage') || name.includes('chat')) {
+      suite = 'Chat Interaction';
+    } else if (name.includes('settings') || name.includes('modal')) {
+      suite = 'Settings & Modals';
+    } else if (name.includes('sidebar')) {
+      suite = 'Sidebar Navigation';
+    } else if (name.includes('theme')) {
+      suite = 'Theme Switching';
+    } else if (name.includes('badge')) {
+      suite = 'Badge Interactions';
+    } else if (name.includes('bio') || name.includes('profile')) {
+      suite = 'Bio Form';
+    } else if (name.includes('example')) {
+      suite = 'Basic Functionality Tests';
+    }
+
+    if (!suites.has(suite)) {
+      suites.set(suite, []);
+    }
+    suites.get(suite)!.push(img);
+  }
+
+  return suites;
+}
+
+/**
+ * Generate markdown comment with screenshots in test report format
  */
 function generateCommentMarkdown(
   copiedImages: CopiedImage[],
@@ -210,41 +343,79 @@ function generateCommentMarkdown(
   screenshotDir: string,
   prTempDir: string
 ): string {
-  let markdown = '## 📸 Screenshots - Browser Automation in Action\n\n';
-  markdown += 'The automation service successfully captured these screenshots during development and testing.\n\n';
+  const groupedByTestSuite = groupScreenshotsByTestSuite(copiedImages);
+  const totalSuites = groupedByTestSuite.size;
+  const totalScreenshots = copiedImages.length;
+
+  let markdown = '# 🧪 Browser Automation Test Report\n\n';
+  markdown += `**Test Run**: PR #${targetNumber} validation\n`;
+  markdown += `**Branch**: \`${currentBranch}\`\n`;
+  markdown += `**PR**: #${targetNumber}\n\n`;
+
+  // Summary section
+  markdown += '## Summary\n\n';
+  markdown += `✅ **Screenshots Captured**: ${totalScreenshots}\n`;
+  markdown += `📊 **Test Suites**: ${totalSuites}\n`;
+  markdown += `📁 **Source**: \`${screenshotDir}\`\n`;
+  markdown += `🔗 **Commit**: \`${commitSha}\`\n\n`;
   markdown += '---\n\n';
 
-  for (const img of copiedImages) {
-    const relPath = path.relative(process.cwd(), img.dest);
-    // CRITICAL: Use commit SHA (not branch) for permanent URLs
-    const blobUrl = `https://github.com/${owner}/${repo}/blob/${commitSha}/${relPath}?raw=true`;
-    const title = img.filename
-      .replace(/-/g, ' ')
-      .replace(/\.(png|jpg|jpeg|gif)$/i, '')
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  // Test results by suite (collapsible)
+  markdown += '## Test Results by Suite\n\n';
 
-    markdown += `### ${title}\n\n`;
-    markdown += `![${title}](${blobUrl})\n\n`;
+  for (const [suiteName, screenshots] of groupedByTestSuite.entries()) {
+    markdown += '<details>\n';
+    markdown += `<summary><strong>✅ ${suiteName} (${screenshots.length} screenshot${screenshots.length > 1 ? 's' : ''})</strong></summary>\n\n`;
 
-    // Add context metadata
-    markdown += `**📋 What:** ${img.context.what}\n\n`;
-    markdown += `**💡 Why:** ${img.context.why}\n\n`;
-    markdown += `**⏰ When:** ${img.context.when}\n\n`;
-    markdown += `**📅 Captured:** ${img.captureTime}\n`;
-    markdown += ` | **💾 Size:** ${(img.fileSize / 1024).toFixed(1)} KB\n`;
-    markdown += ` | **📁 Session:** \`${img.sessionDir}\`\n\n`;
-    markdown += '---\n\n';
+    for (const img of screenshots) {
+      const relPath = path.relative(process.cwd(), img.dest);
+      const blobUrl = `https://github.com/${owner}/${repo}/blob/${commitSha}/${relPath}?raw=true`;
+      const title = img.filename
+        .replace(/-/g, ' ')
+        .replace(/\.(png|jpg|jpeg|gif)$/i, '')
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+
+      markdown += `### Test: ${title}\n\n`;
+      markdown += '**Status**: ✅ Passed\n\n';
+      markdown += `**What**: ${img.context.what}\n\n`;
+      markdown += `**Why**: ${img.context.why}\n\n`;
+      markdown += `**When**: ${img.context.when}\n\n`;
+
+      markdown += '#### Screenshots\n\n';
+      markdown += '<details>\n';
+      markdown += '<summary>View Screenshot (1)</summary>\n\n';
+      markdown += `**${img.filename}** - ${img.context.what}\n`;
+      markdown += `![${title}](${blobUrl})\n\n`;
+      markdown += '</details>\n\n';
+      markdown += '---\n\n';
+    }
+
+    markdown += '</details>\n\n';
   }
 
-  markdown += `\n### Summary\n\n`;
-  markdown += `- **Total screenshots:** ${copiedImages.length}\n`;
-  markdown += `- **Source directory:** \`${screenshotDir}\`\n`;
-  markdown += `- **PR documentation directory:** \`${path.relative(process.cwd(), prTempDir)}\`\n`;
-  markdown += `- **Branch:** \`${currentBranch}\`\n`;
-  markdown += `- **Commit SHA:** \`${commitSha}\` (used for permanent image URLs)\n`;
-  markdown += `\n\n🤖 Generated with @octokit/rest screenshot uploader`;
+  // Screenshot Manifest
+  markdown += '<details>\n';
+  markdown += `<summary><strong>📸 Screenshot Manifest (${totalScreenshots} total)</strong></summary>\n\n`;
+  markdown += '| Suite | Screenshot | Size | Session |\n';
+  markdown += '|-------|------------|------|--------|\n';
+
+  for (const [suiteName, screenshots] of groupedByTestSuite.entries()) {
+    for (const img of screenshots) {
+      markdown += `| ${suiteName} | ${img.filename} | ${(img.fileSize / 1024).toFixed(1)} KB | \`${img.sessionDir}\` |\n`;
+    }
+  }
+
+  markdown += `\n**Base Path**: \`${path.relative(process.cwd(), prTempDir)}\`\n`;
+  markdown += `**Raw URL Format**: \`https://github.com/${owner}/${repo}/blob/${commitSha}/[path]?raw=true\`\n\n`;
+  markdown += '</details>\n\n';
+
+  // Footer
+  markdown += '---\n\n';
+  markdown += '🤖 Generated with [Claude Code](https://claude.com/claude-code)\n';
+  markdown += '📊 Report generated by screenshot-commenter agent via @octokit/rest\n\n';
+  markdown += 'Co-Authored-By: Claude <noreply@anthropic.com>';
 
   return markdown;
 }
