@@ -48,13 +48,13 @@ router.post('/attach-screenshots', async (req: Request, res: Response) => {
 
     console.log(`Attaching screenshots to ${targetType} #${prOrIssueNumber}`);
 
-    // Build command to invoke screenshot-commenter script
+    // Build command to invoke screenshot-commenter script (now using TypeScript with @octokit)
     const scriptPath = path.resolve(
       __dirname,
-      '../../../.agents/github/scripts/upload-screenshots.cjs'
+      '../../../.agents/github/scripts/upload-screenshots.ts'
     );
 
-    const command = `node "${scriptPath}" ${prOrIssueNumber} ${targetType} ${screenshotDir || 'auto-detect'}`;
+    const command = `npx tsx "${scriptPath}" ${prOrIssueNumber} ${targetType} ${screenshotDir || 'auto-detect'}`;
 
     // Execute screenshot-commenter script
     const { stdout, stderr } = await execAsync(command, {
