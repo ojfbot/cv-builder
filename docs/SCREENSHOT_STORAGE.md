@@ -1,8 +1,8 @@
 # Screenshot Storage System
 
-**Version:** 2.0
-**Updated:** 2025-11-17
-**Status:** ✅ Production Ready
+**Version:** 2.1
+**Updated:** 2025-11-18
+**Status:** ✅ Production Ready (Now with @octokit/rest)
 
 ## Overview
 
@@ -712,3 +712,58 @@ npm run screenshots:status            # View status
 **Last Updated:** 2025-11-17
 **Retention Policy:** 3 merged PRs
 **Status:** ✅ Production Ready
+
+---
+
+## GitHub API Integration (@octokit/rest)
+
+### Overview
+
+The screenshot upload system uses **@octokit/rest** (GitHub's official JavaScript API client) for all GitHub operations.
+
+**Migration from gh CLI (completed 2025-11-18):**
+- ✅ Replaced `gh` CLI with @octokit/rest
+- ✅ Better error handling (typed status codes)
+- ✅ Type-safe implementation with TypeScript
+- ✅ Rate limit handling with automatic retries
+- ✅ No external CLI dependency
+
+### Authentication Setup
+
+1. **Create a GitHub Personal Access Token:**
+   ```bash
+   # Go to: https://github.com/settings/tokens
+   # Create token with 'repo' scope
+   ```
+
+2. **Set environment variable:**
+   ```bash
+   export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxx
+   # Add to .env.local (see .env.example)
+   ```
+
+3. **Repository auto-detection:**
+   - Parses `git config --get remote.origin.url`
+   - Supports SSH and HTTPS formats
+   - No manual configuration needed
+
+### Implementation
+
+**Modules:**
+- `src/github/client.ts` - @octokit singleton with rate limiting
+- `src/github/utils.ts` - Git operations (add, commit, push)
+- `src/github/service.ts` - High-level GitHub methods
+
+**Hybrid Approach:**
+- GitHub API operations → @octokit/rest
+- Git operations → shell commands (proven reliable)
+
+**Error Handling:**
+- 404: PR/issue not found
+- 403: Permission denied (check GITHUB_TOKEN)
+- 422: Validation failed
+- All errors have detailed messages
+
+---
+
+**Last Updated:** 2025-11-18 (v2.1 - @octokit/rest migration)
