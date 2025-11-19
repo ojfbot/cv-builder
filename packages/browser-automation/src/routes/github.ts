@@ -11,6 +11,7 @@ import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { RequestError } from '@octokit/request-error';
 import { getGitHubService } from '../github/service.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -225,21 +226,28 @@ router.get('/pr/:number', async (req: Request, res: Response) => {
       success: true,
       pr,
     });
-  } catch (error: any) {
-    if (error.status === 404) {
-      res.status(404).json({
-        success: false,
-        error: `PR #${req.params.number} not found`,
-      });
-    } else if (error.status === 403) {
-      res.status(403).json({
-        success: false,
-        error: 'Permission denied. Check your GITHUB_TOKEN has repo access.',
-      });
+  } catch (error) {
+    if (error instanceof RequestError) {
+      if (error.status === 404) {
+        res.status(404).json({
+          success: false,
+          error: `PR #${req.params.number} not found`,
+        });
+      } else if (error.status === 403) {
+        res.status(403).json({
+          success: false,
+          error: 'Permission denied. Check your GITHUB_TOKEN has repo access.',
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to get PR information',
+        });
+      }
     } else {
       res.status(500).json({
         success: false,
-        error: error.message || 'Failed to get PR information',
+        error: error instanceof Error ? error.message : 'Failed to get PR information',
       });
     }
   }
@@ -268,21 +276,28 @@ router.get('/issue/:number', async (req: Request, res: Response) => {
       success: true,
       issue,
     });
-  } catch (error: any) {
-    if (error.status === 404) {
-      res.status(404).json({
-        success: false,
-        error: `Issue #${req.params.number} not found`,
-      });
-    } else if (error.status === 403) {
-      res.status(403).json({
-        success: false,
-        error: 'Permission denied. Check your GITHUB_TOKEN has repo access.',
-      });
+  } catch (error) {
+    if (error instanceof RequestError) {
+      if (error.status === 404) {
+        res.status(404).json({
+          success: false,
+          error: `Issue #${req.params.number} not found`,
+        });
+      } else if (error.status === 403) {
+        res.status(403).json({
+          success: false,
+          error: 'Permission denied. Check your GITHUB_TOKEN has repo access.',
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to get issue information',
+        });
+      }
     } else {
       res.status(500).json({
         success: false,
-        error: error.message || 'Failed to get issue information',
+        error: error instanceof Error ? error.message : 'Failed to get issue information',
       });
     }
   }

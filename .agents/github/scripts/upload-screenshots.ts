@@ -553,9 +553,39 @@ async function main() {
 
       console.log(`✓ Committed and pushed (SHA: ${commitSha.substring(0, 7)})\n`);
 
-      // Wait for GitHub to process
+      // Poll GitHub API to verify commit is accessible
       console.log('⏳ Waiting for GitHub to process files...');
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const maxAttempts = 10;
+      const pollInterval = 1000; // 1 second
+      let attempt = 0;
+      let commitAccessible = false;
+
+      while (attempt < maxAttempts && !commitAccessible) {
+        try {
+          await octokit.rest.repos.getCommit({
+            owner,
+            repo,
+            ref: commitSha,
+          });
+          commitAccessible = true;
+          console.log('✓ Commit verified on GitHub\n');
+        } catch (error: any) {
+          if (error.status === 404) {
+            attempt++;
+            if (attempt < maxAttempts) {
+              await new Promise((resolve) => setTimeout(resolve, pollInterval));
+            }
+          } else {
+            // Other errors should fail fast
+            throw error;
+          }
+        }
+      }
+
+      if (!commitAccessible) {
+        console.warn('⚠️  Warning: Commit not yet accessible on GitHub after 10 seconds');
+        console.warn('    Screenshots may not render immediately in the comment');
+      }
     } catch (error) {
       console.error('\n❌ Error committing/pushing files:', error);
       console.log('\n⚠️  You may need to commit and push manually');
