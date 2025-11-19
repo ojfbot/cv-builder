@@ -2,7 +2,7 @@
  * GitHub Integration Routes
  *
  * Endpoints for GitHub integration (screenshot uploads, PR comments)
- * Wraps the screenshot-commenter agent for programmatic access
+ * Uses @octokit/rest for GitHub API operations
  */
 
 import { Router, Request, Response } from 'express';
@@ -11,6 +11,7 @@ import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { getGitHubService } from '../github/service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -198,6 +199,92 @@ router.get('/sessions/:id', async (req: Request, res: Response) => {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get session',
     });
+  }
+});
+
+/**
+ * GET /api/github/pr/:number
+ * Get PR information using @octokit
+ */
+router.get('/pr/:number', async (req: Request, res: Response) => {
+  try {
+    const prNumber = parseInt(req.params.number, 10);
+
+    if (isNaN(prNumber)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid PR number',
+      });
+      return;
+    }
+
+    const githubService = getGitHubService();
+    const pr = await githubService.getPullRequest(prNumber);
+
+    res.json({
+      success: true,
+      pr,
+    });
+  } catch (error: any) {
+    if (error.status === 404) {
+      res.status(404).json({
+        success: false,
+        error: `PR #${req.params.number} not found`,
+      });
+    } else if (error.status === 403) {
+      res.status(403).json({
+        success: false,
+        error: 'Permission denied. Check your GITHUB_TOKEN has repo access.',
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get PR information',
+      });
+    }
+  }
+});
+
+/**
+ * GET /api/github/issue/:number
+ * Get issue information using @octokit
+ */
+router.get('/issue/:number', async (req: Request, res: Response) => {
+  try {
+    const issueNumber = parseInt(req.params.number, 10);
+
+    if (isNaN(issueNumber)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid issue number',
+      });
+      return;
+    }
+
+    const githubService = getGitHubService();
+    const issue = await githubService.getIssue(issueNumber);
+
+    res.json({
+      success: true,
+      issue,
+    });
+  } catch (error: any) {
+    if (error.status === 404) {
+      res.status(404).json({
+        success: false,
+        error: `Issue #${req.params.number} not found`,
+      });
+    } else if (error.status === 403) {
+      res.status(403).json({
+        success: false,
+        error: 'Permission denied. Check your GITHUB_TOKEN has repo access.',
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get issue information',
+      });
+    }
   }
 });
 

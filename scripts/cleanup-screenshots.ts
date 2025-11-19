@@ -15,9 +15,10 @@
  *   npm run screenshots:cleanup:dry-run   # Preview without deleting
  */
 
-import { execSync, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { getGitHubService } from '../packages/browser-automation/src/github/service.js';
 
 interface PRScreenshotInfo {
   prNumber: number;
@@ -35,10 +36,12 @@ const isDryRun = process.argv.includes('--dry-run');
 
 /**
  * Fetch PR information from GitHub for all PR screenshot directories
+ * Now uses @octokit instead of gh CLI
  */
 async function getPRScreenshotDirs(): Promise<PRScreenshotInfo[]> {
   const entries = await fs.readdir(SCREENSHOTS_BASE_DIR, { withFileTypes: true });
   const prInfos: PRScreenshotInfo[] = [];
+  const githubService = getGitHubService();
 
   for (const entry of entries) {
     if (!entry.isDirectory() || !entry.name.startsWith('pr-')) continue;
@@ -47,22 +50,40 @@ async function getPRScreenshotDirs(): Promise<PRScreenshotInfo[]> {
     if (!prNumber) continue;
 
     try {
-      // Fetch PR state from GitHub
-      const result = execSync(
-        `gh pr view ${prNumber} --json state,mergedAt,closedAt`,
-        { encoding: 'utf-8' }
-      );
-      const pr = JSON.parse(result);
+      // Fetch PR state from GitHub using @octokit
+      const pr = await githubService.getPullRequest(prNumber);
+
+      // Determine state
+      let state: 'open' | 'merged' | 'closed';
+      if (pr.state === 'open') {
+        state = 'open';
+      } else if (pr.merged) {
+        state = 'merged';
+      } else {
+        state = 'closed';
+      }
 
       prInfos.push({
         prNumber,
         dirPath: path.join(SCREENSHOTS_BASE_DIR, entry.name),
-        state: pr.state.toLowerCase(),
+        state,
         mergedAt: pr.mergedAt ? new Date(pr.mergedAt) : null,
-        closedAt: pr.closedAt ? new Date(pr.closedAt) : null,
+        closedAt: null, // @octokit doesn't provide closedAt directly for non-merged closed PRs
       });
     } catch (error: any) {
-      console.warn(`⚠️  Could not fetch PR #${prNumber}: ${error.message}`);
+      if (error.status === 404) {
+        // PR doesn't exist anymore, treat as closed
+        console.warn(`⚠️  PR #${prNumber} not found (may have been deleted)`);
+        prInfos.push({
+          prNumber,
+          dirPath: path.join(SCREENSHOTS_BASE_DIR, entry.name),
+          state: 'closed',
+          mergedAt: null,
+          closedAt: null,
+        });
+      } else {
+        console.warn(`⚠️  Could not fetch PR #${prNumber}: ${error.message}`);
+      }
       // Continue with other PRs
     }
   }

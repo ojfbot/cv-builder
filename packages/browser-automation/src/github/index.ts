@@ -17,3 +17,12 @@ export {
   getRemoteUrl,
 } from './utils.js';
 export type { RepoInfo } from './utils.js';
+
+export { GitHubService, getGitHubService, resetGitHubService } from './service.js';
+export type {
+  AttachScreenshotsOptions,
+  AttachScreenshotsResult,
+  PRInfo,
+  IssueInfo,
+  PRScreenshotInfo,
+} from './service.js';
