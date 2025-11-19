@@ -10,6 +10,9 @@ import { throttling } from '@octokit/plugin-throttling';
 
 const MyOctokit = Octokit.plugin(throttling);
 
+// Rate limiting constants
+const MAX_RATE_LIMIT_RETRIES = 2;
+
 export interface GitHubConfig {
   auth: string;
   owner?: string;
@@ -24,13 +27,15 @@ export function createGitHubClient(config: GitHubConfig): Octokit {
     auth: config.auth,
     throttle: {
       onRateLimit: (retryAfter, options, _octokit, retryCount) => {
+        // WARNING: options object may contain auth headers - do not log full object
         console.warn(
           `Rate limit hit for ${options.method} ${options.url}, retrying after ${retryAfter}s`
         );
-        if (retryCount < 2) return true; // Retry up to 2 times
+        if (retryCount < MAX_RATE_LIMIT_RETRIES) return true;
         return false;
       },
       onSecondaryRateLimit: (_retryAfter, options, _octokit) => {
+        // WARNING: options object may contain auth headers - do not log full object
         console.warn(
           `Secondary rate limit hit for ${options.method} ${options.url}`
         );
