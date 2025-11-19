@@ -141,7 +141,10 @@ export class GitHubService {
           // PR doesn't exist, skip it
           continue;
         }
+        // Log non-404 errors but continue processing other PRs
         console.warn(`Warning: Failed to fetch PR #${prNumber}:`, error.message);
+        // Could collect errors to return to caller if needed:
+        // errors.push({ prNumber, error: error.message });
       }
     }
 

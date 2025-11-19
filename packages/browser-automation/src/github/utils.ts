@@ -65,11 +65,16 @@ export function getCommitSha(): string {
  * Stage, commit, and push files
  */
 export async function commitAndPush(files: string[], message: string): Promise<string> {
-  // Stage files
-  execSync(`git add ${files.join(' ')}`, { stdio: 'inherit' });
+  // Stage files - quote each path to prevent shell injection
+  const quotedFiles = files.map(f => `"${f.replace(/"/g, '\\"')}"`).join(' ');
+  execSync(`git add ${quotedFiles}`, { stdio: 'inherit' });
 
-  // Commit
-  execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { stdio: 'inherit' });
+  // Commit - use stdin to avoid command injection
+  execSync('git commit -F-', {
+    input: message,
+    encoding: 'utf-8',
+    stdio: ['pipe', 'inherit', 'inherit']
+  });
 
   // Push
   execSync('git push', { stdio: 'inherit' });
