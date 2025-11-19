@@ -10,6 +10,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import { fileURLToPath } from 'url';
 import { RequestError } from '@octokit/request-error';
 import { getGitHubService } from '../github/service.js';
@@ -158,7 +159,10 @@ router.get('/sessions/:id', async (req: Request, res: Response) => {
     const sessionId = req.params.id;
     const sessionPath = path.resolve(__dirname, `../../../temp/screenshots/${sessionId}`);
 
-    if (!fs.existsSync(sessionPath)) {
+    // Check if session path exists
+    try {
+      await fsPromises.access(sessionPath);
+    } catch {
       res.status(404).json({
         success: false,
         error: `Session not found: ${sessionId}`,
@@ -166,12 +170,12 @@ router.get('/sessions/:id', async (req: Request, res: Response) => {
       return;
     }
 
-    const files = fs.readdirSync(sessionPath);
-    const screenshots = files
+    const files = await fsPromises.readdir(sessionPath);
+    const screenshotPromises = files
       .filter((f) => /\.(png|jpg|jpeg|gif)$/i.test(f))
-      .map((filename) => {
+      .map(async (filename) => {
         const filePath = path.join(sessionPath, filename);
-        const stats = fs.statSync(filePath);
+        const stats = await fsPromises.stat(filePath);
 
         return {
           filename,
@@ -181,11 +185,16 @@ router.get('/sessions/:id', async (req: Request, res: Response) => {
         };
       });
 
+    const screenshots = await Promise.all(screenshotPromises);
+
     // Load manifest if exists
     let manifest = null;
     const manifestPath = path.join(sessionPath, 'manifest.json');
-    if (fs.existsSync(manifestPath)) {
-      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+    try {
+      const manifestData = await fsPromises.readFile(manifestPath, 'utf-8');
+      manifest = JSON.parse(manifestData);
+    } catch {
+      // Manifest doesn't exist or is invalid - this is ok
     }
 
     res.json({

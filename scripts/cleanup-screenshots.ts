@@ -15,10 +15,27 @@
  *   npm run screenshots:cleanup:dry-run   # Preview without deleting
  */
 
-import { spawnSync } from 'child_process';
+import { spawn } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 import { getGitHubService } from '../packages/browser-automation/src/github/service.js';
+
+// Helper to run shell commands asynchronously
+async function execCommand(command: string, args: string[]): Promise<{ stdout: string; stderr: string; code: number }> {
+  return new Promise((resolve) => {
+    const child = spawn(command, args);
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => { stdout += data.toString(); });
+    child.stderr?.on('data', (data) => { stderr += data.toString(); });
+
+    child.on('close', (code) => {
+      resolve({ stdout, stderr, code: code || 0 });
+    });
+  });
+}
 
 interface PRScreenshotInfo {
   prNumber: number;
@@ -130,8 +147,8 @@ async function cleanupPRScreenshots() {
 
   const calculateDirSize = async (dirPath: string): Promise<number> => {
     try {
-      const result = spawnSync('du', ['-sk', dirPath], { encoding: 'utf-8' });
-      if (result.status !== 0) {
+      const result = await execCommand('du', ['-sk', dirPath]);
+      if (result.code !== 0) {
         console.warn(`⚠️  Failed to calculate size for ${dirPath}: ${result.stderr || 'Unknown error'}`);
         return 0;
       }
