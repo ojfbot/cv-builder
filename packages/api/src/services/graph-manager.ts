@@ -78,9 +78,11 @@ class GraphManager {
       );
 
       this.initialized = true;
-      console.log('GraphManager initialized successfully with LangGraph');
+      // Logger is not available yet during initialization, using console
+      console.log('[GraphManager] Initialized successfully with LangGraph');
     } catch (error) {
-      console.error('Failed to initialize GraphManager:', error);
+      // Logger is not available yet during initialization, using console
+      console.error('[GraphManager] Failed to initialize:', error);
       throw new Error(
         'Failed to initialize graph services. Please check configuration.'
       );

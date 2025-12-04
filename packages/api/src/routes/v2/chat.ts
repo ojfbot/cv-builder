@@ -11,6 +11,16 @@ import { graphManager } from '../../services/graph-manager';
 
 const router = Router();
 
+// Simple logger for API routes
+const logger = {
+  error: (message: string, error: unknown) => {
+    console.error(`[V2/Chat] ${message}`, error);
+  },
+  info: (message: string, data?: unknown) => {
+    console.log(`[V2/Chat] ${message}`, data || '');
+  }
+};
+
 /**
  * POST /api/v2/chat
  * Non-streaming chat endpoint
@@ -57,7 +67,7 @@ router.post('/chat', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Chat error:', error);
+    logger.error('Chat error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -129,9 +139,9 @@ router.post('/chat/stream', async (req: Request, res: Response) => {
         }
 
         // Flush the response (if available)
-        if (typeof (res as any).flush === 'function') {
-          (res as any).flush();
-        }
+        // Note: flush() is not part of standard Response type but may be available
+        // in some environments (e.g., compression middleware)
+        (res as any).flush?.();
       }
 
       // Send completion event
@@ -139,7 +149,7 @@ router.post('/chat/stream', async (req: Request, res: Response) => {
       res.write('data: {"status":"completed"}\n\n');
       res.end();
     } catch (streamError) {
-      console.error('Stream error:', streamError);
+      logger.error('Stream error:', streamError);
       res.write('event: error\n');
       res.write(
         `data: ${JSON.stringify({
@@ -152,7 +162,7 @@ router.post('/chat/stream', async (req: Request, res: Response) => {
       res.end();
     }
   } catch (error) {
-    console.error('Chat stream setup error:', error);
+    logger.error('Chat stream setup error:', error);
     if (!res.headersSent) {
       res.status(500).json({
         success: false,

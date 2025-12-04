@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { agentManager } from './services/agent-manager.js';
 import { graphManager } from './services/graph-manager.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
+import { standardLimiter } from './middleware/rate-limit.js';
 
 // Import routes
 import healthRouter from './routes/health.js';
@@ -29,13 +29,9 @@ app.use(
   })
 );
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-});
-app.use('/api/', limiter);
+// Rate limiting - V1 API endpoints
+// V2 routes have their own stricter rate limits defined in routes/v2/index.ts
+app.use('/api/', standardLimiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

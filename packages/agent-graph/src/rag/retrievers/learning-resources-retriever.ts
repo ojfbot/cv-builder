@@ -2,6 +2,15 @@
  * Learning Resources Retriever
  *
  * Retrieves skill development paths and learning resources.
+ *
+ * CURRENT STATUS: Hardcoded seed data (prototype)
+ *
+ * TODO (Production): Replace hardcoded documents with dynamic content
+ * - Load from structured markdown files or CMS
+ * - Integrate with real course platforms (Udemy, Coursera APIs)
+ * - Add user progress tracking and personalized recommendations
+ * - Implement content freshness checks (courses/resources may become outdated)
+ * - Consider industry-specific learning paths
  */
 
 import { Document } from "@langchain/core/documents";

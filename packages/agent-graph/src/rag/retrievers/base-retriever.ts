@@ -105,6 +105,11 @@ export abstract class BaseRetriever implements Retriever {
 
   /**
    * Get stats
+   *
+   * TODO (Production): Implement proper document counting
+   * MemoryVectorStore doesn't expose document count. With persistent storage:
+   * - sqlite-vec: SELECT COUNT(*) FROM vector_store
+   * - pgvector: SELECT COUNT(*) FROM embeddings
    */
   async getStats(): Promise<{ documentCount: number }> {
     await this.ensureInitialized();
