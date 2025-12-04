@@ -138,16 +138,19 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
 
       <style>{`
         .thread-sidebar {
-          position: fixed;
-          right: 0;
-          top: 0;
-          height: 100vh;
-          width: 320px;
-          transform: translateX(${isExpanded ? '0' : '100%'});
-          transition: transform 0.3s ease;
-          background: var(--cds-layer-01);
-          border-left: 1px solid var(--cds-border-subtle);
-          z-index: 999;
+          position: fixed !important;
+          right: 0 !important;
+          left: auto !important;
+          top: 0 !important;
+          height: 100vh !important;
+          width: 320px !important;
+          max-width: 320px !important;
+          transform: translateX(${isExpanded ? '0' : '100%'}) !important;
+          transition: transform 0.3s ease !important;
+          background: var(--cds-layer-01) !important;
+          border-left: 1px solid var(--cds-border-subtle) !important;
+          border-right: none !important;
+          z-index: 999 !important;
         }
 
         .thread-sidebar-header {
@@ -270,6 +273,17 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
 
         .thread-item-delete:hover {
           color: var(--cds-support-error);
+        }
+
+        /* Override Carbon's SideNav overlay positioning */
+        .cds--side-nav__overlay {
+          right: 0 !important;
+          left: auto !important;
+        }
+
+        /* Ensure all SideNav internal elements align properly */
+        .thread-sidebar .cds--side-nav__navigation {
+          width: 100% !important;
         }
       `}</style>
     </SideNav>
