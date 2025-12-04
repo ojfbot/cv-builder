@@ -15,6 +15,11 @@
   transition: all 0.3s ease-out;
 }
 
+/* Move condensed chat left when V2 sidebar is open */
+.condensed-chat.with-sidebar {
+  right: calc(320px + 1rem);
+}
+
 .condensed-chat.expanded {
   height: 650px;
   max-height: calc(100vh - 2rem);
@@ -285,5 +290,10 @@
 
   .condensed-chat.expanded {
     height: calc(100vh - 2rem);
+  }
+
+  /* On mobile, don't shift for sidebar - sidebar overlays */
+  .condensed-chat.with-sidebar {
+    right: 1rem;
   }
 }

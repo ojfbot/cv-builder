@@ -9,12 +9,12 @@
   overflow: hidden;
   position: relative;
   z-index: 1;
-  transition: margin-left 0.3s ease;
+  transition: margin-right 0.3s ease;
 }
 
-/* Dashboard wrapper when sidebar is open */
+/* Dashboard wrapper when sidebar is open (right side) */
 .dashboard-wrapper.with-sidebar {
-  margin-left: 320px;
+  margin-right: 320px;
 }
 
 /* Dashboard header with toggle button */

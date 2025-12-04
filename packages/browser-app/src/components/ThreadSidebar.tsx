@@ -138,8 +138,16 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
 
       <style>{`
         .thread-sidebar {
-          height: 100%;
-          border-right: 1px solid var(--cds-border-subtle);
+          position: fixed;
+          right: 0;
+          top: 0;
+          height: 100vh;
+          width: 320px;
+          transform: translateX(${isExpanded ? '0' : '100%'});
+          transition: transform 0.3s ease;
+          background: var(--cds-layer-01);
+          border-left: 1px solid var(--cds-border-subtle);
+          z-index: 999;
         }
 
         .thread-sidebar-header {
