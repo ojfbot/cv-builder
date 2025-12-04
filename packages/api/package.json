@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@cv-builder/agent-core": "file:../agent-core",
+    "@cv-builder/agent-graph": "file:../agent-graph",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
     "cors": "^2.8.5",
