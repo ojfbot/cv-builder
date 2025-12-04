@@ -22,17 +22,26 @@ interface ThreadSidebarProps {
 
 export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const { threads, currentThreadId, isLoading, isCreatingThread } = useSelector(
+  const { threads: threadsRaw, currentThreadId, isLoading, isCreatingThread } = useSelector(
     (state: RootState) => state.threads
   );
 
+  // Defensive: Ensure threads is always an array
+  const threads = Array.isArray(threadsRaw) ? threadsRaw : [];
+
   useEffect(() => {
     // Load threads on mount
-    dispatch(fetchThreads());
+    // For now, use a default userId. In production, this should come from authentication
+    const userId = localStorage.getItem('userId') || 'browser-user';
+    if (!localStorage.getItem('userId')) {
+      localStorage.setItem('userId', userId);
+    }
+    dispatch(fetchThreads({ userId }));
   }, [dispatch]);
 
   const handleCreateThread = async () => {
-    const result = await dispatch(createThread({ title: 'New conversation' }));
+    const userId = localStorage.getItem('userId') || 'browser-user';
+    const result = await dispatch(createThread({ userId, title: 'New conversation' }));
     if (createThread.fulfilled.match(result)) {
       // Thread created and auto-selected via reducer
     }
@@ -50,7 +59,8 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
   };
 
   const handleRefresh = () => {
-    dispatch(fetchThreads());
+    const userId = localStorage.getItem('userId') || 'browser-user';
+    dispatch(fetchThreads({ userId }));
   };
 
   return (
