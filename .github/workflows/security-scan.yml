@@ -2,7 +2,7 @@ name: Security Scan
 
 on:
   push:
-    branches: [ main, develop, langchain-todo ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
 

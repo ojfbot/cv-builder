@@ -3,7 +3,7 @@
 # Security verification script
 # Comprehensive security audit of the repository
 
-set -e
+# Note: Not using 'set -e' to allow conditional checks to complete without premature exit
 
 echo "🔐 CV Builder Security Audit"
 echo "============================="

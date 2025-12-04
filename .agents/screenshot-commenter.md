@@ -434,11 +434,37 @@ When invoked to generate a test report, follow these steps:
 
 ## GitHub PR Comment Integration
 
+### CRITICAL: Screenshot Upload Workflow
+
+**Before generating the report**, screenshots MUST be uploaded to GitHub to be accessible in PR comments:
+
+```bash
+# Step 1: Ensure screenshots exist (not in HEADLESS mode)
+ls temp/pr-[PR_NUMBER]/  # Should show .png files
+
+# Step 2: Copy screenshots to permanent location in repo
+mkdir -p docs/screenshots/pr-[PR_NUMBER]
+cp temp/pr-[PR_NUMBER]/*.png docs/screenshots/pr-[PR_NUMBER]/
+
+# Step 3: Commit and push screenshots
+git add docs/screenshots/pr-[PR_NUMBER]
+git commit -m "docs: add test screenshots for PR #[PR_NUMBER]"
+git push origin [BRANCH_NAME]
+
+# Step 4: WAIT for GitHub to process the commit (5-10 seconds)
+sleep 10
+
+# Step 5: Generate report with correct GitHub URLs
+# URLs should point to: https://github.com/ojfbot/cv-builder/blob/[BRANCH]/docs/screenshots/pr-[PR_NUMBER]/[filename].png?raw=true
+```
+
+### Posting the Report
+
 To post the generated report as a PR comment:
 
 ```bash
-# Generate report
-cat test-output.log | screenshot-commenter-agent > report.md
+# Generate report with uploaded screenshot URLs
+cat test-output.log | screenshot-commenter-agent --pr [PR_NUMBER] --branch [BRANCH] > report.md
 
 # Post to PR
 gh pr comment [PR_NUMBER] --body-file report.md

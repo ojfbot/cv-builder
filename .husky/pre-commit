@@ -32,14 +32,12 @@ fi
 echo "Checking for sensitive config files..."
 if git diff --cached --name-only | grep -E "env\.json$" | grep -v "env.json.example"; then
   echo ""
-  echo "⚠️  WARNING: env.json detected in staged files!"
-  echo "This file may contain API keys. Only env.json.example should be committed."
+  echo "❌ ERROR: env.json detected in staged files!"
+  echo "This file contains API keys and should NEVER be committed."
+  echo "Only env.json.example should be committed."
+  echo "Run: git reset HEAD <file> to unstage."
   echo ""
-  read -p "Are you sure you want to commit this? (y/N) " -n 1 -r
-  echo
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    exit 1
-  fi
+  exit 1
 fi
 
 echo "✅ Security checks passed"
