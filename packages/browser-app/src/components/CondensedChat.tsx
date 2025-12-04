@@ -40,6 +40,8 @@ function CondensedChat() {
   const streamingContent = useAppSelector(state => state.chat.streamingContent)
   const isExpanded = useAppSelector(state => state.chat.isExpanded)
   const unreadCount = useAppSelector(state => state.chat.unreadCount)
+  const v2Enabled = useAppSelector(state => state.v2.enabled)
+  const showThreadSidebar = useAppSelector(state => state.v2.showThreadSidebar)
   const { orchestrator, isInitialized } = useAgent()
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -408,7 +410,7 @@ function CondensedChat() {
 
   return (
     <div
-      className={`condensed-chat ${isExpanded ? 'expanded' : ''}`}
+      className={`condensed-chat ${isExpanded ? 'expanded' : ''} ${v2Enabled && showThreadSidebar ? 'with-sidebar' : ''}`}
       data-element="chat-window"
       data-state={isExpanded ? 'expanded' : 'collapsed'}
     >
