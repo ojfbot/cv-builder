@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Toggle, InlineNotification } from '@carbon/react';
-import { Rocket } from '@carbon/icons-react';
+import { Toggle } from '@carbon/react';
+import { Rocket, Information } from '@carbon/icons-react';
 import { RootState, AppDispatch } from '../store';
 import {
   setV2Enabled,
@@ -14,6 +14,8 @@ import { apiClientV2 } from '../api/client-v2';
 export function V2Toggle() {
   const dispatch = useDispatch<AppDispatch>();
   const { enabled, apiAvailable } = useSelector((state: RootState) => state.v2);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const toggleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Load saved settings
@@ -44,107 +46,211 @@ export function V2Toggle() {
   };
 
   return (
-    <div className="v2-toggle-container">
-      <div className="v2-toggle-header">
-        <div className="v2-toggle-icon">
-          <Rocket size={24} />
-        </div>
-        <div className="v2-toggle-content">
-          <h4>V2 (LangGraph) Mode</h4>
-          <p>Advanced multi-agent orchestration with thread persistence</p>
-        </div>
+    <div
+      className="v2-toggle-compact"
+      ref={toggleRef}
+      onMouseEnter={() => setIsPopoverOpen(true)}
+      onMouseLeave={() => setIsPopoverOpen(false)}
+      onFocus={() => setIsPopoverOpen(true)}
+      onBlur={() => setIsPopoverOpen(false)}
+    >
+      <div className="v2-toggle-wrapper">
+        <span className="v2-toggle-label">
+          {enabled ? 'V2' : 'V1'}
+        </span>
         <Toggle
-          id="v2-toggle"
-          labelA="V1"
-          labelB="V2"
+          id="v2-toggle-compact"
+          labelA=""
+          labelB=""
+          hideLabel
           toggled={enabled}
           onToggle={handleToggle}
           disabled={!apiAvailable}
           size="sm"
         />
+        <button
+          className="v2-info-button"
+          aria-label="V2 mode information"
+          tabIndex={0}
+        >
+          <Information size={16} />
+        </button>
       </div>
 
-      {!apiAvailable && (
-        <InlineNotification
-          kind="warning"
-          subtitle="V2 API is not available. Set ENABLE_V2_API=true on the server."
-          lowContrast
-          hideCloseButton
-        />
-      )}
+      {isPopoverOpen && (
+        <div className="v2-popover">
+          <div className="v2-popover-header">
+            <Rocket size={20} />
+            <h4>V2 (LangGraph) Mode</h4>
+          </div>
+          <p className="v2-popover-description">
+            Advanced multi-agent orchestration with thread persistence
+          </p>
 
-      {enabled && apiAvailable && (
-        <div className="v2-toggle-features">
-          <h5>Active Features:</h5>
-          <ul>
-            <li>✅ Thread-based conversations</li>
-            <li>✅ State persistence & recovery</li>
-            <li>✅ Parallel expert execution</li>
-            <li>✅ RAG-enhanced responses</li>
-            <li>✅ Advanced streaming</li>
-          </ul>
+          {!apiAvailable && (
+            <div className="v2-popover-warning">
+              <strong>⚠️ V2 API Not Available</strong>
+              <p>Set ENABLE_V2_API=true on the server</p>
+            </div>
+          )}
+
+          {enabled && apiAvailable && (
+            <div className="v2-popover-features">
+              <strong>Active Features:</strong>
+              <ul>
+                <li>✅ Thread-based conversations</li>
+                <li>✅ State persistence & recovery</li>
+                <li>✅ Parallel expert execution</li>
+                <li>✅ RAG-enhanced responses</li>
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
       <style>{`
-        .v2-toggle-container {
-          background: var(--cds-layer);
-          border: 1px solid var(--cds-border-subtle);
-          border-radius: 4px;
-          padding: 1rem;
-          margin: 1rem 0;
-        }
-
-        .v2-toggle-header {
-          display: flex;
+        .v2-toggle-compact {
+          position: relative;
+          display: inline-flex;
           align-items: center;
-          gap: 1rem;
         }
 
-        .v2-toggle-icon {
-          color: var(--cds-icon-primary);
-        }
-
-        .v2-toggle-content {
-          flex: 1;
-        }
-
-        .v2-toggle-content h4 {
-          margin: 0 0 0.25rem 0;
-          font-size: 1rem;
-          font-weight: 600;
+        .v2-toggle-wrapper {
           display: flex;
           align-items: center;
           gap: 0.5rem;
+          padding: 0.25rem 0.5rem;
+          background: var(--cds-layer);
+          border: 1px solid var(--cds-border-subtle);
+          border-radius: 4px;
+          transition: all 0.2s;
         }
 
-        .v2-toggle-content p {
+        .v2-toggle-wrapper:hover {
+          background: var(--cds-layer-hover);
+          border-color: var(--cds-border-strong);
+        }
+
+        .v2-toggle-label {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--cds-text-primary);
+          min-width: 1.5rem;
+          text-align: center;
+        }
+
+        .v2-toggle-compact .cds--toggle {
+          margin: 0;
+        }
+
+        .v2-toggle-compact .cds--toggle__label {
+          display: none;
+        }
+
+        .v2-info-button {
+          padding: 0;
+          margin: 0;
+          background: none;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          color: var(--cds-icon-secondary);
+          transition: color 0.2s;
+        }
+
+        .v2-info-button:hover,
+        .v2-info-button:focus {
+          color: var(--cds-icon-primary);
+          outline: none;
+        }
+
+        .v2-popover {
+          position: absolute;
+          top: calc(100% + 0.5rem);
+          right: 0;
+          width: 280px;
+          background: var(--cds-layer-01);
+          border: 1px solid var(--cds-border-subtle);
+          border-radius: 4px;
+          padding: 1rem;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          z-index: 10000;
+          animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .v2-popover-header {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .v2-popover-header h4 {
           margin: 0;
           font-size: 0.875rem;
-          color: var(--cds-text-secondary);
+          font-weight: 600;
+          color: var(--cds-text-primary);
         }
 
-        .v2-toggle-features {
-          margin-top: 1rem;
-          padding-top: 1rem;
+        .v2-popover-description {
+          margin: 0 0 1rem 0;
+          font-size: 0.75rem;
+          color: var(--cds-text-secondary);
+          line-height: 1.4;
+        }
+
+        .v2-popover-warning {
+          padding: 0.75rem;
+          background: var(--cds-support-warning);
+          color: var(--cds-text-on-color);
+          border-radius: 4px;
+          margin-bottom: 0.75rem;
+        }
+
+        .v2-popover-warning strong {
+          display: block;
+          font-size: 0.75rem;
+          margin-bottom: 0.25rem;
+        }
+
+        .v2-popover-warning p {
+          margin: 0;
+          font-size: 0.75rem;
+        }
+
+        .v2-popover-features {
+          padding-top: 0.75rem;
           border-top: 1px solid var(--cds-border-subtle);
         }
 
-        .v2-toggle-features h5 {
-          margin: 0 0 0.5rem 0;
-          font-size: 0.875rem;
+        .v2-popover-features strong {
+          display: block;
+          font-size: 0.75rem;
           font-weight: 600;
           color: var(--cds-text-secondary);
+          margin-bottom: 0.5rem;
         }
 
-        .v2-toggle-features ul {
+        .v2-popover-features ul {
           margin: 0;
-          padding-left: 1.5rem;
+          padding-left: 0;
           list-style: none;
         }
 
-        .v2-toggle-features li {
-          font-size: 0.875rem;
+        .v2-popover-features li {
+          font-size: 0.75rem;
           margin-bottom: 0.25rem;
           color: var(--cds-text-primary);
         }

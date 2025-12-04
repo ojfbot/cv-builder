@@ -14,7 +14,7 @@
 
 /* Dashboard wrapper when sidebar is open (right side) */
 .dashboard-wrapper.with-sidebar {
-  margin-right: 320px;
+  margin-right: calc(320px + 1rem);
 }
 
 /* Dashboard header with toggle button */
@@ -23,6 +23,13 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
+}
+
+/* Dashboard header actions container */
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 /* Sidebar toggle button */
