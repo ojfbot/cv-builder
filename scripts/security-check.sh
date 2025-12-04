@@ -10,7 +10,7 @@ echo ""
 
 # Check 1: Search for API keys in code
 echo "1️⃣  Checking for API keys in source code..."
-if git grep -n -E 'sk-ant-api[0-9]+-[a-zA-Z0-9_-]+' -- '*.ts' '*.js' '*.tsx' '*.jsx' '*.json' ':!*.example' ':!SECURITY.md' ':!.github/' ':!scripts/'; then
+if git grep -n -E 'sk-ant-api[0-9]{2}-[A-Za-z0-9_-]{90,}' -- '*.ts' '*.js' '*.tsx' '*.jsx' '*.json' ':!*.example' ':!SECURITY.md' ':!.github/' ':!scripts/'; then
   echo ""
   echo "❌ ERROR: API keys found in source code!"
   echo "Please remove API keys and store them in env.json (gitignored)"

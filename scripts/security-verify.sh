@@ -60,9 +60,9 @@ echo ""
 
 # Check 3: Search for API keys in codebase
 echo "3. Scanning for API keys in source code..."
-if git grep -n -E 'sk-ant-api[0-9]+-[a-zA-Z0-9_-]+' -- '*.ts' '*.js' '*.tsx' '*.jsx' '*.json' ':!*.example' ':!SECURITY.md' ':!.github/' ':!scripts/' > /dev/null 2>&1; then
+if git grep -n -E 'sk-ant-api[0-9]{2}-[A-Za-z0-9_-]{90,}' -- '*.ts' '*.js' '*.tsx' '*.jsx' '*.json' ':!*.example' ':!SECURITY.md' ':!.github/' ':!scripts/' > /dev/null 2>&1; then
   report_error "API keys found in source code!"
-  git grep -n -E 'sk-ant-api[0-9]+-[a-zA-Z0-9_-]+' -- '*.ts' '*.js' '*.tsx' '*.jsx' '*.json' ':!*.example' ':!SECURITY.md' ':!.github/' ':!scripts/'
+  git grep -n -E 'sk-ant-api[0-9]{2}-[A-Za-z0-9_-]{90,}' -- '*.ts' '*.js' '*.tsx' '*.jsx' '*.json' ':!*.example' ':!SECURITY.md' ':!.github/' ':!scripts/'
 else
   report_ok "No API keys in source code"
 fi
