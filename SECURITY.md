@@ -56,7 +56,7 @@ This repository uses:
 
 ### Recent Incidents
 
-#### 2024-12-04: API Key Exposure in dist/ Directory
+#### 2025-12-04: API Key Exposure in dist/ Directory
 - **Severity**: Critical
 - **Status**: Resolved
 - **Details**: Build artifacts containing API keys were committed to git history

@@ -19,7 +19,7 @@
     "cli:headless": "npm run cli:headless --workspace=@cv-builder/agent-core",
     "type-check": "npm run type-check --workspaces --if-present",
     "security:check": "bash scripts/security-check.sh",
-    "security:scan": "git grep -n -E 'sk-ant-api[0-9]+-[a-zA-Z0-9_-]+' -- '*.ts' '*.js' '*.tsx' '*.jsx' '*.json' ':!*.example' ':!SECURITY.md' ':!.github/' || echo '✅ No API keys found'",
+    "security:scan": "bash scripts/security-scan.sh",
     "security:verify": "bash scripts/security-verify.sh",
     "prepare": "husky install || echo 'Husky not installed, skipping git hooks'",
     "docker:build": "docker build -t cv-builder-agents .",
