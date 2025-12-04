@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in CV Builder, please report it by:
 
-1. **Email**: Create a GitHub security advisory at https://github.com/ojfbot/cv-builder/security/advisories/new
+1. **GitHub Security Advisory**: Create a security advisory at https://github.com/ojfbot/cv-builder/security/advisories/new
 2. **Issues**: For non-critical security concerns, create an issue with the `security` label
 
 **Please do NOT:**
