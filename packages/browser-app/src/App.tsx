@@ -16,6 +16,7 @@ import { store } from './store'
 import { AgentProvider } from './contexts/AgentContext'
 import Dashboard from './components/Dashboard'
 import ApiKeySettings from './components/ApiKeySettings'
+import { V2Toggle } from './components/V2Toggle'
 import './App.css'
 
 function App() {
@@ -78,6 +79,7 @@ function App() {
             />
             <HeaderName prefix="">CV Builder</HeaderName>
             <HeaderGlobalBar>
+              <V2Toggle />
               <HeaderGlobalAction
                 data-element="settings-button"
                 aria-label="Settings"
