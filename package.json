@@ -11,6 +11,7 @@
     "dev": "npm run dev --workspace=@cv-builder/browser-app",
     "dev:api": "npm run dev --workspace=@cv-builder/api",
     "dev:all": "concurrently \"npm run dev:api\" \"npm run dev\"",
+    "dev:v2": "ENABLE_V2_API=true concurrently \"npm run dev:api\" \"npm run dev\"",
     "build": "npm run build --workspaces --if-present",
     "prebuild": "npm run security:check",
     "preview": "npm run preview --workspace=@cv-builder/browser-app",
