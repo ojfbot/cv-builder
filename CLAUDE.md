@@ -45,6 +45,7 @@ npm run cli:headless -- --job jobs/example.json
 ### Build and Type Checking
 ```bash
 # Build for production (TypeScript compilation + Vite build)
+# Includes automatic security checks before build
 npm run build
 
 # Type check without building
@@ -52,6 +53,18 @@ npm run type-check
 
 # Preview production build
 npm run preview
+```
+
+### Security Commands
+```bash
+# Run comprehensive security audit
+npm run security:verify
+
+# Scan for API keys in source code
+npm run security:scan
+
+# Run security checks (used by prebuild)
+npm run security:check
 ```
 
 ## Environment Setup
@@ -63,6 +76,7 @@ The application supports two configuration methods (env.json is recommended):
 1. **env.json (Recommended)**: Create `packages/agent-core/env.json` with API key and settings
    ```bash
    cp packages/agent-core/env.json.example packages/agent-core/env.json
+   # Edit env.json and add your Anthropic API key
    ```
 
 2. **Legacy .env.local**: Create `.env.local` with `ANTHROPIC_API_KEY` (copy from `.env.example`)
@@ -71,6 +85,23 @@ The application supports two configuration methods (env.json is recommended):
    ```
 
 The app uses the Claude Sonnet 4 model (`claude-sonnet-4-20250514`) by default.
+
+**⚠️ SECURITY WARNING**: NEVER commit `env.json` or `.env.local` to git. These files contain API keys and must remain local only. The repository is configured to automatically prevent this.
+
+### Security Best Practices
+
+**Before committing code:**
+1. Run `npm run security:verify` to check for security issues
+2. Pre-commit hooks automatically scan for API keys
+3. NEVER commit `dist/` or `build/` directories
+4. Store all secrets in `env.json` (gitignored)
+
+**If you accidentally commit a secret:**
+1. Immediately rotate the API key at console.anthropic.com
+2. Remove the file from git history (see `SECURITY.md`)
+3. Report the incident in GitHub issues
+
+See `SECURITY.md` for comprehensive security documentation.
 
 ### Data Directories
 

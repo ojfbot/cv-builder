@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Security checks before commit
+echo "🔍 Running security checks..."
+
+# Check for API keys in staged files
+echo "Checking for API keys..."
+if git diff --cached --diff-filter=ACM | grep -E "sk-ant-api[0-9]+-[a-zA-Z0-9_-]+"; then
+  echo ""
+  echo "❌ ERROR: API key detected in staged files!"
+  echo "API keys should NEVER be committed to the repository."
+  echo "Please remove the API key and store it in env.json (which is gitignored)."
+  echo ""
+  exit 1
+fi
+
+# Check for dist/ or build/ directories in staged files
+echo "Checking for build artifacts..."
+if git diff --cached --name-only | grep -E "^(packages/.*/)?dist/" | grep -v "dist/README.md"; then
+  echo ""
+  echo "❌ ERROR: Build artifacts detected in staged files!"
+  echo "dist/ and build/ directories should NEVER be committed."
+  echo "Run: git reset HEAD <file> to unstage these files."
+  echo ""
+  git diff --cached --name-only | grep -E "^(packages/.*/)?dist/"
+  echo ""
+  exit 1
+fi
+
+# Check for env.json (should only allow env.json.example)
+echo "Checking for sensitive config files..."
+if git diff --cached --name-only | grep -E "env\.json$" | grep -v "env.json.example"; then
+  echo ""
+  echo "⚠️  WARNING: env.json detected in staged files!"
+  echo "This file may contain API keys. Only env.json.example should be committed."
+  echo ""
+  read -p "Are you sure you want to commit this? (y/N) " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+echo "✅ Security checks passed"
