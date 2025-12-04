@@ -2,6 +2,15 @@
  * Resume Templates Retriever
  *
  * Retrieves high-quality resume examples and best practices.
+ *
+ * CURRENT STATUS: Hardcoded seed data (prototype)
+ *
+ * TODO (Production): Replace hardcoded documents with dynamic content
+ * - Load from markdown template library or database
+ * - Add role-specific and industry-specific templates
+ * - Implement template versioning and ATS compliance updates
+ * - Consider user feedback loop to improve templates over time
+ * - Add support for multiple resume formats (tech, creative, academic, etc.)
  */
 
 import { Document } from "@langchain/core/documents";

@@ -2,6 +2,14 @@
  * Interview Prep Retriever
  *
  * Retrieves interview questions, talking points, and preparation tips.
+ *
+ * CURRENT STATUS: Hardcoded seed data (prototype)
+ *
+ * TODO (Production): Replace hardcoded documents with dynamic content ingestion
+ * - Load from markdown files or external knowledge base
+ * - Implement document versioning and updates
+ * - Add periodic refresh mechanism for industry trends
+ * - Consider user-specific interview prep customization
  */
 
 import { Document } from "@langchain/core/documents";

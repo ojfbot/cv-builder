@@ -16,6 +16,16 @@ import { graphManager } from '../../services/graph-manager';
 
 const router = Router();
 
+// Simple logger for API routes
+const logger = {
+  error: (message: string, error: unknown) => {
+    console.error(`[V2/Threads] ${message}`, error);
+  },
+  info: (message: string, data?: unknown) => {
+    console.log(`[V2/Threads] ${message}`, data || '');
+  }
+};
+
 /**
  * POST /api/v2/threads
  * Create a new thread
@@ -38,7 +48,7 @@ router.post('/threads', async (req: Request, res: Response) => {
       data: thread,
     });
   } catch (error) {
-    console.error('Thread creation error:', error);
+    logger.error('Thread creation error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -47,28 +57,39 @@ router.post('/threads', async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/v2/threads/:id
- * Get thread by ID
+ * GET /api/v2/threads
+ * List threads with optional filters
+ * Query params: userId (optional), limit (optional)
+ * NOTE: This must come BEFORE /threads/:id to avoid route conflicts
  */
-router.get('/threads/:id', async (req: Request, res: Response) => {
+router.get('/threads', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { userId, limit } = req.query;
 
-    const thread = await graphManager.getThread(id);
-
-    if (!thread) {
-      return res.status(404).json({
-        success: false,
-        error: 'Thread not found',
+    // For now, if no userId is provided, return empty array
+    // In future, could list all threads or require authentication
+    if (!userId) {
+      return res.json({
+        success: true,
+        data: [],
+        count: 0,
       });
     }
 
+    const threads = await graphManager.listThreads(userId as string);
+
+    // Apply limit if specified
+    const limitedThreads = limit
+      ? threads.slice(0, parseInt(limit as string, 10))
+      : threads;
+
     res.json({
       success: true,
-      data: thread,
+      data: limitedThreads,
+      count: limitedThreads.length,
     });
   } catch (error) {
-    console.error('Thread retrieval error:', error);
+    logger.error('Thread list error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -92,7 +113,7 @@ router.get('/threads/user/:userId', async (req: Request, res: Response) => {
       count: threads.length,
     });
   } catch (error) {
-    console.error('Thread list error:', error);
+    logger.error('Thread list error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -119,7 +140,7 @@ router.patch('/threads/:id', async (req: Request, res: Response) => {
       data: thread,
     });
   } catch (error) {
-    console.error('Thread update error:', error);
+    logger.error('Thread update error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -142,7 +163,7 @@ router.delete('/threads/:id', async (req: Request, res: Response) => {
       message: 'Thread deleted successfully',
     });
   } catch (error) {
-    console.error('Thread deletion error:', error);
+    logger.error('Thread deletion error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -184,7 +205,7 @@ router.get('/threads/:id/state', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('State retrieval error:', error);
+    logger.error('State retrieval error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -219,7 +240,7 @@ router.patch('/threads/:id/state', async (req: Request, res: Response) => {
         : null,
     });
   } catch (error) {
-    console.error('State update error:', error);
+    logger.error('State update error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -240,7 +261,7 @@ router.get('/stats', async (req: Request, res: Response) => {
       data: stats,
     });
   } catch (error) {
-    console.error('Stats retrieval error:', error);
+    logger.error('Stats retrieval error:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',

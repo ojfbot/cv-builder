@@ -6,6 +6,26 @@ import { getLogger } from "../utils/logger";
 const logger = getLogger("sqlite-checkpointer");
 
 /**
+ * Database row interfaces for type safety
+ */
+interface CheckpointRow {
+  thread_id: string;
+  thread_ts: string;
+  parent_ts: string | null;
+  checkpoint: string; // JSON string
+  metadata: string; // JSON string
+  created_at: string;
+}
+
+interface CountRow {
+  count: number;
+}
+
+interface SizeRow {
+  size: number;
+}
+
+/**
  * SQLite-based checkpoint saver for LangGraph (Development/Prototype)
  *
  * Stores conversation state at each step for:
@@ -82,7 +102,7 @@ export class SQLiteCheckpointer extends BaseCheckpointSaver {
            LIMIT 1`;
 
       const params = thread_ts ? [thread_id, thread_ts] : [thread_id];
-      const row = this.db.prepare(query).get(...params) as any;
+      const row = this.db.prepare(query).get(...params) as CheckpointRow | undefined;
 
       if (!row) {
         logger.debug({ thread_id, thread_ts }, "No checkpoint found");
@@ -177,7 +197,7 @@ export class SQLiteCheckpointer extends BaseCheckpointSaver {
         ORDER BY thread_ts DESC
       `);
 
-      const rows = stmt.all(thread_id) as any[];
+      const rows = stmt.all(thread_id) as CheckpointRow[];
 
       logger.debug({ thread_id, count: rows.length }, "Checkpoints listed");
 
@@ -210,7 +230,7 @@ export class SQLiteCheckpointer extends BaseCheckpointSaver {
   /**
    * Store intermediate writes/pending writes (required by BaseCheckpointSaver)
    */
-  async putWrites(config: RunnableConfig, writes: any[], taskId: string): Promise<void> {
+  async putWrites(config: RunnableConfig, writes: Array<[string, unknown]>, taskId: string): Promise<void> {
     // For now, we don't persist intermediate writes
     // This can be implemented later for advanced recovery scenarios
     logger.debug({ taskId, writeCount: writes.length }, "Writes recorded (not persisted)");
@@ -228,9 +248,9 @@ export class SQLiteCheckpointer extends BaseCheckpointSaver {
    * Utility: Get database statistics
    */
   getStats(): { checkpointCount: number; threadCount: number; dbSize: string } {
-    const checkpointCount = this.db.prepare("SELECT COUNT(*) as count FROM checkpoints").get() as any;
-    const threadCount = this.db.prepare("SELECT COUNT(DISTINCT thread_id) as count FROM checkpoints").get() as any;
-    const dbSize = this.db.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get() as any;
+    const checkpointCount = this.db.prepare("SELECT COUNT(*) as count FROM checkpoints").get() as CountRow;
+    const threadCount = this.db.prepare("SELECT COUNT(DISTINCT thread_id) as count FROM checkpoints").get() as CountRow;
+    const dbSize = this.db.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get() as SizeRow;
 
     return {
       checkpointCount: checkpointCount.count,

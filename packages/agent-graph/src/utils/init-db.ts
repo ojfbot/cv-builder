@@ -81,11 +81,13 @@ async function initializePostgres(databaseUrl: string): Promise<void> {
 if (require.main === module) {
   initializeDatabase()
     .then(() => {
-      console.log("✅ Database initialized successfully");
+      // Using console for initialization messages (runs before app starts)
+      console.log("[DB Init] ✅ Database initialized successfully");
       process.exit(0);
     })
     .catch((error) => {
-      console.error("❌ Database initialization failed:", error);
+      // Using console for initialization errors (runs before app starts)
+      console.error("[DB Init] ❌ Database initialization failed:", error);
       process.exit(1);
     });
 }

@@ -22,3 +22,4 @@ export * from './services/agent-manager.js';
 export * from './middleware/auth.js';
 export * from './middleware/error-handler.js';
 export * from './middleware/validation.js';
+export * from './middleware/rate-limit.js';
