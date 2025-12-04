@@ -4,6 +4,29 @@
 
 CV Builder now uses a secure **client-server architecture** with proper separation of concerns. All agent operations run server-side with API keys securely stored in `env.json`, while the browser app communicates through a RESTful API.
 
+> **📘 Documentation Structure:**
+> - **This document (ARCHITECTURE.md)**: V1 architecture (agent-core) - Current stable version
+> - **[ARCHITECTURE_V2.md](ARCHITECTURE_V2.md)**: V2 architecture (agent-graph) - LangGraph-based system with advanced features
+> - **[SERVICE_INTERACTIONS.md](SERVICE_INTERACTIONS.md)**: Detailed service interaction diagrams for both V1 and V2
+
+## Architecture Versions
+
+### V1 (Current - agent-core)
+- Simple sequential agent execution
+- REST API with streaming
+- File-based storage
+- Production-ready and stable
+
+### V2 (New - agent-graph)
+- LangGraph-based orchestration
+- Parallel expert execution
+- State persistence with checkpointing
+- Thread-based conversations
+- RAG (Retrieval-Augmented Generation)
+- Advanced state management
+
+**Feature Flag**: Set `ENABLE_V2_API=true` to enable V2 endpoints
+
 ## Architecture Diagram
 
 ```
