@@ -96,6 +96,10 @@ const threadsSlice = createSlice({
     builder.addCase(fetchThreads.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.error.message || 'Failed to fetch threads';
+      // Ensure threads is always an array, even on error
+      if (!Array.isArray(state.threads)) {
+        state.threads = [];
+      }
     });
 
     // Create thread
