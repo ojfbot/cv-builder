@@ -141,8 +141,8 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
           position: fixed !important;
           right: 0 !important;
           left: auto !important;
-          top: 0 !important;
-          height: 100vh !important;
+          top: 48px !important;
+          height: calc(100vh - 48px) !important;
           width: 320px !important;
           max-width: 320px !important;
           transform: translateX(${isExpanded ? '0' : '100%'}) !important;
@@ -151,6 +151,7 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
           border-left: 1px solid var(--cds-border-subtle) !important;
           border-right: none !important;
           z-index: 999 !important;
+          box-shadow: ${isExpanded ? '-4px 0 12px rgba(0, 0, 0, 0.1)' : 'none'} !important;
         }
 
         .thread-sidebar-header {

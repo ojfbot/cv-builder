@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import {
   TextInput,
   TextArea,
@@ -43,6 +43,14 @@ function CondensedChat() {
   const v2Enabled = useAppSelector(state => state.v2.enabled)
   const showThreadSidebar = useAppSelector(state => state.v2.showThreadSidebar)
   const { orchestrator, isInitialized } = useAgent()
+
+  // Check if sidebar is actually expanded (visible)
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
+
+  useEffect(() => {
+    // Update sidebar expanded state based on v2 settings
+    setIsSidebarExpanded(v2Enabled && showThreadSidebar)
+  }, [v2Enabled, showThreadSidebar])
 
   const inputRef = useRef<HTMLInputElement>(null)
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
@@ -410,7 +418,7 @@ function CondensedChat() {
 
   return (
     <div
-      className={`condensed-chat ${isExpanded ? 'expanded' : ''} ${v2Enabled && showThreadSidebar ? 'with-sidebar' : ''}`}
+      className={`condensed-chat ${isExpanded ? 'expanded' : ''} ${isSidebarExpanded ? 'with-sidebar' : ''}`}
       data-element="chat-window"
       data-state={isExpanded ? 'expanded' : 'collapsed'}
     >

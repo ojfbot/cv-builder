@@ -93,20 +93,22 @@ function DashboardContent() {
         <div className="dashboard-header">
           <Heading className="page-header">CV Builder Dashboard</Heading>
 
-          {/* Thread sidebar toggle button (V2 only) */}
-          {v2Enabled && showThreadSidebar && (
-            <button
-              className="sidebar-toggle-btn"
-              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-              aria-label="Toggle thread sidebar"
-            >
-              {isSidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
-            </button>
-          )}
-        </div>
+          <div className="dashboard-header-actions">
+            {/* V2 Feature Toggle - Compact */}
+            <V2Toggle />
 
-        {/* V2 Feature Toggle */}
-        <V2Toggle />
+            {/* Thread sidebar toggle button (V2 only) */}
+            {v2Enabled && showThreadSidebar && (
+              <button
+                className="sidebar-toggle-btn"
+                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                aria-label="Toggle thread sidebar"
+              >
+                {isSidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
+              </button>
+            )}
+          </div>
+        </div>
 
         <Tabs
           selectedIndex={currentTabIndex}
