@@ -389,48 +389,91 @@ interface ScreenshotManifest {
 
 ## Example Workflow
 
-When invoked to generate a test report, follow these steps:
+When invoked to generate a test report, you MUST follow these steps in order:
 
-1. **Parse Test Results**
-   ```bash
-   # Read test output from stdin or log files
-   # Extract pass/fail status, durations, error messages
-   ```
+### Step 1: Parse Test Results
+```bash
+# Read test output from stdin or log files
+# Extract pass/fail status, durations, error messages
+```
 
-2. **Scan Screenshot Directory**
-   ```bash
-   # List all PNG files in latest session directory
-   # Match filenames to test names
-   # Generate GitHub raw URLs
-   ```
+### Step 2: Capture Screenshots (NON-HEADLESS MODE REQUIRED)
+```bash
+# CRITICAL: Tests must run WITHOUT HEADLESS=true to capture screenshots
+# Screenshots are automatically saved to temp/pr-[PR_NUMBER]/ by test framework
 
-3. **Analyze Codebase for Gaps**
-   ```bash
-   # Grep for "not yet implemented" errors
-   # Find TODO comments in assertion files
-   # Compare test files to coverage plan
-   ```
+# Verify screenshots exist:
+ls -la temp/pr-[PR_NUMBER]/*.png
+# Should show files like: bio-form-navigation.png, chat-interactions.png, etc.
+```
 
-4. **Structure Data**
-   ```typescript
-   // Organize into TestReport structure
-   // Calculate summary statistics
-   // Group by suite and priority
-   ```
+### Step 3: Upload Screenshots to GitHub
+```bash
+# MANDATORY: Screenshots must be committed to GitHub before generating report
 
-5. **Generate Markdown**
-   ```markdown
-   # Output formatted report following exact structure above
-   # Use collapsible sections for long lists
-   # Embed screenshots with GitHub raw URLs
-   # Include not-yet-implemented tracking
-   ```
+# 3a. Create screenshots directory in docs
+mkdir -p docs/screenshots/pr-[PR_NUMBER]
 
-6. **Output to File or Stdout**
-   ```bash
-   # Write to temporary file for PR comment
-   # Or output to stdout for piping to gh CLI
-   ```
+# 3b. Copy screenshots from temp to docs
+cp temp/pr-[PR_NUMBER]/*.png docs/screenshots/pr-[PR_NUMBER]/
+
+# 3c. Add to git
+git add docs/screenshots/pr-[PR_NUMBER]
+
+# 3d. Commit with descriptive message
+git commit -m "docs: add test screenshots for PR #[PR_NUMBER]
+
+- Captured [N] screenshots from comprehensive test suite
+- All tests passed: [SUITE_NAMES]
+- Screenshots show: [KEY_FEATURES]"
+
+# 3e. Push to GitHub
+git push origin [BRANCH_NAME]
+
+# 3f. CRITICAL: Wait for GitHub to process the commit
+sleep 10
+
+# 3g. Verify screenshots are accessible
+# Test URL format: https://github.com/ojfbot/cv-builder/blob/[BRANCH]/docs/screenshots/pr-[PR_NUMBER]/[filename].png?raw=true
+```
+
+### Step 4: Generate GitHub Raw URLs
+```bash
+# For each screenshot, construct proper GitHub URL:
+# Format: https://github.com/ojfbot/cv-builder/blob/[BRANCH]/docs/screenshots/pr-[PR_NUMBER]/[filename].png?raw=true
+
+# Example URLs:
+# https://github.com/ojfbot/cv-builder/blob/langchain-todo/docs/screenshots/pr-48/bio-form-navigation.png?raw=true
+# https://github.com/ojfbot/cv-builder/blob/langchain-todo/docs/screenshots/pr-48/chat-message-input.png?raw=true
+```
+
+### Step 5: Structure Data
+```typescript
+// Organize into TestReport structure
+// Calculate summary statistics
+// Group by suite and priority
+// Map each test to its screenshot URLs
+```
+
+### Step 6: Generate Markdown with Embedded Screenshots
+```markdown
+# Output formatted report following exact structure
+# Use collapsible sections for long lists
+# Embed screenshots using markdown image syntax
+# Format: ![alt-text](github-raw-url)
+# Include not-yet-implemented tracking
+```
+
+### Step 7: Post to PR
+```bash
+# Write report to file
+cat > /tmp/test-report.md << 'EOF'
+[Generated markdown with embedded screenshots]
+EOF
+
+# Post to PR
+gh pr comment [PR_NUMBER] --body-file /tmp/test-report.md
+```
 
 ## GitHub PR Comment Integration
 
