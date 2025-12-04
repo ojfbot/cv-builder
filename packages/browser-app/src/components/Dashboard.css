@@ -9,6 +9,39 @@
   overflow: hidden;
   position: relative;
   z-index: 1;
+  transition: margin-left 0.3s ease;
+}
+
+/* Dashboard wrapper when sidebar is open */
+.dashboard-wrapper.with-sidebar {
+  margin-left: 320px;
+}
+
+/* Dashboard header with toggle button */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle-btn {
+  padding: 0.5rem;
+  background: var(--cds-layer);
+  border: 1px solid var(--cds-border-subtle);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: var(--cds-icon-primary);
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--cds-layer-hover);
+  border-color: var(--cds-border-strong);
 }
 
 /* Tabs container */

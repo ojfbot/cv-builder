@@ -13,9 +13,6 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import {
   addMessage as addMessageToStore,
   setDraftInput as setDraftInputAction,
-  setIsLoading,
-  setStreamingContent,
-  appendStreamingContent,
   markMessagesAsRead,
   setIsExpanded as setIsExpandedAction,
 } from '../store/slices/chatSlice'
@@ -26,6 +23,7 @@ import { executeActions } from '../utils/action-dispatcher'
 import MarkdownMessage from './MarkdownMessage'
 import { bioFilesApi } from '../api/bioFilesApi'
 import { navigateToTab } from '../store/slices/navigationSlice'
+import { sendChatMessage, isV2Active } from '../services/chat-service'
 import './InteractiveChat.css'
 
 interface Message {
@@ -263,7 +261,9 @@ function InteractiveChat() {
     const textToSend = messageText || draftInput.trim()
     if (!textToSend || isLoading) return
 
-    if (!isInitialized || !orchestrator) {
+    // Check if V2 is active or V1 is initialized
+    const useV2 = isV2Active()
+    if (!useV2 && (!isInitialized || !orchestrator)) {
       const errorMessage: Message = {
         role: 'assistant',
         content: '⚠️ **Agent service not initialized**\n\nPlease configure your API key first by clicking the Settings icon in the header.'
@@ -275,77 +275,51 @@ function InteractiveChat() {
     // Hide contextual suggestions during loading
     setShowContextualSuggestions(false)
 
-    const userMessage: Message = {
-      role: 'user',
-      content: textToSend
-    }
-
-    dispatch(addMessageToStore({ message: userMessage, markAsRead: true }))
     // Clear input immediately and synchronously
     dispatch(setDraftInputAction(''))
-    dispatch(setIsLoading(true))
-    dispatch(setStreamingContent(''))
+
+    // Include current tab context in the message
+    const tabNames: Record<TabKey, string> = {
+      [TabKey.INTERACTIVE]: 'Interactive',
+      [TabKey.BIO]: 'Bio',
+      [TabKey.JOBS]: 'Jobs',
+      [TabKey.OUTPUTS]: 'Outputs',
+      [TabKey.RESEARCH]: 'Research',
+      [TabKey.PIPELINES]: 'Pipelines',
+      [TabKey.TOOLBOX]: 'Toolbox',
+    }
+    const currentTabName = tabNames[currentTab] || 'Interactive'
+    const messageWithContext = `[SYSTEM: User is currently on the "${currentTabName}" tab (${currentTab})]\n\n${textToSend}`
 
     try {
-      // Include current tab context in the message
-      const tabNames: Record<TabKey, string> = {
-        [TabKey.INTERACTIVE]: 'Interactive',
-        [TabKey.BIO]: 'Bio',
-        [TabKey.JOBS]: 'Jobs',
-        [TabKey.OUTPUTS]: 'Outputs',
-        [TabKey.RESEARCH]: 'Research',
-        [TabKey.PIPELINES]: 'Pipelines',
-        [TabKey.TOOLBOX]: 'Toolbox',
-      }
-      const currentTabName = tabNames[currentTab] || 'Interactive'
-      const messageWithContext = `[SYSTEM: User is currently on the "${currentTabName}" tab (${currentTab})]\n\n${userMessage.content}`
+      // Use unified chat service (handles V1 and V2 automatically)
+      await sendChatMessage(messageWithContext, {
+        onComplete: () => {
+          // Extract suggestions from the final streaming content
+          const finalContent = streamingContent
+          const suggestions = extractSuggestionsFromResponse(finalContent)
+          console.log('[InteractiveChat] Extracted suggestions from response:', suggestions)
 
-      // Use streaming for real-time feedback
-      const response = await orchestrator.processRequestStreaming(
-        messageWithContext,
-        (chunk) => {
-          dispatch(appendStreamingContent(chunk))
+          setContextualSuggestions(suggestions)
+
+          // Mark messages as read since user is on Interactive tab (full chat visible)
+          // This prevents unread notifications when navigating to other tabs
+          dispatch(markMessagesAsRead())
+
+          // Delay showing suggestions until response is complete
+          setTimeout(() => {
+            setShowContextualSuggestions(true)
+          }, 300)
+        },
+        onError: (error) => {
+          console.error('[InteractiveChat] Chat error:', error)
         }
-      )
-
-      // Extract suggestions from the response
-      const suggestions = extractSuggestionsFromResponse(response)
-      console.log('[InteractiveChat] Extracted suggestions from response:', suggestions)
-
-      // Remove metadata block from displayed content (new XML format)
-      let cleanedContent = response.replace(/<metadata>[\s\S]*?<\/metadata>/gi, '')
-
-      // FALLBACK: Also remove old bracket-style navigation tags
-      cleanedContent = cleanedContent.replace(/\[NAVIGATE_TO_TAB:\d+:[^\]]+\]/g, '').trim()
-
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: cleanedContent,
-        suggestions
-      }
-      dispatch(addMessageToStore({ message: assistantMessage, markAsRead: true }))
-      dispatch(setStreamingContent(''))
-      setContextualSuggestions(suggestions)
-
-      // Mark messages as read since user is on Interactive tab (full chat visible)
-      // This prevents unread notifications when navigating to other tabs
-      dispatch(markMessagesAsRead())
-
-      // Delay showing suggestions until response is complete
-      setTimeout(() => {
-        setShowContextualSuggestions(true)
-      }, 300)
+      })
     } catch (error) {
-      const errorMessage: Message = {
-        role: 'assistant',
-        content: `## ❌ Error\n\n${error instanceof Error ? error.message : 'An unknown error occurred'}\n\n**Troubleshooting:**\n- Check your API key configuration\n- Ensure you have API credits available\n- Try again in a moment`
-      }
-      dispatch(addMessageToStore({ message: errorMessage, markAsRead: true }))
-      dispatch(setStreamingContent(''))
-    } finally {
-      dispatch(setIsLoading(false))
+      // Error is already handled by chat service, but log it here too
+      console.error('[InteractiveChat] Unexpected error:', error)
     }
-  }, [currentTab, draftInput, isLoading, isInitialized, orchestrator, dispatch])
+  }, [currentTab, draftInput, isLoading, isInitialized, orchestrator, dispatch, streamingContent])
 
   // File upload handler
   const handleFileUpload = useCallback(async (accept?: string, multiple?: boolean) => {

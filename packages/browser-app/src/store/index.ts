@@ -2,12 +2,16 @@ import { configureStore } from '@reduxjs/toolkit'
 import navigationReducer from './slices/navigationSlice'
 import chatReducer from './slices/chatSlice'
 import agentReducer from './slices/agentSlice'
+import threadsReducer from './slices/threadsSlice'
+import v2Reducer from './slices/v2Slice'
 
 export const store = configureStore({
   reducer: {
     navigation: navigationReducer,
     chat: chatReducer,
     agent: agentReducer,
+    threads: threadsReducer,
+    v2: v2Reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

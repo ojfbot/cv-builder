@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Tabs,
   TabList,
@@ -7,9 +7,11 @@ import {
   TabPanel,
   Heading,
 } from '@carbon/react'
+import { Menu, Close } from '@carbon/icons-react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCurrentTab } from '../store/slices/navigationSlice'
 import { generateChatSummary, setChatSummary } from '../store/slices/chatSlice'
+import { loadV2Settings } from '../store/slices/v2Slice'
 import { TabKey, TAB_ORDER, getTabByKey } from '../models/navigation'
 import BioDashboard from './BioDashboard'
 import JobsDashboard from './JobsDashboard'
@@ -19,6 +21,8 @@ import ResearchDashboard from './ResearchDashboard'
 import PipelinesDashboard from './PipelinesDashboard'
 import ToolboxDashboard from './ToolboxDashboard'
 import CondensedChat from './CondensedChat'
+import { ThreadSidebar } from './ThreadSidebar'
+import { V2Toggle } from './V2Toggle'
 import './Dashboard.css'
 
 function DashboardContent() {
@@ -27,6 +31,22 @@ function DashboardContent() {
   const currentTabIndex = useAppSelector(state => state.navigation.currentTabIndex)
   const previousTab = useAppSelector(state => state.navigation.previousTab)
   const messages = useAppSelector(state => state.chat.messages)
+  const v2Enabled = useAppSelector(state => state.v2.enabled)
+  const showThreadSidebar = useAppSelector(state => state.v2.showThreadSidebar)
+
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
+
+  // Load V2 settings on mount
+  useEffect(() => {
+    dispatch(loadV2Settings())
+  }, [dispatch])
+
+  // Auto-expand sidebar when V2 is enabled
+  useEffect(() => {
+    if (v2Enabled && showThreadSidebar) {
+      setIsSidebarExpanded(true)
+    }
+  }, [v2Enabled, showThreadSidebar])
 
   // Generate chat summary when navigating away from Interactive tab
   useEffect(() => {
@@ -61,8 +81,32 @@ function DashboardContent() {
 
   return (
     <>
-      <div className="dashboard-wrapper" data-element="app-container">
-        <Heading className="page-header">CV Builder Dashboard</Heading>
+      {/* V2 Thread Sidebar */}
+      {v2Enabled && showThreadSidebar && (
+        <ThreadSidebar
+          isExpanded={isSidebarExpanded}
+          onToggle={() => setIsSidebarExpanded(!isSidebarExpanded)}
+        />
+      )}
+
+      <div className={`dashboard-wrapper ${v2Enabled && showThreadSidebar && isSidebarExpanded ? 'with-sidebar' : ''}`} data-element="app-container">
+        <div className="dashboard-header">
+          <Heading className="page-header">CV Builder Dashboard</Heading>
+
+          {/* Thread sidebar toggle button (V2 only) */}
+          {v2Enabled && showThreadSidebar && (
+            <button
+              className="sidebar-toggle-btn"
+              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              aria-label="Toggle thread sidebar"
+            >
+              {isSidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
+            </button>
+          )}
+        </div>
+
+        {/* V2 Feature Toggle */}
+        <V2Toggle />
 
         <Tabs
           selectedIndex={currentTabIndex}
