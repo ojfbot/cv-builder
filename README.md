@@ -85,6 +85,17 @@ ANTHROPIC_API_KEY=your_api_key_here
 VITE_ANTHROPIC_API_KEY=your_api_key_here
 ```
 
+### 🔐 Security
+
+**IMPORTANT**: API keys and secrets must NEVER be committed to git.
+
+- `env.json` and `.env.local` are gitignored
+- Pre-commit hooks scan for API keys
+- Build artifacts (`dist/`, `build/`) are never committed
+- Run `npm run security:verify` to check for security issues
+
+See [`SECURITY.md`](SECURITY.md) for detailed security policies and incident reporting.
+
 ## Development
 
 ### Browser UI
