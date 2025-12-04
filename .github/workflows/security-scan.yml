@@ -1,0 +1,47 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop, langchain-todo ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  secret-scan:
+    name: Scan for Secrets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: Check for API keys in code
+        run: |
+          echo "Checking for hardcoded API keys..."
+          if git grep -E "sk-ant-api[0-9]+-[a-zA-Z0-9_-]+" -- '*.ts' '*.js' '*.tsx' '*.jsx' '*.json' ':!*.example' ':!.github/workflows/security-scan.yml'; then
+            echo "❌ ERROR: API keys found in tracked files!"
+            exit 1
+          else
+            echo "✅ No API keys found in code"
+          fi
+
+      - name: Verify dist/ not committed
+        run: |
+          echo "Checking for dist/ artifacts..."
+          if git ls-files | grep -E "dist/|build/" | grep -v "dist/README.md"; then
+            echo "❌ ERROR: Build artifacts found in git!"
+            git ls-files | grep -E "dist/|build/"
+            exit 1
+          else
+            echo "✅ No build artifacts committed"
+          fi

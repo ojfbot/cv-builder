@@ -30,9 +30,12 @@ node_modules/
 # Testing
 /coverage
 
-# Production
+# Production builds (NEVER commit build artifacts)
 /build
 /dist
+build/
+dist/
+*.tsbuildinfo
 
 # Misc
 .DS_Store
