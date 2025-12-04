@@ -9,7 +9,7 @@ This is a monorepo with two main packages:
 ```
 cv-builder/
 ├── packages/
-│   ├── agent-core/          # Core AI agent system
+│   ├── agent-core/          # V1: Legacy agent system
 │   │   ├── src/
 │   │   │   ├── agents/      # Specialized AI agents
 │   │   │   ├── models/      # Data models
@@ -17,14 +17,34 @@ cv-builder/
 │   │   │   └── cli/         # CLI interface
 │   │   └── package.json
 │   │
+│   ├── agent-graph/         # V2: LangGraph multi-agent system ⭐ NEW
+│   │   ├── src/
+│   │   │   ├── graphs/      # StateGraph definitions
+│   │   │   ├── nodes/       # Agent nodes
+│   │   │   ├── state/       # State management & checkpointing
+│   │   │   ├── rag/         # Vector stores & retrievers
+│   │   │   └── utils/       # Utilities
+│   │   └── package.json
+│   │
+│   ├── api/                 # Express API server
+│   │   ├── src/
+│   │   │   ├── routes/      # API endpoints (V1 & V2)
+│   │   │   ├── services/    # AgentManager & GraphManager
+│   │   │   └── middleware/  # Auth, validation, errors
+│   │   └── package.json
+│   │
 │   └── browser-app/         # React browser UI
 │       ├── src/
 │       │   ├── components/  # React components
-│       │   ├── contexts/    # React contexts
-│       │   ├── services/    # Browser services
-│       │   └── utils/       # Browser utilities
+│       │   ├── store/       # Redux state
+│       │   ├── api/         # API client
+│       │   └── services/    # Browser services
 │       └── package.json
 │
+├── docs/                    # Documentation
+│   ├── technical/           # Technical docs & ADRs
+│   └── how-to/              # Guides
+├── V2_QUICKSTART.md         # V2 quick start guide
 ├── docker-compose.yml       # Docker orchestration
 ├── Dockerfile               # Agent system container
 └── package.json             # Root workspace config
@@ -98,14 +118,34 @@ See [`SECURITY.md`](SECURITY.md) for detailed security policies and incident rep
 
 ## Development
 
-### Browser UI
+### Run Full Stack (V1 - Legacy)
 ```bash
-npm run dev
+npm run dev:all        # API server + Browser UI (agent-core)
+```
+
+### Run Full Stack (V2 - LangGraph) ⭐ NEW
+```bash
+npm run dev:v2         # API server + Browser UI (agent-graph)
+```
+
+This uses the new LangGraph-based architecture with:
+- 🔄 Multi-agent orchestration
+- 💾 State persistence (checkpointing)
+- 🧵 Thread-based conversations
+- 📡 Streaming support (SSE)
+
+See [V2_QUICKSTART.md](V2_QUICKSTART.md) for details.
+
+### Individual Services
+```bash
+npm run dev            # Browser UI only (port 3000)
+npm run dev:api        # API server only (port 3001)
 ```
 
 ### CLI Agent System
 ```bash
-npm run cli
+npm run cli            # Interactive CLI mode
+npm run cli:headless   # Headless mode
 ```
 
 ## Docker
