@@ -30,7 +30,7 @@ node_modules/
 # pnpm
 .pnpm-store/
 .pnpm-debug.log
-pnpm-lock.yaml
+# pnpm-lock.yaml should be committed for reproducible builds
 
 # npm (legacy - to be removed after migration)
 package-lock.json

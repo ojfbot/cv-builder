@@ -9,7 +9,7 @@
       "conventionalCommits": true
     },
     "version": {
-      "allowBranch": ["main", "develop"],
+      "allowBranch": "main",
       "conventionalCommits": true,
       "createRelease": "github"
     }

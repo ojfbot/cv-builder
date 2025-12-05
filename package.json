@@ -57,8 +57,8 @@
   },
   "pnpm": {
     "overrides": {
-      "@langchain/core": "1.1.4"
+      "@langchain/core": "~1.1.4"
     },
-    "comment": "Override @langchain/core to 1.1.4 (exact version, no caret) to resolve peer dependency conflicts in agent-graph package. This prevents multiple versions of @langchain/core from being installed, which causes TypeScript errors due to incompatible type definitions. See PR #56 for details."
+    "comment": "Override @langchain/core to ~1.1.4 (allows patch updates) to resolve peer dependency conflicts in agent-graph package. This prevents multiple versions of @langchain/core from being installed, which causes TypeScript errors due to incompatible type definitions. The tilde allows patch updates (1.1.5, 1.1.6, etc.) for bug and security fixes while staying on 1.1.x. See PR #56 for details."
   }
 }

@@ -26,13 +26,5 @@ catalog:
   # Node types
   '@types/node': ^22.9.0
 
-# Settings
-settings:
-  # Use shared node_modules at root
-  shared-workspace-lockfile: true
-
-  # Auto install peers
-  auto-install-peers: true
-
-  # Strict peer dependencies
-  strict-peer-dependencies: false
+# Note: Settings like shared-workspace-lockfile, auto-install-peers, and
+# strict-peer-dependencies are configured in .npmrc to avoid duplication
