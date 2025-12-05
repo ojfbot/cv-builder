@@ -30,7 +30,8 @@ node_modules/
 # pnpm
 .pnpm-store/
 .pnpm-debug.log
-# pnpm-lock.yaml should be committed for reproducible builds
+# Note: pnpm-lock.yaml IS committed for reproducible builds
+# DO NOT add it to .gitignore
 
 # npm (legacy - to be removed after migration)
 package-lock.json

@@ -11,6 +11,10 @@ catalog:
   '@anthropic-ai/sdk': ^0.32.1
 
   # LangChain (for agent-graph V2)
+  # Note: @langchain/core is overridden to ~1.1.4 in package.json to resolve
+  # peer dependency conflicts. The tilde (~) is stricter than the caret (^)
+  # used here - it allows patches (1.1.5, 1.1.6) but not minor updates (1.2.0).
+  # This prevents multiple @langchain/core versions while allowing security fixes.
   '@langchain/anthropic': ^0.3.9
   '@langchain/core': ^1.1.2
   '@langchain/langgraph': ^0.2.19
