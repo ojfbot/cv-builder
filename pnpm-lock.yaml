@@ -4,6 +4,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    zod:
+      specifier: ^3.23.8
+      version: 3.25.76
+
 overrides:
   '@langchain/core': ~1.1.4
 
@@ -75,7 +81,7 @@ importers:
         version: file:packages/agent-core(encoding@0.1.13)
       '@langchain/anthropic':
         specifier: ^0.3.9
-        version: 0.3.33(@langchain/core@1.1.4)(zod@3.25.76)
+        version: 0.3.33(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(zod@3.25.76)
       '@langchain/classic':
         specifier: ^1.0.5
         version: 1.0.5(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(openai@6.10.0(zod@3.25.76))
@@ -87,7 +93,7 @@ importers:
         version: 0.2.74(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@langchain/openai':
         specifier: ^1.1.3
-        version: 1.1.3(@langchain/core@1.1.4)
+        version: 1.1.3(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))
       '@types/better-sqlite3':
         specifier: ^7.6.13
         version: 7.6.13
@@ -136,7 +142,10 @@ importers:
         version: file:packages/agent-core(encoding@0.1.13)
       '@cv-builder/agent-graph':
         specifier: file:../agent-graph
-        version: file:packages/agent-graph(react@18.3.1)
+        version: file:packages/agent-graph(openai@6.10.0(zod@3.25.76))(react@18.3.1)
+      '@langchain/core':
+        specifier: ~1.1.4
+        version: 1.1.4(openai@6.10.0(zod@3.25.76))
       '@types/mime-types':
         specifier: ^3.0.1
         version: 3.0.1
@@ -170,6 +179,9 @@ importers:
       sharp:
         specifier: ^0.34.5
         version: 0.34.5
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@types/cors':
         specifier: ^2.8.17
@@ -5470,14 +5482,14 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@cv-builder/agent-graph@file:packages/agent-graph(react@18.3.1)':
+  '@cv-builder/agent-graph@file:packages/agent-graph(openai@6.10.0(zod@3.25.76))(react@18.3.1)':
     dependencies:
       '@cv-builder/agent-core': file:packages/agent-core(encoding@0.1.13)
-      '@langchain/anthropic': 0.3.33(@langchain/core@1.1.4)(zod@3.25.76)
+      '@langchain/anthropic': 0.3.33(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(zod@3.25.76)
       '@langchain/classic': 1.0.5(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(openai@6.10.0(zod@3.25.76))
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
       '@langchain/langgraph': 0.2.74(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@langchain/openai': 1.1.3(@langchain/core@1.1.4)
+      '@langchain/openai': 1.1.3(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))
       '@types/better-sqlite3': 7.6.13
       better-sqlite3: 12.5.0
       langchain: 1.1.5(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(openai@6.10.0(zod@3.25.76))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -5996,7 +6008,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@langchain/anthropic@0.3.33(@langchain/core@1.1.4)(zod@3.25.76)':
+  '@langchain/anthropic@0.3.33(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(zod@3.25.76)':
     dependencies:
       '@anthropic-ai/sdk': 0.65.0(zod@3.25.76)
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
@@ -6007,8 +6019,8 @@ snapshots:
   '@langchain/classic@1.0.5(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(openai@6.10.0(zod@3.25.76))':
     dependencies:
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
-      '@langchain/openai': 1.1.3(@langchain/core@1.1.4)
-      '@langchain/textsplitters': 1.0.1(@langchain/core@1.1.4)
+      '@langchain/openai': 1.1.3(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))
+      '@langchain/textsplitters': 1.0.1(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))
       handlebars: 4.7.8
       js-yaml: 4.1.1
       jsonpointer: 5.0.1
@@ -6044,12 +6056,12 @@ snapshots:
       - '@opentelemetry/sdk-trace-base'
       - openai
 
-  '@langchain/langgraph-checkpoint@0.0.18(@langchain/core@1.1.4)':
+  '@langchain/langgraph-checkpoint@0.0.18(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))':
     dependencies:
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
       uuid: 10.0.0
 
-  '@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.4)':
+  '@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))':
     dependencies:
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
       uuid: 10.0.0
@@ -6078,7 +6090,7 @@ snapshots:
   '@langchain/langgraph@0.2.74(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
-      '@langchain/langgraph-checkpoint': 0.0.18(@langchain/core@1.1.4)
+      '@langchain/langgraph-checkpoint': 0.0.18(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))
       '@langchain/langgraph-sdk': 0.0.112(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       uuid: 10.0.0
       zod: 3.25.76
@@ -6089,7 +6101,7 @@ snapshots:
   '@langchain/langgraph@1.0.4(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76)':
     dependencies:
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
-      '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.4)
+      '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))
       '@langchain/langgraph-sdk': 1.2.0(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       uuid: 10.0.0
       zod: 3.25.76
@@ -6097,7 +6109,7 @@ snapshots:
       - react
       - react-dom
 
-  '@langchain/openai@1.1.3(@langchain/core@1.1.4)':
+  '@langchain/openai@1.1.3(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))':
     dependencies:
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
       js-tiktoken: 1.0.21
@@ -6106,7 +6118,7 @@ snapshots:
     transitivePeerDependencies:
       - ws
 
-  '@langchain/textsplitters@1.0.1(@langchain/core@1.1.4)':
+  '@langchain/textsplitters@1.0.1(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))':
     dependencies:
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
       js-tiktoken: 1.0.21
@@ -8354,7 +8366,7 @@ snapshots:
     dependencies:
       '@langchain/core': 1.1.4(openai@6.10.0(zod@3.25.76))
       '@langchain/langgraph': 1.0.4(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76)
-      '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.4)
+      '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.4(openai@6.10.0(zod@3.25.76)))
       langsmith: 0.3.82(openai@6.10.0(zod@3.25.76))
       uuid: 10.0.0
       zod: 3.25.76
