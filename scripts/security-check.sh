@@ -22,7 +22,7 @@ fi
 # Check 2: Verify env.json is gitignored
 echo ""
 echo "2️⃣  Checking env.json configuration..."
-if git ls-files | grep -q "packages/agent-core/env.json"; then
+if git ls-files | grep -q "^packages/agent-core/env\.json$"; then
   echo "   ❌ ERROR: env.json is tracked by git!"
   echo "   Run: git rm --cached packages/agent-core/env.json"
   exit 1
