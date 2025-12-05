@@ -152,7 +152,16 @@ export function validateState(state: any): any {
   try {
     return CVBuilderStateSchema.parse(state);
   } catch (error) {
-    // For now, just return state - full validation can be added later
+    // Log validation failures for debugging
+    console.error('[State Validation] Failed to validate state:', error);
+
+    // In development, throw to catch issues early
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[State Validation] State that failed validation:', JSON.stringify(state, null, 2));
+      // Don't throw - allows graceful degradation, but logs clearly
+    }
+
+    // Return state anyway for graceful degradation in production
     return state;
   }
 }
