@@ -110,7 +110,9 @@ jobs:
         run: |
           echo "🔍 Running type checks on all packages..."
           pnpm --filter @cv-builder/agent-core type-check
+          pnpm --filter @cv-builder/api type-check
           pnpm --filter @cv-builder/browser-app type-check
+          echo "Note: @cv-builder/agent-graph excluded due to pre-existing LangChain type warnings (non-blocking)"
           echo "✅ Type checking passed"
 
       - name: Verify builds work
