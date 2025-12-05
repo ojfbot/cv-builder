@@ -54,15 +54,33 @@ cv-builder/
 
 ### Prerequisites
 
-- Node.js 20+
-- npm 9+
+- Node.js 24.11.1+ (LTS)
+- pnpm 9.0.0+
 - Docker (optional)
 - Anthropic API key
+- fnm (recommended for Node version management)
+
+### Node Version Management
+
+This project uses `.nvmrc` to pin the Node version. If you have `fnm` installed:
+
+```bash
+# Install the correct Node version
+fnm use
+
+# Or install if not present
+fnm install
+```
 
 ### Installation
 
 ```bash
-npm install
+# Install pnpm globally (if not already installed)
+corepack enable
+corepack prepare pnpm@9.15.4 --activate
+
+# Install dependencies
+pnpm install
 ```
 
 ### Configuration
@@ -112,7 +130,7 @@ VITE_ANTHROPIC_API_KEY=your_api_key_here
 - `env.json` and `.env.local` are gitignored
 - Pre-commit hooks scan for API keys
 - Build artifacts (`dist/`, `build/`) are never committed
-- Run `npm run security:verify` to check for security issues
+- Run `pnpm security:verify` to check for security issues
 
 See [`SECURITY.md`](SECURITY.md) for detailed security policies and incident reporting.
 
@@ -120,12 +138,12 @@ See [`SECURITY.md`](SECURITY.md) for detailed security policies and incident rep
 
 ### Run Full Stack (V1 - Legacy)
 ```bash
-npm run dev:all        # API server + Browser UI (agent-core)
+pnpm dev:all        # API server + Browser UI (agent-core)
 ```
 
 ### Run Full Stack (V2 - LangGraph) ⭐ NEW
 ```bash
-npm run dev:v2         # API server + Browser UI (agent-graph)
+pnpm dev:v2         # API server + Browser UI (agent-graph)
 ```
 
 This uses the new LangGraph-based architecture with:
@@ -138,21 +156,21 @@ See [V2_QUICKSTART.md](V2_QUICKSTART.md) for details.
 
 ### Individual Services
 ```bash
-npm run dev            # Browser UI only (port 3000)
-npm run dev:api        # API server only (port 3001)
+pnpm dev            # Browser UI only (port 3000)
+pnpm dev:api        # API server only (port 3001)
 ```
 
 ### CLI Agent System
 ```bash
-npm run cli            # Interactive CLI mode
-npm run cli:headless   # Headless mode
+pnpm cli            # Interactive CLI mode
+pnpm cli:headless   # Headless mode
 ```
 
 ## Docker
 
 ### Build
 ```bash
-npm run docker:build
+pnpm docker:build
 ```
 
 ### Run

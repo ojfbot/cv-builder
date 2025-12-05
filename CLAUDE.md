@@ -14,6 +14,14 @@ CV Builder is an AI-powered resume and career development tool that uses Claude 
 
 For detailed architecture documentation, see `ARCHITECTURE.md`.
 
+## Package Manager
+
+This project uses **pnpm** as its package manager. The Node version is pinned to LTS (v24.11.1) via `.nvmrc`.
+
+### Prerequisites
+- Node.js 24.11.1+ (use `fnm use` to switch to the correct version)
+- pnpm 9.0.0+ (install via `corepack enable && corepack prepare pnpm@9.15.4 --activate`)
+
 ## Development Commands
 
 ### Running the Application
@@ -21,50 +29,50 @@ For detailed architecture documentation, see `ARCHITECTURE.md`.
 **Development Mode (Recommended)**:
 ```bash
 # Run both API server and browser app together
-npm run dev:all
+pnpm dev:all
 ```
 
 **Alternative - Run services separately**:
 ```bash
 # Terminal 1: API server (port 3001)
-npm run dev:api
+pnpm dev:api
 
 # Terminal 2: Browser app (port 3000)
-npm run dev
+pnpm dev
 ```
 
 **CLI Mode**:
 ```bash
 # CLI interactive mode
-npm run cli
+pnpm cli
 
 # CLI headless mode (requires job file)
-npm run cli:headless -- --job jobs/example.json
+pnpm cli:headless -- --job jobs/example.json
 ```
 
 ### Build and Type Checking
 ```bash
 # Build for production (TypeScript compilation + Vite build)
 # Includes automatic security checks before build
-npm run build
+pnpm build
 
 # Type check without building
-npm run type-check
+pnpm type-check
 
 # Preview production build
-npm run preview
+pnpm preview
 ```
 
 ### Security Commands
 ```bash
 # Run comprehensive security audit
-npm run security:verify
+pnpm security:verify
 
 # Scan for API keys in source code
-npm run security:scan
+pnpm security:scan
 
 # Run security checks (used by prebuild)
-npm run security:check
+pnpm security:check
 ```
 
 ## Environment Setup
@@ -91,7 +99,7 @@ The app uses the Claude Sonnet 4 model (`claude-sonnet-4-20250514`) by default.
 ### Security Best Practices
 
 **Before committing code:**
-1. Run `npm run security:verify` to check for security issues
+1. Run `pnpm security:verify` to check for security issues
 2. Pre-commit hooks automatically scan for API keys
 3. NEVER commit `dist/` or `build/` directories
 4. Store all secrets in `env.json` (gitignored)
