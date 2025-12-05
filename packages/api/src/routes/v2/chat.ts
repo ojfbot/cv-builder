@@ -9,6 +9,13 @@
 import { Router, Request, Response } from 'express';
 import { graphManager } from '../../services/graph-manager';
 
+// Type augmentation for compression middleware
+declare module 'express-serve-static-core' {
+  interface Response {
+    flush?: () => void;
+  }
+}
+
 const router = Router();
 
 // Simple logger for API routes
@@ -138,10 +145,9 @@ router.post('/chat/stream', async (req: Request, res: Response) => {
           }
         }
 
-        // Flush the response (if available)
-        // Note: flush() is not part of standard Response type but may be available
-        // in some environments (e.g., compression middleware)
-        (res as any).flush?.();
+        // Flush the response to send data immediately
+        // Available when using compression middleware
+        res.flush?.();
       }
 
       // Send completion event

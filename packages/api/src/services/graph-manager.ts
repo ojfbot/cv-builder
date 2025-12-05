@@ -18,11 +18,14 @@ import {
   createInitialState,
   createSQLiteThreadManager,
   getConfig,
+  getLogger,
   type GraphConfig,
   type CVBuilderStateType,
   type Thread,
 } from '@cv-builder/agent-graph';
 import { HumanMessage } from '@langchain/core/messages';
+
+const logger = getLogger('graph-manager');
 
 class GraphManager {
   private static instance: GraphManager | null = null;
@@ -78,11 +81,9 @@ class GraphManager {
       );
 
       this.initialized = true;
-      // Logger is not available yet during initialization, using console
-      console.log('[GraphManager] Initialized successfully with LangGraph');
+      logger.info('GraphManager initialized successfully with LangGraph');
     } catch (error) {
-      // Logger is not available yet during initialization, using console
-      console.error('[GraphManager] Failed to initialize:', error);
+      logger.error({ error }, 'Failed to initialize GraphManager');
       throw new Error(
         'Failed to initialize graph services. Please check configuration.'
       );
