@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Toggle } from '@carbon/react';
 import { Rocket, Information } from '@carbon/icons-react';
 import { RootState, AppDispatch } from '../store';
 import {
@@ -51,23 +50,19 @@ export function V2Toggle() {
       ref={toggleRef}
       onMouseEnter={() => setIsPopoverOpen(true)}
       onMouseLeave={() => setIsPopoverOpen(false)}
-      onFocus={() => setIsPopoverOpen(true)}
-      onBlur={() => setIsPopoverOpen(false)}
     >
       <div className="v2-toggle-wrapper">
-        <span className="v2-toggle-label">
-          {enabled ? 'V2' : 'V1'}
-        </span>
-        <Toggle
-          id="v2-toggle-compact"
-          labelA=""
-          labelB=""
-          hideLabel
-          toggled={enabled}
-          onToggle={handleToggle}
+        <button
+          className="v2-toggle-button"
+          onClick={() => !apiAvailable ? null : handleToggle(!enabled)}
           disabled={!apiAvailable}
-          size="sm"
-        />
+          aria-label={`Switch to ${enabled ? 'V1' : 'V2'} mode`}
+        >
+          <span className="v2-toggle-label">{enabled ? 'V2' : 'V1'}</span>
+          <div className={`v2-toggle-switch ${enabled ? 'active' : ''}`}>
+            <div className="v2-toggle-knob" />
+          </div>
+        </button>
         <button
           className="v2-info-button"
           aria-label="V2 mode information"
@@ -119,16 +114,28 @@ export function V2Toggle() {
           display: flex;
           align-items: center;
           gap: 0.5rem;
+        }
+
+        .v2-toggle-button {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
           padding: 0.25rem 0.5rem;
           background: var(--cds-layer);
           border: 1px solid var(--cds-border-subtle);
           border-radius: 4px;
+          cursor: pointer;
           transition: all 0.2s;
         }
 
-        .v2-toggle-wrapper:hover {
+        .v2-toggle-button:hover:not(:disabled) {
           background: var(--cds-layer-hover);
           border-color: var(--cds-border-strong);
+        }
+
+        .v2-toggle-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .v2-toggle-label {
@@ -139,12 +146,32 @@ export function V2Toggle() {
           text-align: center;
         }
 
-        .v2-toggle-compact .cds--toggle {
-          margin: 0;
+        .v2-toggle-switch {
+          position: relative;
+          width: 32px;
+          height: 16px;
+          background: var(--cds-toggle-off);
+          border-radius: 8px;
+          transition: background 0.2s;
         }
 
-        .v2-toggle-compact .cds--toggle__label {
-          display: none;
+        .v2-toggle-switch.active {
+          background: var(--cds-button-primary);
+        }
+
+        .v2-toggle-knob {
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          width: 12px;
+          height: 12px;
+          background: white;
+          border-radius: 50%;
+          transition: transform 0.2s;
+        }
+
+        .v2-toggle-switch.active .v2-toggle-knob {
+          transform: translateX(16px);
         }
 
         .v2-info-button {
