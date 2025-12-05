@@ -89,7 +89,7 @@ function DashboardContent() {
           {v2Enabled && showThreadSidebar && (
             <Tooltip
               align="bottom"
-              label={sidebarExpanded ? 'Close conversation threads' : 'Show conversation threads'}
+              label={sidebarExpanded ? 'Close threads' : 'Show threads'}
             >
               <button
                 className="sidebar-toggle-btn"
