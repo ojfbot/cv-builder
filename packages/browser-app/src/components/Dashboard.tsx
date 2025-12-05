@@ -39,15 +39,6 @@ function DashboardContent() {
     dispatch(loadV2Settings())
   }, [dispatch])
 
-  // Auto-expand sidebar when V2 is enabled
-  useEffect(() => {
-    if (v2Enabled && showThreadSidebar) {
-      dispatch(setSidebarExpanded(true))
-    } else {
-      dispatch(setSidebarExpanded(false))
-    }
-  }, [v2Enabled, showThreadSidebar, dispatch])
-
   // Generate chat summary when navigating away from Interactive tab
   useEffect(() => {
     if (previousTab === TabKey.INTERACTIVE && currentTab !== TabKey.INTERACTIVE && messages.length > 1) {
