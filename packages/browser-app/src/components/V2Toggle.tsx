@@ -38,9 +38,11 @@ export function V2Toggle() {
   const handleToggle = (checked: boolean) => {
     dispatch(setV2Enabled(checked));
 
-    // Auto-show thread sidebar when enabling V2
+    // Auto-show thread sidebar when enabling V2, hide when disabling
     if (checked) {
       dispatch(setShowThreadSidebar(true));
+    } else {
+      dispatch(setShowThreadSidebar(false));
     }
   };
 

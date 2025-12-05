@@ -16,10 +16,10 @@
 }
 
 /* Move condensed chat left when V2 sidebar is open */
-/* Dashboard adds calc(320px + 1rem) additional margin, so chat should shift by the same amount */
-/* Base position (72px) + additional sidebar margin (320px + 1rem) = 72px + 336px */
+/* Dashboard changes margin-right from 72px to calc(320px + 1rem) */
+/* So chat should change from 72px to calc(320px + 1rem) to match */
 .condensed-chat.with-sidebar {
-  right: calc(72px + 320px + 1rem);
+  right: calc(320px + 1rem);
 }
 
 .condensed-chat.expanded {
