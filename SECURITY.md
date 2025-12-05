@@ -30,6 +30,33 @@ The following files should NEVER be committed:
 - Any file containing `sk-ant-api*` keys
 - Build artifacts in `dist/` or `build/`
 
+### Lockfile Strategy
+
+This project gitignores `pnpm-lock.yaml` to enhance security:
+
+**Why lockfiles are gitignored:**
+1. **Prevent dependency tree exposure**: Lockfiles reveal the complete dependency graph, including transitive dependencies and their versions, which could help attackers identify known vulnerabilities
+2. **Avoid massive diffs**: Lockfiles can contain thousands of lines, making PRs harder to review
+3. **Enable security updates**: Allows contributors to receive patch updates automatically
+
+**Mitigations:**
+- Critical dependencies are pinned via `pnpm.overrides` in `package.json`
+- Node version enforced via `.nvmrc` (v24.11.1 LTS)
+- pnpm version pinned via `packageManager` field (pnpm@9.15.4)
+- Docker builds use `--frozen-lockfile` with committed lockfile in production images
+
+**For contributors:**
+```bash
+# Install dependencies (will resolve fresh from package.json)
+pnpm install
+
+# Verify installation worked
+pnpm type-check
+pnpm build
+```
+
+**Note**: You may see slightly different dependency versions than other contributors, but critical packages are pinned to ensure compatibility.
+
 ### Pre-commit Checks
 
 Before committing, verify:

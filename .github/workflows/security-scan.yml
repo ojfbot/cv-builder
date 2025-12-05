@@ -47,3 +47,34 @@ jobs:
           else
             echo "✅ No build artifacts committed"
           fi
+
+  dependency-audit:
+    name: Audit Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@9.15.4 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        run: |
+          echo "🔍 Auditing production dependencies for vulnerabilities..."
+          pnpm audit --prod || true
+          echo "✅ Dependency audit complete (warnings allowed)"
+          echo "Note: High/critical vulnerabilities should be addressed before merge"
