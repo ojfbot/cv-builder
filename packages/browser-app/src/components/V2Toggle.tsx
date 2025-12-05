@@ -24,6 +24,13 @@ export function V2Toggle() {
     checkV2ApiAvailability();
   }, [dispatch]);
 
+  // Auto-show thread sidebar when V2 is enabled (on load or toggle)
+  useEffect(() => {
+    if (enabled) {
+      dispatch(setShowThreadSidebar(true));
+    }
+  }, [enabled, dispatch]);
+
   const checkV2ApiAvailability = async () => {
     try {
       // Try to list threads (lightweight API call)
