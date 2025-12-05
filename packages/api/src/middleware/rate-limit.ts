@@ -60,6 +60,37 @@ export const v2ThreadLimiter = rateLimit({
 });
 
 /**
+ * V2 Streaming rate limit
+ * Stricter limit for streaming endpoints (most resource-intensive)
+ *
+ * Rationale:
+ * - Streaming keeps connections open longer
+ * - Uses server resources throughout entire conversation
+ * - Multiple LLM API calls with streaming overhead
+ * - Prevents connection exhaustion
+ */
+export const v2StreamLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 15, // 15 stream requests per 10 minutes
+  message: {
+    success: false,
+    error: 'Rate limit exceeded for streaming. Limit: 15 streams per 10 minutes',
+    message: 'Streaming operations are resource-intensive. Please wait before trying again.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Streaming rate limit exceeded',
+      retryAfter: res.getHeader('RateLimit-Reset'),
+      limit: res.getHeader('RateLimit-Limit'),
+      message: 'Streaming keeps connections open and is resource-intensive',
+    });
+  },
+});
+
+/**
  * Aggressive rate limit for unauthenticated endpoints
  * Use this for public endpoints that don't require authentication
  */
@@ -86,20 +117,22 @@ export const devLimiter = rateLimit({
 });
 
 /**
- * Helper to select appropriate limiter based on environment
+ * Helper to select appropriate limiter based on environment and endpoint type
  */
-export function getRateLimiter(type: 'standard' | 'v2-chat' | 'v2-thread' | 'strict') {
+export function getRateLimiter(type: 'standard' | 'v2-chat' | 'v2-thread' | 'v2-stream' | 'strict') {
   // In development, use permissive limits
   if (process.env.NODE_ENV === 'development') {
     return devLimiter;
   }
 
-  // In production, use strict limits
+  // In production, use strict limits based on endpoint type
   switch (type) {
     case 'v2-chat':
       return v2ChatLimiter;
     case 'v2-thread':
       return v2ThreadLimiter;
+    case 'v2-stream':
+      return v2StreamLimiter;
     case 'strict':
       return strictLimiter;
     case 'standard':

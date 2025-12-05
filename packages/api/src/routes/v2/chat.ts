@@ -8,6 +8,7 @@
 
 import { Router, Request, Response } from 'express';
 import { graphManager } from '../../services/graph-manager';
+import { getRateLimiter } from '../../middleware/rate-limit';
 
 // Type augmentation for compression middleware
 declare module 'express-serve-static-core' {
@@ -85,8 +86,11 @@ router.post('/chat', async (req: Request, res: Response) => {
 /**
  * POST /api/v2/chat/stream
  * Server-sent events streaming endpoint
+ *
+ * Note: Stricter rate limiting applied (15 streams per 10 minutes)
+ * because streaming keeps connections open and is resource-intensive
  */
-router.post('/chat/stream', async (req: Request, res: Response) => {
+router.post('/chat/stream', getRateLimiter('v2-stream'), async (req: Request, res: Response) => {
   try {
     const { message, threadId, stateUpdates } = req.body;
 
@@ -113,6 +117,7 @@ router.post('/chat/stream', async (req: Request, res: Response) => {
     res.write('event: connected\n');
     res.write('data: {"status":"connected"}\n\n');
 
+    let streamCompleted = false;
     try {
       // Stream graph execution
       for await (const state of graphManager.stream(
@@ -150,22 +155,36 @@ router.post('/chat/stream', async (req: Request, res: Response) => {
         res.flush?.();
       }
 
+      streamCompleted = true;
+
       // Send completion event
       res.write('event: done\n');
       res.write('data: {"status":"completed"}\n\n');
-      res.end();
     } catch (streamError) {
       logger.error('Stream error:', streamError);
-      res.write('event: error\n');
-      res.write(
-        `data: ${JSON.stringify({
-          error:
-            streamError instanceof Error
-              ? streamError.message
-              : 'Stream error',
-        })}\n\n`
-      );
-      res.end();
+
+      // Only send error event if connection is still open
+      if (!res.writableEnded) {
+        res.write('event: error\n');
+        res.write(
+          `data: ${JSON.stringify({
+            error:
+              streamError instanceof Error
+                ? streamError.message
+                : 'Stream error',
+          })}\n\n`
+        );
+      }
+    } finally {
+      // Ensure connection is always closed, even if client disconnects
+      if (!res.writableEnded) {
+        res.end();
+      }
+
+      logger.info(`Stream ended for thread ${threadId}`, {
+        completed: streamCompleted,
+        writable: !res.writableEnded,
+      });
     }
   } catch (error) {
     logger.error('Chat stream setup error:', error);
