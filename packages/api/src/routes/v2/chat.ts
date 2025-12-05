@@ -10,13 +10,6 @@ import { Router, Request, Response } from 'express';
 import { graphManager } from '../../services/graph-manager';
 import { getRateLimiter } from '../../middleware/rate-limit';
 
-// Type augmentation for compression middleware
-declare module 'express-serve-static-core' {
-  interface Response {
-    flush?: () => void;
-  }
-}
-
 const router = Router();
 
 // Simple logger for API routes
@@ -152,7 +145,7 @@ router.post('/chat/stream', getRateLimiter('v2-stream'), async (req: Request, re
 
         // Flush the response to send data immediately
         // Available when using compression middleware
-        res.flush?.();
+        (res as any).flush?.();
       }
 
       streamCompleted = true;
