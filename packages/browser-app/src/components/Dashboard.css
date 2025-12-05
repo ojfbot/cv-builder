@@ -51,6 +51,12 @@
   border-color: var(--cds-border-strong);
 }
 
+/* Ensure tooltip appears above all other elements */
+.dashboard-header .cds--popover-container,
+.dashboard-header .cds--popover {
+  z-index: 10000 !important;
+}
+
 /* Tabs container */
 .dashboard-wrapper .cds--tabs {
   display: flex;
