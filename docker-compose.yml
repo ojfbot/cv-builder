@@ -17,7 +17,7 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     env_file:
       - .env.local
-    command: npm run cli --workspace=@cv-builder/agent-core
+    command: pnpm --filter @cv-builder/agent-core cli
     stdin_open: true
     tty: true
     networks:
@@ -25,7 +25,7 @@ services:
 
   # Browser App - React UI (optional, for development)
   browser-app:
-    image: node:20-alpine
+    image: node:24-alpine
     container_name: cv-builder-browser
     working_dir: /app
     volumes:
@@ -37,7 +37,7 @@ services:
     environment:
       - NODE_ENV=development
       - VITE_ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-    command: sh -c "npm install && npm run dev -- --host"
+    command: sh -c "corepack enable && corepack prepare pnpm@9.15.4 --activate && pnpm install && pnpm dev -- --host"
     networks:
       - cv-builder-network
 

@@ -30,6 +30,26 @@ The following files should NEVER be committed:
 - Any file containing `sk-ant-api*` keys
 - Build artifacts in `dist/` or `build/`
 
+### Dependency Management
+
+This project uses `pnpm-lock.yaml` for reproducible builds:
+
+**Why lockfiles are committed:**
+1. **Deterministic builds**: All developers and CI get identical dependency versions
+2. **Supply chain security**: Prevents unexpected version bumps that could introduce vulnerabilities
+3. **Debugging**: Makes it easier to identify when a dependency change caused an issue
+4. **CI reliability**: `--frozen-lockfile` ensures builds don't fail due to registry issues
+
+**For contributors:**
+```bash
+# Install dependencies (uses committed lockfile)
+pnpm install
+
+# After updating dependencies, commit the updated lockfile
+git add pnpm-lock.yaml
+git commit -m "chore: update dependencies"
+```
+
 ### Pre-commit Checks
 
 Before committing, verify:

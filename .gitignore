@@ -27,6 +27,16 @@ node_modules/
 /.pnp
 .pnp.js
 
+# pnpm
+.pnpm-store/
+.pnpm-debug.log
+# Note: pnpm-lock.yaml IS committed for reproducible builds
+# DO NOT add it to .gitignore
+
+# npm (legacy - to be removed after migration)
+package-lock.json
+npm-debug.log*
+
 # Testing
 /coverage
 

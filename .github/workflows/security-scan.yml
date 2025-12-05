@@ -47,3 +47,79 @@ jobs:
           else
             echo "✅ No build artifacts committed"
           fi
+
+  dependency-audit:
+    name: Audit Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b  # v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@9.15.4 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        run: |
+          echo "🔍 Auditing production dependencies for vulnerabilities..."
+          pnpm audit --prod --audit-level=high
+          echo "✅ Dependency audit passed (no high/critical vulnerabilities)"
+          echo "Note: Moderate and low vulnerabilities are allowed but should be reviewed"
+
+  clean-install-test:
+    name: Verify Clean Install
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b  # v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@9.15.4 --activate
+
+      - name: Verify clean install from lockfile
+        run: |
+          echo "🔍 Testing clean install with frozen lockfile..."
+          pnpm install --frozen-lockfile
+          echo "✅ Clean install successful"
+
+      - name: Verify type checking works
+        run: |
+          echo "🔍 Running type checks on all packages..."
+          pnpm --filter @cv-builder/agent-core type-check
+          pnpm --filter @cv-builder/api type-check
+          pnpm --filter @cv-builder/browser-app type-check
+          echo "Note: @cv-builder/agent-graph excluded due to pre-existing LangChain type warnings (non-blocking)"
+          echo "✅ Type checking passed"
+
+      - name: Verify builds work
+        run: |
+          echo "🔍 Building core packages..."
+          pnpm --filter @cv-builder/agent-core build
+          pnpm --filter @cv-builder/api build
+          pnpm --filter @cv-builder/browser-app build
+          echo "Note: @cv-builder/browser-automation and @cv-builder/agent-graph excluded due to pre-existing TypeScript errors"
+          echo "✅ Build successful"

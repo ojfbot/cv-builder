@@ -4,21 +4,23 @@
   "description": "AI-powered CV builder with Claude agent orchestration",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=24.11.1",
+    "pnpm": ">=9.0.0"
+  },
   "scripts": {
-    "dev": "npm run dev --workspace=@cv-builder/browser-app",
-    "dev:api": "npm run dev --workspace=@cv-builder/api",
-    "dev:all": "concurrently \"npm run dev:api\" \"npm run dev\"",
-    "dev:v2": "ENABLE_V2_API=true concurrently \"npm run dev:api\" \"npm run dev\"",
-    "build": "npm run build --workspaces --if-present",
-    "prebuild": "npm run security:check",
-    "preview": "npm run preview --workspace=@cv-builder/browser-app",
-    "start:api": "npm start --workspace=@cv-builder/api",
-    "cli": "npm run cli --workspace=@cv-builder/agent-core",
-    "cli:headless": "npm run cli:headless --workspace=@cv-builder/agent-core",
-    "type-check": "npm run type-check --workspaces --if-present",
+    "dev": "pnpm --filter @cv-builder/browser-app dev",
+    "dev:api": "pnpm --filter @cv-builder/api dev",
+    "dev:all": "concurrently \"pnpm dev:api\" \"pnpm dev\"",
+    "dev:v2": "ENABLE_V2_API=true concurrently \"pnpm dev:api\" \"pnpm dev\"",
+    "build": "pnpm --recursive --if-present build",
+    "prebuild": "pnpm security:check",
+    "preview": "pnpm --filter @cv-builder/browser-app preview",
+    "start:api": "pnpm --filter @cv-builder/api start",
+    "cli": "pnpm --filter @cv-builder/agent-core cli",
+    "cli:headless": "pnpm --filter @cv-builder/agent-core cli:headless",
+    "type-check": "pnpm --recursive --if-present type-check",
     "security:check": "bash scripts/security-check.sh",
     "security:scan": "bash scripts/security-scan.sh",
     "security:verify": "bash scripts/security-verify.sh",
@@ -28,7 +30,10 @@
     "screenshots:cleanup": "tsx scripts/cleanup-screenshots.ts",
     "screenshots:cleanup:dry-run": "tsx scripts/cleanup-screenshots.ts --dry-run",
     "screenshots:promote": "tsx scripts/promote-screenshots-to-docs.ts",
-    "screenshots:promote:dry-run": "tsx scripts/promote-screenshots-to-docs.ts --dry-run"
+    "screenshots:promote:dry-run": "tsx scripts/promote-screenshots-to-docs.ts --dry-run",
+    "clean": "pnpm --recursive exec rm -rf node_modules dist && rm -rf node_modules",
+    "lerna:version": "lerna version",
+    "lerna:publish": "lerna publish"
   },
   "keywords": [
     "cv",
@@ -43,10 +48,17 @@
     "@types/node": "^22.9.0",
     "concurrently": "^9.1.0",
     "husky": "^8.0.3",
+    "lerna": "^9.0.3",
     "typescript": "^5.6.3"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.10.1",
     "react-redux": "^9.2.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@langchain/core": "~1.1.4"
+    },
+    "comment": "Override @langchain/core to ~1.1.4 (allows patch updates) to resolve peer dependency conflicts in agent-graph package. This prevents multiple versions of @langchain/core from being installed, which causes TypeScript errors due to incompatible type definitions. The tilde allows patch updates (1.1.5, 1.1.6, etc.) for bug and security fixes while staying on 1.1.x. See PR #56 for details."
   }
 }

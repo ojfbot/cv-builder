@@ -1,18 +1,23 @@
 # Multi-stage build for CV Builder Agent System
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
+
+# Enable Corepack for pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 # Install tsx globally for running TypeScript
-RUN npm install -g tsx
+RUN pnpm add -g tsx
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Copy package files, lockfile, and pnpm workspace config
+# pnpm-lock.yaml is committed for reproducible builds
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY packages/agent-core/package.json ./packages/agent-core/
 
 # Install dependencies
 FROM base AS deps
-RUN npm ci
+# Use frozen lockfile to ensure exact dependency versions from repository
+RUN pnpm install --frozen-lockfile
 
 # Development stage
 FROM base AS development
@@ -28,7 +33,7 @@ RUN mkdir -p /app/data
 ENV NODE_ENV=development
 
 # Default command runs the CLI
-CMD ["npm", "run", "cli", "--workspace=@cv-builder/agent-core"]
+CMD ["pnpm", "--filter", "@cv-builder/agent-core", "cli"]
 
 # Production stage
 FROM base AS production
@@ -45,4 +50,4 @@ RUN mkdir -p /app/data
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 USER nodejs
 
-CMD ["npm", "run", "cli", "--workspace=@cv-builder/agent-core"]
+CMD ["pnpm", "--filter", "@cv-builder/agent-core", "cli"]
