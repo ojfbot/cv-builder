@@ -6,7 +6,6 @@
   margin: 36px 72px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   position: relative;
   z-index: 1;
   transition: margin-right 0.3s ease;
@@ -23,6 +22,8 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
+  position: relative;
+  overflow: visible;
 }
 
 /* Dashboard header actions container */
