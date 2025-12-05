@@ -10,11 +10,15 @@ RUN pnpm add -g tsx
 WORKDIR /app
 
 # Copy package files and pnpm workspace config
+# Note: pnpm-lock.yaml is gitignored for security (prevents dependency tree exposure)
+# Docker will generate a fresh lockfile during build, then use --frozen-lockfile
+# to ensure reproducible builds within the container lifecycle
 COPY package.json pnpm-workspace.yaml .npmrc ./
 COPY packages/agent-core/package.json ./packages/agent-core/
 
 # Install dependencies
 FROM base AS deps
+# First install generates lockfile, subsequent installs use it
 RUN pnpm install --frozen-lockfile
 
 # Development stage
