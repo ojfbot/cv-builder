@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Rocket, Information } from '@carbon/icons-react';
+import { Rocket } from '@carbon/icons-react';
 import { RootState, AppDispatch } from '../store';
 import {
   setV2Enabled,
@@ -57,29 +57,20 @@ export function V2Toggle() {
     <div
       className="v2-toggle-compact"
       ref={toggleRef}
-      onMouseEnter={() => setIsPopoverOpen(true)}
-      onMouseLeave={() => setIsPopoverOpen(false)}
     >
-      <div className="v2-toggle-wrapper">
-        <button
-          className="v2-toggle-button"
-          onClick={() => !apiAvailable ? null : handleToggle(!enabled)}
-          disabled={!apiAvailable}
-          aria-label={`Switch to ${enabled ? 'V1' : 'V2'} mode`}
-        >
-          <span className="v2-toggle-label">{enabled ? 'V2' : 'V1'}</span>
-          <div className={`v2-toggle-switch ${enabled ? 'active' : ''}`}>
-            <div className="v2-toggle-knob" />
-          </div>
-        </button>
-        <button
-          className="v2-info-button"
-          aria-label="V2 mode information"
-          tabIndex={0}
-        >
-          <Information size={16} />
-        </button>
-      </div>
+      <button
+        className="v2-toggle-button"
+        onClick={() => !apiAvailable ? null : handleToggle(!enabled)}
+        onMouseEnter={() => setIsPopoverOpen(true)}
+        onMouseLeave={() => setIsPopoverOpen(false)}
+        disabled={!apiAvailable}
+        aria-label={`Switch to ${enabled ? 'V1' : 'V2'} mode`}
+      >
+        <span className="v2-toggle-label">{enabled ? 'V2' : 'V1'}</span>
+        <div className={`v2-toggle-switch ${enabled ? 'active' : ''}`}>
+          <div className="v2-toggle-knob" />
+        </div>
+      </button>
 
       {isPopoverOpen && (
         <div className="v2-popover">
@@ -117,12 +108,6 @@ export function V2Toggle() {
           position: relative;
           display: inline-flex;
           align-items: center;
-        }
-
-        .v2-toggle-wrapper {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
         }
 
         .v2-toggle-button {
@@ -181,24 +166,6 @@ export function V2Toggle() {
 
         .v2-toggle-switch.active .v2-toggle-knob {
           transform: translateX(16px);
-        }
-
-        .v2-info-button {
-          padding: 0;
-          margin: 0;
-          background: none;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          color: var(--cds-icon-secondary);
-          transition: color 0.2s;
-        }
-
-        .v2-info-button:hover,
-        .v2-info-button:focus {
-          color: var(--cds-icon-primary);
-          outline: none;
         }
 
         .v2-popover {

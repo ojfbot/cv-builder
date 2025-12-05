@@ -6,6 +6,7 @@ import {
   TabPanels,
   TabPanel,
   Heading,
+  Tooltip,
 } from '@carbon/react'
 import { Menu, Close } from '@carbon/icons-react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
@@ -86,13 +87,18 @@ function DashboardContent() {
 
           {/* Thread sidebar toggle button (V2 only) */}
           {v2Enabled && showThreadSidebar && (
-            <button
-              className="sidebar-toggle-btn"
-              onClick={() => dispatch(setSidebarExpanded(!sidebarExpanded))}
-              aria-label="Toggle thread sidebar"
+            <Tooltip
+              align="bottom"
+              label={sidebarExpanded ? 'Close conversation threads' : 'Show conversation threads'}
             >
-              {sidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
-            </button>
+              <button
+                className="sidebar-toggle-btn"
+                onClick={() => dispatch(setSidebarExpanded(!sidebarExpanded))}
+                aria-label="Toggle thread sidebar"
+              >
+                {sidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
+              </button>
+            </Tooltip>
           )}
         </div>
 
