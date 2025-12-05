@@ -5,6 +5,7 @@ export interface V2State {
   apiAvailable: boolean; // Whether V2 API is available on server
   streamingEnabled: boolean; // Whether to use streaming
   showThreadSidebar: boolean; // Show thread list sidebar
+  sidebarExpanded: boolean; // Whether sidebar is currently expanded (UI state)
   showStateInspector: boolean; // Show LangGraph state inspector (debug)
   preferences: {
     autoCreateThread: boolean; // Auto-create thread on first message
@@ -19,6 +20,7 @@ const initialState: V2State = {
   apiAvailable: false,
   streamingEnabled: true,
   showThreadSidebar: false,
+  sidebarExpanded: false,
   showStateInspector: false,
   preferences: {
     autoCreateThread: true,
@@ -47,6 +49,9 @@ const v2Slice = createSlice({
     },
     setShowThreadSidebar: (state, action: PayloadAction<boolean>) => {
       state.showThreadSidebar = action.payload;
+    },
+    setSidebarExpanded: (state, action: PayloadAction<boolean>) => {
+      state.sidebarExpanded = action.payload;
     },
     setShowStateInspector: (state, action: PayloadAction<boolean>) => {
       state.showStateInspector = action.payload;
@@ -83,6 +88,7 @@ export const {
   setApiAvailable,
   setStreamingEnabled,
   setShowThreadSidebar,
+  setSidebarExpanded,
   setShowStateInspector,
   updatePreferences,
   loadV2Settings,
