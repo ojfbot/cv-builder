@@ -29,6 +29,8 @@ import type { ChatMessage } from '../models/bio'
  * ```
  */
 export class DocumentChatAgent extends BaseAgent {
+  /** Maximum document length to include in chat context (characters) */
+  private static readonly MAX_DOCUMENT_CONTEXT_LENGTH = 8000
   protected getSystemPrompt(): string {
     return `You are a helpful AI assistant specialized in analyzing and discussing professional documents (resumes, CVs, cover letters, portfolios, transcripts, certificates).
 
@@ -254,9 +256,9 @@ ${documentMetadata.wordCount ? `Word Count: ${documentMetadata.wordCount}` : ''}
 ${documentMetadata.pageCount ? `Pages: ${documentMetadata.pageCount}` : ''}
 `.trim()
 
-    // Truncate document text if too long (keep first 8000 chars for context)
-    const truncatedText = documentText.length > 8000
-      ? documentText.substring(0, 8000) + '\n... (document truncated for brevity)'
+    // Truncate document text if too long (keep first N chars for context)
+    const truncatedText = documentText.length > DocumentChatAgent.MAX_DOCUMENT_CONTEXT_LENGTH
+      ? documentText.substring(0, DocumentChatAgent.MAX_DOCUMENT_CONTEXT_LENGTH) + '\n... (document truncated for brevity)'
       : documentText
 
     // Build full context

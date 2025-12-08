@@ -13,6 +13,11 @@ import { authenticate } from '../middleware/auth'
 
 const router = Router()
 
+// Input validation constants
+const MAX_CHAT_MESSAGE_LENGTH = 10000 // Maximum characters in a chat message
+const MAX_CHAT_HISTORY_SIZE = 50 // Maximum number of messages in chat history
+const SSE_TIMEOUT_MS = 5 * 60 * 1000 // Server-Sent Events timeout (5 minutes)
+
 // Apply authentication to all bio file routes
 router.use(authenticate)
 
@@ -443,16 +448,16 @@ router.post('/files/:fileId/chat', async (req: Request, res: Response, next: Nex
       return res.status(400).json({ error: 'Message is required' })
     }
 
-    if (message.length > 10000) {
-      return res.status(400).json({ error: 'Message too long (max 10000 characters)' })
+    if (message.length > MAX_CHAT_MESSAGE_LENGTH) {
+      return res.status(400).json({ error: `Message too long (max ${MAX_CHAT_MESSAGE_LENGTH} characters)` })
     }
 
     if (!Array.isArray(history)) {
       return res.status(400).json({ error: 'History must be an array' })
     }
 
-    if (history.length > 50) {
-      return res.status(400).json({ error: 'History too long (max 50 messages)' })
+    if (history.length > MAX_CHAT_HISTORY_SIZE) {
+      return res.status(400).json({ error: `History too long (max ${MAX_CHAT_HISTORY_SIZE} messages)` })
     }
 
     const file = await bioFileManager.getFile(fileId)
@@ -487,11 +492,11 @@ router.post('/files/:fileId/chat', async (req: Request, res: Response, next: Nex
       res.setHeader('Connection', 'keep-alive')
       res.setHeader('X-Accel-Buffering', 'no') // Disable nginx buffering
 
-      // Set timeout for SSE connection (5 minutes)
+      // Set timeout for SSE connection
       const timeout = setTimeout(() => {
         res.write('data: [TIMEOUT]\n\n')
         res.end()
-      }, 5 * 60 * 1000)
+      }, SSE_TIMEOUT_MS)
 
       // Clean up timeout on connection close
       req.on('close', () => {
