@@ -11,8 +11,8 @@
   },
   "scripts": {
     "dev": "pnpm --filter @cv-builder/browser-app dev",
-    "dev:api": "pnpm --filter @cv-builder/api dev",
-    "dev:all": "concurrently \"pnpm dev:api\" \"pnpm dev\"",
+    "dev:api": "ENABLE_V2_API=true pnpm --filter @cv-builder/api dev",
+    "dev:all": "ENABLE_V2_API=true concurrently \"pnpm dev:api\" \"pnpm dev\"",
     "dev:v2": "ENABLE_V2_API=true concurrently \"pnpm dev:api\" \"pnpm dev\"",
     "build": "pnpm --recursive --if-present build",
     "prebuild": "pnpm security:check",
