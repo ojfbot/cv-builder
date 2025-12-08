@@ -16,6 +16,64 @@ const router = Router()
 // Apply authentication to all bio file routes
 router.use(authenticate)
 
+/**
+ * Helper: Parse document on-demand if not already parsed
+ * Extracts text from PDF/DOCX files and caches the result in file metadata
+ */
+async function getOrParseDocumentText(
+  file: Awaited<ReturnType<typeof bioFileManager.getFile>>
+): Promise<{ text: string | null; parsedContent: any }> {
+  if (!file) {
+    return { text: null, parsedContent: undefined }
+  }
+
+  // Return cached parsed content if available
+  if (file.metadata?.parsedContent?.text) {
+    return {
+      text: file.metadata.parsedContent.text,
+      parsedContent: file.metadata.parsedContent,
+    }
+  }
+
+  // Parse PDF/DOCX files on-demand
+  const resumeFormats = ['.pdf', '.docx']
+  const fileExt = path.extname(file.originalName).toLowerCase()
+
+  if (resumeFormats.includes(fileExt)) {
+    try {
+      const filePath = await bioFileManager.getFilePath(file.id)
+      if (filePath) {
+        const buffer = await fs.readFile(filePath)
+        const parsed = await parseResume(buffer, file.originalName, file.type)
+
+        const parsedContent = {
+          text: parsed.text,
+          wordCount: parsed.metadata.wordCount,
+          pageCount: parsed.metadata.pageCount,
+          extractedAt: new Date().toISOString(),
+        }
+
+        // Cache parsed content for future use
+        await bioFileManager.updateFile(file.id, {
+          metadata: {
+            ...file.metadata,
+            parsedContent,
+          },
+        })
+
+        return { text: parsed.text, parsedContent }
+      }
+    } catch (parseError) {
+      console.error('Failed to parse document:', parseError)
+      // Fall through to extractFullText
+    }
+  }
+
+  // Fallback to extractFullText for text-based files
+  const text = await bioFileManager.extractFullText(file.id)
+  return { text, parsedContent: undefined }
+}
+
 // 1. List files
 // GET /api/bios/files
 router.get('/files', async (req: Request, res: Response, next: NextFunction) => {
@@ -320,54 +378,8 @@ router.post('/files/:fileId/summarize', async (req: Request, res: Response, next
       processingStatus: 'processing',
     })
 
-    // Get document text (from parsed content or extract)
-    let text: string | null = null
-    let parsedContent: any = undefined
-
-    // First try parsed content (for PDFs, DOCX)
-    if (file.metadata?.parsedContent?.text) {
-      text = file.metadata.parsedContent.text
-      parsedContent = file.metadata.parsedContent
-    } else {
-      // For PDFs and DOCX without parsed content, parse them now
-      const resumeFormats = ['.pdf', '.docx']
-      const fileExt = path.extname(file.originalName).toLowerCase()
-
-      if (resumeFormats.includes(fileExt)) {
-        try {
-          const filePath = await bioFileManager.getFilePath(fileId)
-          if (filePath) {
-            const buffer = await fs.readFile(filePath)
-            const parsed = await parseResume(buffer, file.originalName, file.type)
-
-            parsedContent = {
-              text: parsed.text,
-              wordCount: parsed.metadata.wordCount,
-              pageCount: parsed.metadata.pageCount,
-              extractedAt: new Date().toISOString(),
-            }
-
-            text = parsed.text
-
-            // Store parsed content for future use
-            await bioFileManager.updateFile(fileId, {
-              metadata: {
-                ...file.metadata,
-                parsedContent,
-              },
-            })
-          }
-        } catch (parseError) {
-          console.error('Failed to parse document:', parseError)
-          // Fall through to try extractFullText
-        }
-      }
-
-      // If still no text, try extractFullText for text-based files
-      if (!text) {
-        text = await bioFileManager.extractFullText(fileId)
-      }
-    }
+    // Get document text (using helper function)
+    const { text, parsedContent } = await getOrParseDocumentText(file)
 
     if (!text || text.trim().length === 0) {
       await bioFileManager.updateFile(fileId, {
@@ -448,53 +460,8 @@ router.post('/files/:fileId/chat', async (req: Request, res: Response, next: Nex
       return res.status(404).json({ error: 'File not found' })
     }
 
-    // Get document text (from parsed content or extract)
-    let text: string | null = null
-    let parsedContent: any = undefined
-
-    if (file.metadata?.parsedContent?.text) {
-      text = file.metadata.parsedContent.text
-      parsedContent = file.metadata.parsedContent
-    } else {
-      // For PDFs and DOCX without parsed content, parse them now
-      const resumeFormats = ['.pdf', '.docx']
-      const fileExt = path.extname(file.originalName).toLowerCase()
-
-      if (resumeFormats.includes(fileExt)) {
-        try {
-          const filePath = await bioFileManager.getFilePath(fileId)
-          if (filePath) {
-            const buffer = await fs.readFile(filePath)
-            const parsed = await parseResume(buffer, file.originalName, file.type)
-
-            parsedContent = {
-              text: parsed.text,
-              wordCount: parsed.metadata.wordCount,
-              pageCount: parsed.metadata.pageCount,
-              extractedAt: new Date().toISOString(),
-            }
-
-            text = parsed.text
-
-            // Store parsed content for future use
-            await bioFileManager.updateFile(fileId, {
-              metadata: {
-                ...file.metadata,
-                parsedContent,
-              },
-            })
-          }
-        } catch (parseError) {
-          console.error('Failed to parse document:', parseError)
-          // Fall through to try extractFullText
-        }
-      }
-
-      // If still no text, try extractFullText for text-based files
-      if (!text) {
-        text = await bioFileManager.extractFullText(fileId)
-      }
-    }
+    // Get document text (using helper function)
+    const { text, parsedContent } = await getOrParseDocumentText(file)
 
     if (!text || text.trim().length === 0) {
       return res.status(400).json({
