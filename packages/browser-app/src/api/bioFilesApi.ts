@@ -1,4 +1,4 @@
-import { BioFile, FileListQuery } from '@cv-builder/agent-core'
+import { BioFile, FileListQuery, DocumentSummary, ChatMessage } from '@cv-builder/agent-core'
 
 /**
  * Bio Files API Client
@@ -199,6 +199,42 @@ export class BioFilesApi {
   }
 
   /**
+   * Get file preview with full content
+   */
+  async getPreview(
+    fileId: string,
+    options?: { full?: boolean }
+  ): Promise<{
+    fileId: string
+    name: string
+    type: string
+    extension: string
+    size: number
+    sizeFormatted: string
+    preview: string | null
+    thumbnail: string | null
+    parsedContent?: {
+      text: string
+      wordCount: number
+      pageCount?: number
+    }
+    metadata: Record<string, any>
+  }> {
+    const params = new URLSearchParams()
+    if (options?.full) params.set('full', 'true')
+
+    const url = `${this.baseUrl}/bios/files/${fileId}/preview${params.toString() ? `?${params.toString()}` : ''}`
+    const response = await this.fetchWithTimeout(url)
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: response.statusText }))
+      throw new Error(error.error || 'Failed to get preview')
+    }
+
+    return response.json()
+  }
+
+  /**
    * Get file statistics
    */
   async getFileStats(): Promise<{
@@ -215,6 +251,92 @@ export class BioFilesApi {
     }
 
     return response.json()
+  }
+
+  /**
+   * Get AI-generated summary for a file
+   */
+  async getSummary(
+    fileId: string,
+    force = false
+  ): Promise<{
+    summary: DocumentSummary
+    cached: boolean
+  }> {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/bios/files/${fileId}/summarize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ force }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: response.statusText }))
+      throw new Error(error.error || error.message || 'Failed to get summary')
+    }
+
+    return response.json()
+  }
+
+  /**
+   * Chat about a document with streaming response
+   */
+  async *chatStream(
+    fileId: string,
+    message: string,
+    history: ChatMessage[]
+  ): AsyncGenerator<string> {
+    const response = await fetch(`${this.baseUrl}/bios/files/${fileId}/chat?stream=true`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: response.statusText }))
+      throw new Error(error.error || error.message || 'Failed to start chat')
+    }
+
+    if (!response.body) {
+      throw new Error('Response body is null')
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const text = decoder.decode(value, { stream: true })
+        const lines = text.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6) // Remove 'data: ' prefix
+            if (data === '[DONE]') return
+
+            try {
+              const json = JSON.parse(data)
+              if (json.chunk) {
+                yield json.chunk
+              }
+              if (json.error) {
+                throw new Error(json.error)
+              }
+            } catch (e) {
+              // Skip malformed JSON lines
+              if (e instanceof Error && e.message.startsWith('Unexpected')) {
+                continue
+              }
+              throw e
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
   }
 }
 

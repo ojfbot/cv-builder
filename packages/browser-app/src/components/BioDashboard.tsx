@@ -16,11 +16,13 @@ import {
   Grid,
   Column,
 } from '@carbon/react'
-import { DocumentAdd, Edit, Upload, ChatBot, DataTable, Connect, ViewFilled, Folder, TrashCan, Download } from '@carbon/icons-react'
+import { DocumentAdd, Edit, Upload, ChatBot, DataTable, Connect, ViewFilled, View, Folder, TrashCan, Download } from '@carbon/icons-react'
 import { BioFile } from '@cv-builder/agent-core'
 import { bioFilesApi } from '../api/bioFilesApi'
 import { setIsExpanded } from '../store/slices/chatSlice'
 import { setBioViewMode, type BioViewMode } from '../store/slices/navigationSlice'
+import { DocumentPreviewModal } from './DocumentPreviewModal'
+import { DocumentChatModal } from './DocumentChatModal'
 
 interface StatItem {
   value: number
@@ -43,6 +45,8 @@ function BioDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [carouselIndex, setCarouselIndex] = useState(0)
+  const [previewFileId, setPreviewFileId] = useState<string | null>(null)
+  const [chatFileId, setChatFileId] = useState<string | null>(null)
 
   // Define rotating stat groups - each tile cycles through its own stats
   const statGroups: StatGroup[] = [
@@ -129,6 +133,26 @@ function BioDashboard() {
       setError(err instanceof Error ? err.message : 'Failed to download file')
       console.error('Error downloading file:', err)
     }
+  }
+
+  // Handle file preview
+  const handlePreviewFile = (fileId: string) => {
+    setPreviewFileId(fileId)
+  }
+
+  // Close preview modal
+  const closePreview = () => {
+    setPreviewFileId(null)
+  }
+
+  // Handle file chat
+  const handleChatAboutFile = (fileId: string) => {
+    setChatFileId(fileId)
+  }
+
+  // Close chat modal
+  const closeChat = () => {
+    setChatFileId(null)
   }
 
   // Collapse chat when navigating to Bio panel if on files/tiles view
@@ -334,6 +358,24 @@ function BioDashboard() {
                 <TableCell>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <Button
+                      data-element="bio-file-chat-button"
+                      size="sm"
+                      kind="ghost"
+                      renderIcon={ChatBot}
+                      iconDescription="Chat about document"
+                      hasIconOnly
+                      onClick={() => handleChatAboutFile(file.id)}
+                    />
+                    <Button
+                      data-element="bio-file-preview-button"
+                      size="sm"
+                      kind="ghost"
+                      renderIcon={View}
+                      iconDescription="Preview"
+                      hasIconOnly
+                      onClick={() => handlePreviewFile(file.id)}
+                    />
+                    <Button
                       data-element="bio-file-download-button"
                       size="sm"
                       kind="ghost"
@@ -345,7 +387,7 @@ function BioDashboard() {
                     <Button
                       data-element="bio-file-delete-button"
                       size="sm"
-                      kind="danger--ghost"
+                      kind="ghost"
                       renderIcon={TrashCan}
                       iconDescription="Delete"
                       hasIconOnly
@@ -761,6 +803,24 @@ function BioDashboard() {
       >
         {renderFilesView()}
       </div>
+
+      {/* Document Preview Modal */}
+      {previewFileId && (
+        <DocumentPreviewModal
+          fileId={previewFileId}
+          fileName={bioFiles.find(f => f.id === previewFileId)?.originalName || 'Document'}
+          onClose={closePreview}
+        />
+      )}
+
+      {/* Document Chat Modal */}
+      {chatFileId && (
+        <DocumentChatModal
+          fileId={chatFileId}
+          fileName={bioFiles.find(f => f.id === chatFileId)?.originalName || 'Document'}
+          onClose={closeChat}
+        />
+      )}
     </div>
   )
 }
