@@ -98,7 +98,8 @@ export function DocumentPreviewModal({ fileId, fileName, onClose }: DocumentPrev
 
     // PDF preview - use browser's built-in PDF viewer
     if (preview.extension === '.pdf' || preview.type === 'application/pdf') {
-      const pdfUrl = `http://localhost:3001/api/bios/files/${fileId}`
+      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+      const pdfUrl = `${apiBaseUrl}/bios/files/${fileId}`
 
       return (
         <div style={{ padding: '1rem' }}>
