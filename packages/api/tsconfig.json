@@ -12,9 +12,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "types": ["node"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../agent-core/src/agents/document-*.ts"],
   "exclude": ["node_modules", "dist"]
 }
