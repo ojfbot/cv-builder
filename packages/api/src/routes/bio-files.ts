@@ -2,8 +2,11 @@ import { Router, Request, Response, NextFunction } from 'express'
 import crypto from 'crypto'
 import path from 'path'
 import fs from 'fs/promises'
-import { FileListQuerySchema, ParsedResumeContent } from '@cv-builder/agent-core'
+import { FileListQuerySchema, ParsedResumeContent, DocumentSummary } from '@cv-builder/agent-core'
 import { parseResume } from '@cv-builder/agent-core/utils/resume-parser'
+import { getConfig } from '@cv-builder/agent-core/utils/config'
+import { DocumentSummaryAgent } from '../../../agent-core/src/agents/document-summary-agent.js'
+import { DocumentChatAgent } from '../../../agent-core/src/agents/document-chat-agent.js'
 import { bioFileManager } from '../services/bio-file-manager'
 import { upload, validateFileContent } from '../middleware/file-upload'
 import { authenticate } from '../middleware/auth'
@@ -229,10 +232,11 @@ router.delete('/files/:fileId', async (req: Request, res: Response, next: NextFu
 })
 
 // 6. Get file preview/metadata
-// GET /api/bios/files/:fileId/preview
+// GET /api/bios/files/:fileId/preview?full=true
 router.get('/files/:fileId/preview', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { fileId } = req.params
+    const full = req.query.full === 'true'
 
     const file = await bioFileManager.getFile(fileId)
     if (!file) {
@@ -250,18 +254,29 @@ router.get('/files/:fileId/preview', async (req: Request, res: Response, next: N
       }
     }
 
-    // Extract text preview for text files
+    // Extract text preview/full content for text files
     const textTypes = ['text/plain', 'text/markdown', 'application/json', 'text/csv']
     if (textTypes.includes(file.type)) {
-      preview = await bioFileManager.extractTextPreview(fileId, 500)
+      if (full) {
+        preview = await bioFileManager.extractFullText(fileId)
+      } else {
+        preview = await bioFileManager.extractTextPreview(fileId, 500)
+      }
     }
+
+    // For parsed documents (PDF, DOCX), include parsed content if available
+    const parsedContent = file.metadata?.parsedContent
 
     res.json({
       fileId,
       name: file.originalName,
       type: file.type,
+      extension: file.extension,
+      size: file.size,
+      sizeFormatted: file.sizeFormatted,
       preview,
       thumbnail,
+      parsedContent,
       metadata: file.metadata || {},
     })
   } catch (error) {
@@ -275,6 +290,252 @@ router.get('/stats', async (req: Request, res: Response, next: NextFunction) => 
   try {
     const stats = await bioFileManager.getFileStats()
     res.json(stats)
+  } catch (error) {
+    next(error)
+  }
+})
+
+// 7. Summarize file with AI
+// POST /api/bios/files/:fileId/summarize
+router.post('/files/:fileId/summarize', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { fileId } = req.params
+    const { force = false } = req.body
+
+    const file = await bioFileManager.getFile(fileId)
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' })
+    }
+
+    // Check if already summarized (and not forcing re-summarization)
+    if (file.aiSummary && !force) {
+      return res.json({
+        summary: file.aiSummary,
+        cached: true,
+      })
+    }
+
+    // Update status to processing
+    await bioFileManager.updateFile(fileId, {
+      processingStatus: 'processing',
+    })
+
+    // Get document text (from parsed content or extract)
+    let text: string | null = null
+    let parsedContent: any = undefined
+
+    // First try parsed content (for PDFs, DOCX)
+    if (file.metadata?.parsedContent?.text) {
+      text = file.metadata.parsedContent.text
+      parsedContent = file.metadata.parsedContent
+    } else {
+      // For PDFs and DOCX without parsed content, parse them now
+      const resumeFormats = ['.pdf', '.docx']
+      const fileExt = path.extname(file.originalName).toLowerCase()
+
+      if (resumeFormats.includes(fileExt)) {
+        try {
+          const filePath = await bioFileManager.getFilePath(fileId)
+          if (filePath) {
+            const buffer = await fs.readFile(filePath)
+            const parsed = await parseResume(buffer, file.originalName, file.type)
+
+            parsedContent = {
+              text: parsed.text,
+              wordCount: parsed.metadata.wordCount,
+              pageCount: parsed.metadata.pageCount,
+              extractedAt: new Date().toISOString(),
+            }
+
+            text = parsed.text
+
+            // Store parsed content for future use
+            await bioFileManager.updateFile(fileId, {
+              metadata: {
+                ...file.metadata,
+                parsedContent,
+              },
+            })
+          }
+        } catch (parseError) {
+          console.error('Failed to parse document:', parseError)
+          // Fall through to try extractFullText
+        }
+      }
+
+      // If still no text, try extractFullText for text-based files
+      if (!text) {
+        text = await bioFileManager.extractFullText(fileId)
+      }
+    }
+
+    if (!text || text.trim().length === 0) {
+      await bioFileManager.updateFile(fileId, {
+        processingStatus: 'failed',
+      })
+      return res.status(400).json({
+        error: 'Could not extract text from document',
+        message: 'This file type cannot be summarized. Please upload a PDF, DOCX, TXT, or MD file.',
+      })
+    }
+
+    // Generate summary using DocumentSummaryAgent
+    const config = getConfig()
+    const agent = new DocumentSummaryAgent(config.anthropicApiKey, 'DocumentSummaryAgent')
+
+    const summary = await agent.summarizeDocument(text, file.originalName, {
+      wordCount: parsedContent?.wordCount,
+      pageCount: parsedContent?.pageCount,
+      mimeType: file.type,
+    })
+
+    // Store summary in file metadata
+    const updatedFile = await bioFileManager.updateFile(fileId, {
+      aiSummary: summary,
+      processingStatus: 'completed',
+      processedAt: new Date().toISOString(),
+    })
+
+    if (!updatedFile) {
+      throw new Error('Failed to update file with summary')
+    }
+
+    res.json({
+      summary,
+      cached: false,
+    })
+  } catch (error) {
+    // Update status to failed
+    try {
+      await bioFileManager.updateFile(req.params.fileId, {
+        processingStatus: 'failed',
+      })
+    } catch (updateError) {
+      console.error('Failed to update processing status:', updateError)
+    }
+
+    next(error)
+  }
+})
+
+// 8. Chat about a file with AI (with streaming support)
+// POST /api/bios/files/:fileId/chat?stream=true
+router.post('/files/:fileId/chat', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { fileId } = req.params
+    const { message, history = [] } = req.body
+    const stream = req.query.stream === 'true'
+
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'Message is required' })
+    }
+
+    const file = await bioFileManager.getFile(fileId)
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' })
+    }
+
+    // Get document text (from parsed content or extract)
+    let text: string | null = null
+    let parsedContent: any = undefined
+
+    if (file.metadata?.parsedContent?.text) {
+      text = file.metadata.parsedContent.text
+      parsedContent = file.metadata.parsedContent
+    } else {
+      // For PDFs and DOCX without parsed content, parse them now
+      const resumeFormats = ['.pdf', '.docx']
+      const fileExt = path.extname(file.originalName).toLowerCase()
+
+      if (resumeFormats.includes(fileExt)) {
+        try {
+          const filePath = await bioFileManager.getFilePath(fileId)
+          if (filePath) {
+            const buffer = await fs.readFile(filePath)
+            const parsed = await parseResume(buffer, file.originalName, file.type)
+
+            parsedContent = {
+              text: parsed.text,
+              wordCount: parsed.metadata.wordCount,
+              pageCount: parsed.metadata.pageCount,
+              extractedAt: new Date().toISOString(),
+            }
+
+            text = parsed.text
+
+            // Store parsed content for future use
+            await bioFileManager.updateFile(fileId, {
+              metadata: {
+                ...file.metadata,
+                parsedContent,
+              },
+            })
+          }
+        } catch (parseError) {
+          console.error('Failed to parse document:', parseError)
+          // Fall through to try extractFullText
+        }
+      }
+
+      // If still no text, try extractFullText for text-based files
+      if (!text) {
+        text = await bioFileManager.extractFullText(fileId)
+      }
+    }
+
+    if (!text || text.trim().length === 0) {
+      return res.status(400).json({
+        error: 'Could not extract text from document',
+        message: 'This file type cannot be used for chat. Please upload a PDF, DOCX, TXT, or MD file.',
+      })
+    }
+
+    const config = getConfig()
+    const agent = new DocumentChatAgent(config.anthropicApiKey, 'DocumentChatAgent')
+
+    const metadata = {
+      filename: file.originalName,
+      type: file.type,
+      wordCount: parsedContent?.wordCount,
+      pageCount: parsedContent?.pageCount,
+    }
+
+    if (stream) {
+      // Set up SSE (Server-Sent Events) headers
+      res.setHeader('Content-Type', 'text/event-stream')
+      res.setHeader('Cache-Control', 'no-cache')
+      res.setHeader('Connection', 'keep-alive')
+      res.setHeader('X-Accel-Buffering', 'no') // Disable nginx buffering
+
+      try {
+        for await (const chunk of agent.streamChatAboutDocument(
+          message,
+          text,
+          metadata,
+          history
+        )) {
+          // Send chunk as SSE event
+          res.write(`data: ${JSON.stringify({ chunk })}\n\n`)
+        }
+
+        // Send completion signal
+        res.write('data: [DONE]\n\n')
+        res.end()
+      } catch (error) {
+        res.write(`data: ${JSON.stringify({ error: (error as Error).message })}\n\n`)
+        res.end()
+      }
+    } else {
+      // Non-streaming response
+      const response = await agent.chatAboutDocument(
+        message,
+        text,
+        metadata,
+        history
+      )
+
+      res.json({ response })
+    }
   } catch (error) {
     next(error)
   }

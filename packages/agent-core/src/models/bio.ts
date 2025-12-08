@@ -90,6 +90,29 @@ export const ParsedResumeContentSchema = z.object({
   extractedAt: z.string(), // ISO date string
 })
 
+// Document annotation schema
+export const DocumentAnnotationSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  type: z.enum(['highlight', 'note', 'exclude']),
+  createdAt: z.string(), // ISO date string
+})
+
+// Chat message schema
+export const ChatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string(),
+  timestamp: z.string(), // ISO date string
+})
+
+// AI document summary schema
+export const DocumentSummarySchema = z.object({
+  summary: z.string(), // Brief 2-4 sentence summary
+  keyPoints: z.array(z.string()), // Key takeaways
+  documentType: z.enum(['resume', 'cover_letter', 'portfolio', 'transcript', 'certificate', 'other']),
+  suggestedUse: z.string(), // How to use this document in CV Builder
+})
+
 export const BioFileSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -103,6 +126,13 @@ export const BioFileSchema = z.object({
   created: z.date(),
   metadata: z.record(z.any()).optional(),
   parsedContent: ParsedResumeContentSchema.optional(), // Extracted resume text
+
+  // AI processing fields
+  processingStatus: z.enum(['pending', 'processing', 'completed', 'failed']).optional(),
+  aiSummary: DocumentSummarySchema.optional(),
+  annotations: z.array(DocumentAnnotationSchema).optional(),
+  chatHistory: z.array(ChatMessageSchema).optional(),
+  processedAt: z.string().optional(), // ISO date string when AI processing completed
 })
 
 export const FileUploadRequestSchema = z.object({
@@ -118,6 +148,9 @@ export const FileListQuerySchema = z.object({
 })
 
 export type ParsedResumeContent = z.infer<typeof ParsedResumeContentSchema>
+export type DocumentAnnotation = z.infer<typeof DocumentAnnotationSchema>
+export type ChatMessage = z.infer<typeof ChatMessageSchema>
+export type DocumentSummary = z.infer<typeof DocumentSummarySchema>
 export type BioFile = z.infer<typeof BioFileSchema>
 export type FileUploadRequest = z.infer<typeof FileUploadRequestSchema>
 export type FileListQuery = z.infer<typeof FileListQuerySchema>

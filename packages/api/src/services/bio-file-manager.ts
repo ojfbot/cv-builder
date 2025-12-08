@@ -262,6 +262,34 @@ export class BioFileManager {
     }
   }
 
+  // Extract full text from file (no length limit)
+  async extractFullText(fileId: string): Promise<string | null> {
+    const filePath = await this.getFilePath(fileId)
+    if (!filePath) return null
+
+    const file = await this.getFile(fileId)
+    if (!file) return null
+
+    // First check if we have parsed content cached
+    if (file.metadata?.parsedContent?.text) {
+      return file.metadata.parsedContent.text
+    }
+
+    // Only extract from text-based files
+    const textTypes = ['text/plain', 'text/markdown', 'application/json', 'text/csv']
+    if (!textTypes.includes(file.type)) {
+      return null
+    }
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8')
+      return content
+    } catch (error) {
+      console.error('Error reading file for full text:', error)
+      return null
+    }
+  }
+
   // Get file statistics
   async getFileStats(): Promise<{
     totalFiles: number

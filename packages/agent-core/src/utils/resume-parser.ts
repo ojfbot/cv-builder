@@ -4,7 +4,9 @@
  */
 
 import mammoth from 'mammoth'
-import * as pdfParse from 'pdf-parse'
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
+const pdfParse = require('pdf-parse')
 
 export interface ParsedResume {
   text: string
@@ -22,9 +24,7 @@ export interface ParsedResume {
  */
 async function parsePDF(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
   try {
-    // pdf-parse exports default function
-    const parse = (pdfParse as any).default || pdfParse
-    const data = await parse(buffer)
+    const data = await pdfParse(buffer)
 
     return {
       text: data.text,
