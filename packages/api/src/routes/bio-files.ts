@@ -426,8 +426,21 @@ router.post('/files/:fileId/chat', async (req: Request, res: Response, next: Nex
     const { message, history = [] } = req.body
     const stream = req.query.stream === 'true'
 
+    // Input validation
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required' })
+    }
+
+    if (message.length > 10000) {
+      return res.status(400).json({ error: 'Message too long (max 10000 characters)' })
+    }
+
+    if (!Array.isArray(history)) {
+      return res.status(400).json({ error: 'History must be an array' })
+    }
+
+    if (history.length > 50) {
+      return res.status(400).json({ error: 'History too long (max 50 messages)' })
     }
 
     const file = await bioFileManager.getFile(fileId)
@@ -507,6 +520,17 @@ router.post('/files/:fileId/chat', async (req: Request, res: Response, next: Nex
       res.setHeader('Connection', 'keep-alive')
       res.setHeader('X-Accel-Buffering', 'no') // Disable nginx buffering
 
+      // Set timeout for SSE connection (5 minutes)
+      const timeout = setTimeout(() => {
+        res.write('data: [TIMEOUT]\n\n')
+        res.end()
+      }, 5 * 60 * 1000)
+
+      // Clean up timeout on connection close
+      req.on('close', () => {
+        clearTimeout(timeout)
+      })
+
       try {
         for await (const chunk of agent.streamChatAboutDocument(
           message,
@@ -519,9 +543,11 @@ router.post('/files/:fileId/chat', async (req: Request, res: Response, next: Nex
         }
 
         // Send completion signal
+        clearTimeout(timeout)
         res.write('data: [DONE]\n\n')
         res.end()
       } catch (error) {
+        clearTimeout(timeout)
         res.write(`data: ${JSON.stringify({ error: (error as Error).message })}\n\n`)
         res.end()
       }
