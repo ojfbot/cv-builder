@@ -253,6 +253,9 @@ importers:
       '@octokit/plugin-throttling':
         specifier: ^11.0.3
         version: 11.0.3(@octokit/core@7.0.6)
+      '@octokit/request-error':
+        specifier: ^7.1.0
+        version: 7.1.0
       '@octokit/rest':
         specifier: ^22.0.1
         version: 22.0.1
@@ -271,6 +274,9 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.22.1
+      express-rate-limit:
+        specifier: ^7.5.1
+        version: 7.5.1(express@4.22.1)
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
