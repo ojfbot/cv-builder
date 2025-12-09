@@ -17,6 +17,7 @@ const router = Router()
 const MAX_CHAT_MESSAGE_LENGTH = 10000 // Maximum characters in a chat message
 const MAX_CHAT_HISTORY_SIZE = 50 // Maximum number of messages in chat history
 const SSE_TIMEOUT_MS = 5 * 60 * 1000 // Server-Sent Events timeout (5 minutes)
+const PREVIEW_TEXT_LENGTH = 500 // Characters to show in text preview
 
 // Apply authentication to all bio file routes
 router.use(authenticate)
@@ -320,7 +321,7 @@ router.get('/files/:fileId/preview', async (req: Request, res: Response, next: N
       if (full) {
         preview = await bioFileManager.extractFullText(fileId)
       } else {
-        preview = await bioFileManager.extractTextPreview(fileId, 500)
+        preview = await bioFileManager.extractTextPreview(fileId, PREVIEW_TEXT_LENGTH)
       }
     }
 
@@ -445,6 +446,10 @@ router.post('/files/:fileId/chat', async (req: Request, res: Response, next: Nex
       return res.status(400).json({ error: 'Message is required' })
     }
 
+    if (message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message cannot be empty' })
+    }
+
     if (message.length > MAX_CHAT_MESSAGE_LENGTH) {
       return res.status(400).json({ error: `Message too long (max ${MAX_CHAT_MESSAGE_LENGTH} characters)` })
     }
@@ -455,6 +460,31 @@ router.post('/files/:fileId/chat', async (req: Request, res: Response, next: Nex
 
     if (history.length > MAX_CHAT_HISTORY_SIZE) {
       return res.status(400).json({ error: `History too long (max ${MAX_CHAT_HISTORY_SIZE} messages)` })
+    }
+
+    // Validate history message structure
+    for (const [index, msg] of history.entries()) {
+      if (!msg || typeof msg !== 'object') {
+        return res.status(400).json({ error: `Invalid message at history[${index}]` })
+      }
+
+      if (!msg.role || (msg.role !== 'user' && msg.role !== 'assistant')) {
+        return res.status(400).json({
+          error: `Invalid role at history[${index}]: must be 'user' or 'assistant'`
+        })
+      }
+
+      if (!msg.content || typeof msg.content !== 'string') {
+        return res.status(400).json({
+          error: `Invalid content at history[${index}]: must be a non-empty string`
+        })
+      }
+
+      if (msg.content.length > MAX_CHAT_MESSAGE_LENGTH) {
+        return res.status(400).json({
+          error: `Message at history[${index}] too long (max ${MAX_CHAT_MESSAGE_LENGTH} characters)`
+        })
+      }
     }
 
     const file = await bioFileManager.getFile(fileId)
