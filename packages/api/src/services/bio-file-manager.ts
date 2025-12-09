@@ -271,8 +271,8 @@ export class BioFileManager {
     if (!file) return null
 
     // First check if we have parsed content cached
-    if (file.metadata?.parsedContent?.text) {
-      return file.metadata.parsedContent.text
+    if (file.parsedContent?.text) {
+      return file.parsedContent.text
     }
 
     // Only extract from text-based files

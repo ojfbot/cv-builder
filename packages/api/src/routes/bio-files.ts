@@ -33,10 +33,10 @@ async function getOrParseDocumentText(
   }
 
   // Return cached parsed content if available
-  if (file.metadata?.parsedContent?.text) {
+  if (file.parsedContent?.text) {
     return {
-      text: file.metadata.parsedContent.text,
-      parsedContent: file.metadata.parsedContent,
+      text: file.parsedContent.text,
+      parsedContent: file.parsedContent,
     }
   }
 
@@ -60,10 +60,7 @@ async function getOrParseDocumentText(
 
         // Cache parsed content for future use
         await bioFileManager.updateFile(file.id, {
-          metadata: {
-            ...file.metadata,
-            parsedContent,
-          },
+          parsedContent,
         })
 
         return { text: parsed.text, parsedContent }
@@ -328,7 +325,7 @@ router.get('/files/:fileId/preview', async (req: Request, res: Response, next: N
     }
 
     // For parsed documents (PDF, DOCX), include parsed content if available
-    const parsedContent = file.metadata?.parsedContent
+    const parsedContent = file.parsedContent
 
     res.json({
       fileId,
