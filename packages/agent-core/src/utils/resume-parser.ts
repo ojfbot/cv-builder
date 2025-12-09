@@ -4,9 +4,7 @@
  */
 
 import mammoth from 'mammoth'
-import { createRequire } from 'module'
-const require = createRequire(import.meta.url)
-const pdfParse = require('pdf-parse')
+import { PDFParse } from 'pdf-parse'
 
 export interface ParsedResume {
   text: string
@@ -20,18 +18,32 @@ export interface ParsedResume {
 }
 
 /**
- * Parse PDF file and extract text content
+ * Parse PDF file and extract text content using pdf-parse v2 API
  */
 async function parsePDF(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
+  let parser: PDFParse | null = null
+
   try {
-    const data = await pdfParse(buffer)
+    // Initialize PDFParse with buffer
+    parser = new PDFParse({ data: buffer })
+
+    // Extract text
+    const textResult = await parser.getText()
+
+    // Get document info for page count
+    const infoResult = await parser.getInfo()
 
     return {
-      text: data.text,
-      pageCount: data.numpages
+      text: textResult.text,
+      pageCount: infoResult.total || 0
     }
   } catch (error) {
     throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  } finally {
+    // Clean up resources
+    if (parser) {
+      await parser.destroy()
+    }
   }
 }
 
@@ -124,9 +136,10 @@ export async function parseResume(
       throw new Error(`Unsupported file type: ${fileType}`)
   }
 
-  // Clean up the text (remove excessive whitespace, normalize line breaks)
+  // Clean up the text (remove excessive whitespace, normalize line breaks, remove page markers)
   text = text
     .replace(/\r\n/g, '\n')  // Normalize line breaks
+    .replace(/-- \d+ of \d+ --/g, '')  // Remove pdf-parse v2 page markers
     .replace(/\n{3,}/g, '\n\n')  // Remove excessive line breaks
     .trim()
 
