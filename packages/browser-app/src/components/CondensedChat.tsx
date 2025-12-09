@@ -14,9 +14,7 @@ import {
   setDraftInput as setDraftInputAction,
   setIsLoading,
   setStreamingContent,
-  setIsExpanded as setIsExpandedAction,
   setDisplayState as setDisplayStateAction,
-  ChatDisplayState,
 } from '../store/slices/chatSlice'
 import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
 import { useAgent } from '../contexts/AgentContext'
