@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Loading, InlineNotification } from '@carbon/react'
 import { bioFilesApi } from '../api/bioFilesApi'
@@ -35,20 +35,28 @@ export function DocumentPreviewModal({ fileId, fileName, onClose }: DocumentPrev
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [preview, setPreview] = useState<PreviewData | null>(null)
-  const [previousChatState, setPreviousChatState] = useState<ChatDisplayState>(currentDisplayState)
+  const previousChatStateRef = useRef<ChatDisplayState>(currentDisplayState)
 
   // Minimize chat when modal opens, restore when it closes
   useEffect(() => {
-    // Save current state
-    setPreviousChatState(currentDisplayState)
+    // Save current state to ref (captured at mount)
+    previousChatStateRef.current = currentDisplayState
     // Minimize chat to maximize vertical space for preview
     dispatch(setDisplayState('minimized'))
 
     // Restore previous state when modal closes
     return () => {
-      dispatch(setDisplayState(previousChatState))
+      dispatch(setDisplayState(previousChatStateRef.current))
     }
   }, []) // Only run on mount/unmount
+
+  // Update ref when chat state changes (in case user manually changes it while modal is open)
+  useEffect(() => {
+    // Only update ref if chat state is not minimized (i.e., user manually changed it)
+    if (currentDisplayState !== 'minimized') {
+      previousChatStateRef.current = currentDisplayState
+    }
+  }, [currentDisplayState])
 
   // Add/remove sidebar class AND inline styles to modal container
   useEffect(() => {

@@ -26,20 +26,28 @@ export function DocumentChatModal({ fileId, fileName, onClose }: DocumentChatMod
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [previousChatState, setPreviousChatState] = useState<ChatDisplayState>(currentDisplayState)
+  const previousChatStateRef = useRef<ChatDisplayState>(currentDisplayState)
 
   // Minimize chat when modal opens, restore when it closes
   useEffect(() => {
-    // Save current state
-    setPreviousChatState(currentDisplayState)
+    // Save current state to ref (captured at mount)
+    previousChatStateRef.current = currentDisplayState
     // Minimize chat to maximize vertical space for chat modal
     dispatch(setDisplayState('minimized'))
 
     // Restore previous state when modal closes
     return () => {
-      dispatch(setDisplayState(previousChatState))
+      dispatch(setDisplayState(previousChatStateRef.current))
     }
   }, []) // Only run on mount/unmount
+
+  // Update ref when chat state changes (in case user manually changes it while modal is open)
+  useEffect(() => {
+    // Only update ref if chat state is not minimized (i.e., user manually changed it)
+    if (currentDisplayState !== 'minimized') {
+      previousChatStateRef.current = currentDisplayState
+    }
+  }, [currentDisplayState])
 
   // Add/remove sidebar class AND inline styles to modal container
   useEffect(() => {
