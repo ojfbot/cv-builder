@@ -15,6 +15,8 @@ import {
   setIsLoading,
   setStreamingContent,
   setIsExpanded as setIsExpandedAction,
+  setDisplayState as setDisplayStateAction,
+  ChatDisplayState,
 } from '../store/slices/chatSlice'
 import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
 import { useAgent } from '../contexts/AgentContext'
@@ -38,7 +40,9 @@ function CondensedChat() {
   const chatSummary = useAppSelector(state => state.chat.chatSummary)
   const isLoading = useAppSelector(state => state.chat.isLoading)
   const streamingContent = useAppSelector(state => state.chat.streamingContent)
-  const isExpanded = useAppSelector(state => state.chat.isExpanded)
+  const displayState = useAppSelector(state => state.chat.displayState)
+  const isExpanded = displayState === 'expanded'
+  const isMinimized = displayState === 'minimized'
   const unreadCount = useAppSelector(state => state.chat.unreadCount)
   const sidebarExpanded = useAppSelector(state => state.v2.sidebarExpanded)
   const { orchestrator, isInitialized } = useAgent()
@@ -339,7 +343,7 @@ function CondensedChat() {
       // If we have a navigate + assistant message combo, expand the chat
       if (hasNavigate && role === 'assistant' && !isExpanded) {
         console.log('[CondensedChat] Expanding chat for navigate + assistant message')
-        dispatch(setIsExpandedAction(true))
+        dispatch(setDisplayStateAction('expanded'))
         willBeExpanded = true
         // Wait for expansion animation
         await new Promise(resolve => setTimeout(resolve, 200))
@@ -400,25 +404,25 @@ function CondensedChat() {
   }, [handleSend])
 
   const handleInputFocus = useCallback(() => {
-    // When collapsed, focusing the input expands the chat
+    // When not expanded, focusing the input expands the chat
     if (!isExpanded) {
-      console.log('[CondensedChat] Input focused while collapsed - expanding chat')
-      dispatch(setIsExpandedAction(true))
+      console.log('[CondensedChat] Input focused while not expanded - expanding chat')
+      dispatch(setDisplayStateAction('expanded'))
     }
   }, [isExpanded, dispatch])
 
   return (
     <div
-      className={`condensed-chat ${isExpanded ? 'expanded' : ''} ${sidebarExpanded ? 'with-sidebar' : ''}`}
+      className={`condensed-chat ${isExpanded ? 'expanded' : ''} ${isMinimized ? 'minimized' : ''} ${sidebarExpanded ? 'with-sidebar' : ''}`}
       data-element="chat-window"
-      data-state={isExpanded ? 'expanded' : 'collapsed'}
+      data-state={displayState}
     >
       <div
         className="condensed-header"
         onClick={() => {
           if (!isExpanded) {
             console.log('[CondensedChat] Header clicked - expanding chat')
-            dispatch(setIsExpandedAction(true))
+            dispatch(setDisplayStateAction('expanded'))
           }
         }}
         style={{ cursor: isExpanded ? 'default' : 'pointer' }}
@@ -445,7 +449,7 @@ function CondensedChat() {
               onClick={(e) => {
                 e.stopPropagation()
                 console.log('[CondensedChat] Minimize button clicked')
-                dispatch(setIsExpandedAction(false))
+                dispatch(setDisplayStateAction('collapsed'))
               }}
               size="sm"
               kind="ghost"
@@ -524,9 +528,10 @@ function CondensedChat() {
         </div>
       )}
 
-      <div className="condensed-input-wrapper" data-element="condensed-chat-input-wrapper">
-        <div className="textarea-container-condensed">
-          {isExpanded ? (
+      {!isMinimized && (
+        <div className="condensed-input-wrapper" data-element="condensed-chat-input-wrapper">
+          <div className="textarea-container-condensed">
+            {isExpanded ? (
             <TextArea
               ref={textAreaRef}
               labelText="Message"
@@ -587,7 +592,8 @@ function CondensedChat() {
             />
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   )
 }

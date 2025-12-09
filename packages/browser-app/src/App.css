@@ -49,3 +49,18 @@
   font-style: italic;
   font-size: 0.875rem;
 }
+
+/* Modal height constraints to fit between header and minimized chat */
+/* Header: 48px + 12px margin = 60px top */
+/* Minimized chat: 46px header + 16px bottom margin = 62px, use 80px for buffer */
+/* Total reserved: 60px (top) + 80px (bottom) = 140px */
+.cds--modal-container {
+  max-height: calc(100vh - 140px) !important;
+  margin-top: 60px !important; /* Below header (48px) + small margin */
+  margin-bottom: 80px !important; /* Above minimized chat (46px header + 16px bottom + buffer) */
+}
+
+.cds--modal-content {
+  max-height: calc(100vh - 230px) !important; /* Account for modal header/footer + margins */
+  overflow-y: auto !important;
+}
