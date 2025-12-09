@@ -19,7 +19,18 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Security middleware
-app.use(helmet());
+// Configure helmet to allow browser app to embed PDFs in iframes
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        // Allow browser app (localhost:3000) to frame API content (localhost:3001)
+        'frame-ancestors': ["'self'", process.env.CORS_ORIGIN || 'http://localhost:3000'],
+      },
+    },
+  })
+);
 
 // CORS configuration
 app.use(
