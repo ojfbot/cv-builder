@@ -58,9 +58,30 @@
   max-height: calc(100vh - 140px) !important;
   margin-top: 60px !important; /* Below header (48px) + small margin */
   margin-bottom: 80px !important; /* Above minimized chat (46px header + 16px bottom + buffer) */
+  transition: max-width 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease !important;
 }
 
 .cds--modal-content {
   max-height: calc(100vh - 230px) !important; /* Account for modal header/footer + margins */
   overflow-y: auto !important;
+}
+
+/* Modal z-index to ensure it's above sidebars */
+.cds--modal-container {
+  z-index: 9000 !important; /* Above ThreadSidebar (z-index: 999) */
+}
+
+/* Modal width responsiveness for sidebars */
+/* Default: Full width with standard margins */
+/* Use higher specificity to override Carbon defaults */
+.cds--modal-container.cds--modal-container--lg {
+  max-width: calc(100vw - 144px) !important; /* 100vw - (72px left + 72px right) */
+}
+
+/* When ThreadSidebar (right side, 320px) is expanded */
+/* Just narrow the modal, don't move it */
+/* Even higher specificity to ensure it applies */
+.cds--modal-container.cds--modal-container--lg.with-right-sidebar {
+  max-width: calc(100vw - 464px) !important; /* 100vw - (72px left + 72px right + 320px sidebar) */
+  width: calc(100vw - 464px) !important; /* Also set width, not just max-width */
 }
