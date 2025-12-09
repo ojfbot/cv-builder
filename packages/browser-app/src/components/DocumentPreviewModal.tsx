@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Loading, InlineNotification } from '@carbon/react'
 import { bioFilesApi } from '../api/bioFilesApi'
+import { setDisplayState, ChatDisplayState } from '../store/slices/chatSlice'
+import type { RootState } from '../store'
 
 interface PreviewData {
   fileId: string
@@ -25,9 +28,25 @@ interface DocumentPreviewModalProps {
 }
 
 export function DocumentPreviewModal({ fileId, fileName, onClose }: DocumentPreviewModalProps) {
+  const dispatch = useDispatch()
+  const currentDisplayState = useSelector((state: RootState) => state.chat.displayState)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [preview, setPreview] = useState<PreviewData | null>(null)
+  const [previousChatState, setPreviousChatState] = useState<ChatDisplayState>(currentDisplayState)
+
+  // Minimize chat when modal opens, restore when it closes
+  useEffect(() => {
+    // Save current state
+    setPreviousChatState(currentDisplayState)
+    // Minimize chat to maximize vertical space for preview
+    dispatch(setDisplayState('minimized'))
+
+    // Restore previous state when modal closes
+    return () => {
+      dispatch(setDisplayState(previousChatState))
+    }
+  }, []) // Only run on mount/unmount
 
   useEffect(() => {
     loadPreview()
@@ -122,7 +141,9 @@ export function DocumentPreviewModal({ fileId, fileName, onClose }: DocumentPrev
             src={pdfUrl}
             style={{
               width: '100%',
-              height: '70vh',
+              height: 'calc(100vh - 320px)', // Fit within: margins(140) + modal-header(60) + stats(60) + padding(60)
+              minHeight: '400px',
+              maxHeight: '650px',
               border: '1px solid var(--cds-border-subtle)',
               borderRadius: '4px',
             }}

@@ -21,10 +21,13 @@ export interface AddMessagePayload {
   markAsRead?: boolean // If true, don't increment unread count (used by InteractiveChat)
 }
 
+export type ChatDisplayState = 'expanded' | 'collapsed' | 'minimized'
+
 export interface ChatState {
   messages: Message[]
   draftInput: string
-  isExpanded: boolean
+  isExpanded: boolean // DEPRECATED: Use displayState instead (kept for backward compatibility)
+  displayState: ChatDisplayState
   chatSummary: string
   isLoading: boolean
   streamingContent: string
@@ -168,7 +171,8 @@ Type these directly in chat like a mini-CLI:
 const initialState: ChatState = {
   messages: [initialWelcomeMessage],
   draftInput: '',
-  isExpanded: false,
+  isExpanded: false, // DEPRECATED: Kept for backward compatibility
+  displayState: 'collapsed',
   chatSummary: '',
   isLoading: false,
   streamingContent: '',
@@ -190,7 +194,7 @@ const chatSlice = createSlice({
 
       // If adding an assistant message and not marked as read, increment unread count
       // (markAsRead is true when message is added from InteractiveChat where user is viewing)
-      if (message.role === 'assistant' && !markAsRead && !state.isExpanded) {
+      if (message.role === 'assistant' && !markAsRead && state.displayState !== 'expanded') {
         state.unreadCount += 1
       }
     },
@@ -206,9 +210,17 @@ const chatSlice = createSlice({
       state.draftInput = action.payload
     },
     setIsExpanded: (state, action: PayloadAction<boolean>) => {
+      // DEPRECATED: Use setDisplayState instead
+      // Kept for backward compatibility
       state.isExpanded = action.payload
+      state.displayState = action.payload ? 'expanded' : 'collapsed'
       // Note: We don't clear unread count here anymore
       // Unread count is only cleared when user views messages on Interactive tab
+    },
+    setDisplayState: (state, action: PayloadAction<ChatDisplayState>) => {
+      state.displayState = action.payload
+      // Keep isExpanded synchronized for backward compatibility
+      state.isExpanded = action.payload === 'expanded'
     },
     setChatSummary: (state, action: PayloadAction<string>) => {
       state.chatSummary = action.payload
@@ -274,6 +286,7 @@ export const {
   clearMessages,
   setDraftInput,
   setIsExpanded,
+  setDisplayState,
   setChatSummary,
   setIsLoading,
   setStreamingContent,

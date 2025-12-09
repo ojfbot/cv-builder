@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Button, TextArea, Loading, InlineNotification } from '@carbon/react'
 import { Send } from '@carbon/icons-react'
 import { bioFilesApi } from '../api/bioFilesApi'
 import type { DocumentSummary, ChatMessage } from '@cv-builder/agent-core'
+import { setDisplayState, ChatDisplayState } from '../store/slices/chatSlice'
+import type { RootState } from '../store'
 
 interface DocumentChatModalProps {
   fileId: string
@@ -11,12 +14,28 @@ interface DocumentChatModalProps {
 }
 
 export function DocumentChatModal({ fileId, fileName, onClose }: DocumentChatModalProps) {
+  const dispatch = useDispatch()
+  const currentDisplayState = useSelector((state: RootState) => state.chat.displayState)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [previousChatState, setPreviousChatState] = useState<ChatDisplayState>(currentDisplayState)
+
+  // Minimize chat when modal opens, restore when it closes
+  useEffect(() => {
+    // Save current state
+    setPreviousChatState(currentDisplayState)
+    // Minimize chat to maximize vertical space for chat modal
+    dispatch(setDisplayState('minimized'))
+
+    // Restore previous state when modal closes
+    return () => {
+      dispatch(setDisplayState(previousChatState))
+    }
+  }, []) // Only run on mount/unmount
 
   useEffect(() => {
     loadDocumentContext()
@@ -137,7 +156,13 @@ What would you like to know?`
       size="lg"
       passiveModal
     >
-      <div style={{ height: '70vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{
+        height: 'calc(100vh - 330px)', // Fit within: margins(140) + modal-header(60) + input(80) + padding(50)
+        minHeight: '400px',
+        maxHeight: '650px',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <Loading description="Loading document context..." withOverlay={false} />
