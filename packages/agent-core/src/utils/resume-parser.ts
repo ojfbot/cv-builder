@@ -4,7 +4,10 @@
  */
 
 import mammoth from 'mammoth'
-import { PDFParse } from 'pdf-parse'
+// Use dynamic import to avoid TypeScript module resolution issues with workspace dependencies
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pdfParseModule = require('pdf-parse')
+const { PDFParse } = pdfParseModule
 
 export interface ParsedResume {
   text: string
@@ -21,7 +24,7 @@ export interface ParsedResume {
  * Parse PDF file and extract text content using pdf-parse v2 API
  */
 async function parsePDF(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
-  let parser: PDFParse | null = null
+  let parser: InstanceType<typeof PDFParse> | null = null
 
   try {
     // Initialize PDFParse with buffer
