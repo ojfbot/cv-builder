@@ -1,4 +1,5 @@
 import { BioFile, FileListQuery, DocumentSummary, ChatMessage } from '@cv-builder/agent-core'
+import { DEFAULT_API_BASE_URL, DEFAULT_API_TIMEOUT } from '../config/api'
 
 /**
  * Bio Files API Client
@@ -10,7 +11,7 @@ export class BioFilesApi {
   private baseUrl: string
   private timeout: number
 
-  constructor(baseUrl: string = 'http://localhost:3001/api', timeout: number = 30000) {
+  constructor(baseUrl: string = DEFAULT_API_BASE_URL, timeout: number = DEFAULT_API_TIMEOUT) {
     this.baseUrl = baseUrl
     this.timeout = timeout
   }
@@ -344,7 +345,7 @@ export class BioFilesApi {
  * Create a BioFilesApi instance
  */
 export function createBioFilesApi(baseUrl?: string, timeout?: number): BioFilesApi {
-  const url = baseUrl || import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+  const url = baseUrl || import.meta.env.VITE_API_URL || DEFAULT_API_BASE_URL
   return new BioFilesApi(url, timeout)
 }
 

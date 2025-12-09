@@ -4,6 +4,7 @@ import { Modal, Loading, InlineNotification } from '@carbon/react'
 import { bioFilesApi } from '../api/bioFilesApi'
 import { setDisplayState, ChatDisplayState } from '../store/slices/chatSlice'
 import type { RootState } from '../store'
+import { getApiBaseUrl } from '../config/api'
 
 interface PreviewData {
   fileId: string
@@ -146,8 +147,7 @@ export function DocumentPreviewModal({ fileId, fileName, onClose }: DocumentPrev
 
     // PDF preview - use browser's built-in PDF viewer
     if (preview.extension === '.pdf' || preview.type === 'application/pdf') {
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-      const pdfUrl = `${apiBaseUrl}/bios/files/${fileId}`
+      const pdfUrl = `${getApiBaseUrl()}/bios/files/${fileId}`
 
       return (
         <div style={{ padding: '1rem' }}>
