@@ -30,6 +30,7 @@ interface DocumentPreviewModalProps {
 export function DocumentPreviewModal({ fileId, fileName, onClose }: DocumentPreviewModalProps) {
   const dispatch = useDispatch()
   const currentDisplayState = useSelector((state: RootState) => state.chat.displayState)
+  const sidebarExpanded = useSelector((state: RootState) => state.v2.sidebarExpanded)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [preview, setPreview] = useState<PreviewData | null>(null)
@@ -47,6 +48,34 @@ export function DocumentPreviewModal({ fileId, fileName, onClose }: DocumentPrev
       dispatch(setDisplayState(previousChatState))
     }
   }, []) // Only run on mount/unmount
+
+  // Add/remove sidebar class AND inline styles to modal container
+  useEffect(() => {
+    const modalContainer = document.querySelector('.cds--modal-container') as HTMLElement
+    if (modalContainer) {
+      if (sidebarExpanded) {
+        modalContainer.classList.add('with-right-sidebar')
+        // Also set inline styles as fallback to ensure width changes
+        modalContainer.style.maxWidth = 'calc(100vw - 464px)'
+        modalContainer.style.width = 'calc(100vw - 464px)'
+      } else {
+        modalContainer.classList.remove('with-right-sidebar')
+        // Reset to default width
+        modalContainer.style.maxWidth = 'calc(100vw - 144px)'
+        modalContainer.style.width = ''
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
+      const modalContainer = document.querySelector('.cds--modal-container') as HTMLElement
+      if (modalContainer) {
+        modalContainer.classList.remove('with-right-sidebar')
+        modalContainer.style.maxWidth = ''
+        modalContainer.style.width = ''
+      }
+    }
+  }, [sidebarExpanded])
 
   useEffect(() => {
     loadPreview()
