@@ -42,7 +42,12 @@ async function parsePDF(buffer: Buffer): Promise<{ text: string; pageCount: numb
   } finally {
     // Clean up resources
     if (parser) {
-      await parser.destroy()
+      try {
+        await parser.destroy()
+      } catch (cleanupError) {
+        // Log cleanup error but don't mask the original error
+        console.warn('PDF parser cleanup warning:', cleanupError)
+      }
     }
   }
 }
