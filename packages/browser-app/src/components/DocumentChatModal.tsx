@@ -7,6 +7,9 @@ import type { DocumentSummary, ChatMessage } from '@cv-builder/agent-core'
 import { setDisplayState, ChatDisplayState } from '../store/slices/chatSlice'
 import type { RootState } from '../store'
 
+// Streaming performance constants
+const STREAM_DEBOUNCE_MS = 50 // Debounce state updates to prevent memory leaks (update UI every 50ms)
+
 interface DocumentChatModalProps {
   fileId: string
   fileName: string
@@ -147,13 +150,35 @@ What would you like to know?`
       // Stream response from backend
       const stream = bioFilesApi.chatStream(fileId, input, messages)
 
+      // Debounce state updates to prevent memory leaks from rapid re-renders
+      let updateTimer: NodeJS.Timeout | null = null
+
       for await (const chunk of stream) {
         assistantMessage.content += chunk
-        setMessages(prev => [
-          ...prev.slice(0, -1),
-          { ...assistantMessage }
-        ])
+
+        // Cancel previous scheduled update
+        if (updateTimer) {
+          clearTimeout(updateTimer)
+        }
+
+        // Schedule new update
+        updateTimer = setTimeout(() => {
+          setMessages(prev => [
+            ...prev.slice(0, -1),
+            { ...assistantMessage }
+          ])
+          updateTimer = null
+        }, STREAM_DEBOUNCE_MS)
       }
+
+      // Final update after stream completes
+      if (updateTimer) {
+        clearTimeout(updateTimer)
+      }
+      setMessages(prev => [
+        ...prev.slice(0, -1),
+        { ...assistantMessage }
+      ])
     } catch (error) {
       console.error('Chat error:', error)
       setMessages(prev => [
