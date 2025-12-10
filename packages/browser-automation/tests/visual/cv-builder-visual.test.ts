@@ -35,7 +35,7 @@ async function main() {
   // Suite setup
   suite.beforeAll(async () => {
     await client.navigate(APP_URL);
-    await client.wait({ type: 'selector', selector: '.cds--content', timeout: 5000 });
+    await client.waitForSelector('.app-container', { timeout: 5000 });
     console.log('✅ CV Builder loaded');
   });
 
@@ -43,10 +43,10 @@ async function main() {
   suite.test('Dashboard - Initial Load', async ({ assert }) => {
     // Navigate to dashboard
     await client.navigate(APP_URL);
-    await client.wait({ type: 'selector', selector: '.cds--content' });
+    await client.waitForSelector('.app-container');
 
     // Wait for dashboard to stabilize
-    await client.wait({ type: 'timeout', timeout: 1000 });
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Capture screenshot at desktop viewport
     const result = await client.screenshot({
@@ -72,15 +72,12 @@ async function main() {
   // Test: Bio tab
   suite.test('Bio Tab - Layout', async ({ assert }) => {
     await client.navigate(APP_URL);
-    await client.wait({ type: 'selector', selector: '.cds--content' });
+    await client.waitForSelector('.app-container');
 
     // Click Bio tab
-    await client.interact({
-      type: 'click',
-      selector: '[data-testid="bio-tab"]',
-    });
+    await client.click('[data-element="bio-tab"]');
 
-    await client.wait({ type: 'timeout', timeout: 500 });
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Capture Bio tab
     const result = await client.screenshot({
@@ -101,15 +98,12 @@ async function main() {
   // Test: Jobs tab
   suite.test('Jobs Tab - Layout', async ({ assert }) => {
     await client.navigate(APP_URL);
-    await client.wait({ type: 'selector', selector: '.cds--content' });
+    await client.waitForSelector('.app-container');
 
     // Click Jobs tab
-    await client.interact({
-      type: 'click',
-      selector: '[data-testid="jobs-tab"]',
-    });
+    await client.click('[data-element="jobs-tab"]');
 
-    await client.wait({ type: 'timeout', timeout: 500 });
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Capture Jobs tab
     const result = await client.screenshot({
@@ -130,8 +124,8 @@ async function main() {
   // Test: Responsive - Mobile viewport
   suite.test('Dashboard - Mobile Responsive', async ({ assert }) => {
     await client.navigate(APP_URL);
-    await client.wait({ type: 'selector', selector: '.cds--content' });
-    await client.wait({ type: 'timeout', timeout: 1000 });
+    await client.waitForSelector('.app-container');
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Capture at mobile viewport
     const result = await client.screenshot({
@@ -152,8 +146,8 @@ async function main() {
   // Test: Responsive - Tablet viewport
   suite.test('Dashboard - Tablet Responsive', async ({ assert }) => {
     await client.navigate(APP_URL);
-    await client.wait({ type: 'selector', selector: '.cds--content' });
-    await client.wait({ type: 'timeout', timeout: 1000 });
+    await client.waitForSelector('.app-container');
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Capture at tablet viewport
     const result = await client.screenshot({
@@ -174,19 +168,16 @@ async function main() {
   // Test: Sidebar toggle
   suite.test('Sidebar - Collapsed State', async ({ assert }) => {
     await client.navigate(APP_URL);
-    await client.wait({ type: 'selector', selector: '.cds--content' });
+    await client.waitForSelector('.app-container');
 
     // Toggle sidebar
     const toggleButton = '[data-testid="sidebar-toggle"]';
     const exists = await client.elementExists(toggleButton);
 
     if (exists) {
-      await client.interact({
-        type: 'click',
-        selector: toggleButton,
-      });
+      await client.click(toggleButton);
 
-      await client.wait({ type: 'timeout', timeout: 500 });
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Capture collapsed state
       const result = await client.screenshot({
@@ -210,15 +201,12 @@ async function main() {
   // Test: Chat component
   suite.test('Chat Component - Initial State', async ({ assert }) => {
     await client.navigate(APP_URL);
-    await client.wait({ type: 'selector', selector: '.cds--content' });
+    await client.waitForSelector('.app-container');
 
-    // Click Chat tab
-    await client.interact({
-      type: 'click',
-      selector: '[data-testid="chat-tab"]',
-    });
+    // Click Interactive tab
+    await client.click('[data-element="interactive-tab"]');
 
-    await client.wait({ type: 'timeout', timeout: 500 });
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Capture chat component
     const result = await client.screenshot({
