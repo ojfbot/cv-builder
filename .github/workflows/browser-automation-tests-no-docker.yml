@@ -43,10 +43,15 @@ jobs:
         with:
           # Fetch full history for baseline comparison
           fetch-depth: 0
-          lfs: true # Enable Git LFS for baseline screenshots
 
-      - name: Checkout LFS files
-        run: git lfs pull
+      - name: Validate API Key
+        run: |
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "❌ ERROR: ANTHROPIC_API_KEY secret is not set"
+            echo "Please configure the ANTHROPIC_API_KEY secret in repository settings"
+            exit 1
+          fi
+          echo "✅ API key is configured"
 
       - name: Enable Corepack
         run: |
@@ -137,13 +142,13 @@ jobs:
       - name: Wait for services
         run: |
           echo "Waiting for browser-app (http://localhost:3000)..."
-          timeout 120 bash -c 'until curl -sf http://localhost:3000 > /dev/null 2>&1; do echo "Waiting for browser-app..."; sleep 5; done'
+          timeout 180 bash -c 'until curl -sf http://localhost:3000 > /dev/null 2>&1; do echo "Waiting for browser-app..."; sleep 5; done'
 
           echo "Waiting for API (http://localhost:3001/api/health)..."
-          timeout 120 bash -c 'until curl -sf http://localhost:3001/api/health > /dev/null 2>&1; do echo "Waiting for API..."; sleep 5; done'
+          timeout 180 bash -c 'until curl -sf http://localhost:3001/api/health > /dev/null 2>&1; do echo "Waiting for API..."; sleep 5; done'
 
           echo "Waiting for browser-automation (http://localhost:3002/health)..."
-          timeout 120 bash -c 'until curl -sf http://localhost:3002/health > /dev/null 2>&1; do echo "Waiting for browser-automation..."; sleep 5; done'
+          timeout 180 bash -c 'until curl -sf http://localhost:3002/health > /dev/null 2>&1; do echo "Waiting for browser-automation..."; sleep 5; done'
 
           echo "✅ All services are ready"
 
