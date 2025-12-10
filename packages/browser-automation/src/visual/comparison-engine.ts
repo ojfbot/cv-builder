@@ -9,6 +9,12 @@ import fs from 'fs';
 import path from 'path';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
+import {
+  VISUAL_THRESHOLDS,
+  DEFAULT_DIFF_COLOR,
+  DEFAULT_ALPHA,
+  VALIDATION,
+} from './constants.js';
 
 export interface ComparisonOptions {
   /**
@@ -84,13 +90,77 @@ export interface ComparisonResult {
   };
 }
 
+/**
+ * Result of batch comparison including both successes and failures
+ */
+export interface BatchComparisonResult {
+  /**
+   * Successful comparisons
+   */
+  successes: Map<string, ComparisonResult>;
+
+  /**
+   * Failed comparisons with error details
+   */
+  failures: Map<string, Error>;
+}
+
 export class ComparisonEngine {
   private defaultOptions: Required<ComparisonOptions> = {
-    threshold: 0.1,
+    threshold: VISUAL_THRESHOLDS.STANDARD,
     includeAA: false,
-    diffColor: [255, 0, 0], // Red
-    alpha: 0.1,
+    diffColor: DEFAULT_DIFF_COLOR,
+    alpha: DEFAULT_ALPHA,
   };
+
+  /**
+   * Validate comparison options
+   */
+  private validateOptions(options: ComparisonOptions): void {
+    // Validate threshold range
+    if (options.threshold !== undefined) {
+      if (
+        options.threshold < VALIDATION.MIN_THRESHOLD ||
+        options.threshold > VALIDATION.MAX_THRESHOLD
+      ) {
+        throw new Error(
+          `Threshold must be between ${VALIDATION.MIN_THRESHOLD} and ${VALIDATION.MAX_THRESHOLD}, got: ${options.threshold}`
+        );
+      }
+    }
+
+    // Validate alpha range
+    if (options.alpha !== undefined) {
+      if (
+        options.alpha < VALIDATION.MIN_THRESHOLD ||
+        options.alpha > VALIDATION.MAX_THRESHOLD
+      ) {
+        throw new Error(
+          `Alpha must be between ${VALIDATION.MIN_THRESHOLD} and ${VALIDATION.MAX_THRESHOLD}, got: ${options.alpha}`
+        );
+      }
+    }
+
+    // Validate diff color format
+    if (options.diffColor) {
+      if (options.diffColor.length !== VALIDATION.COLOR_ARRAY_LENGTH) {
+        throw new Error(
+          `diffColor must be [R, G, B], got array of length: ${options.diffColor.length}`
+        );
+      }
+
+      options.diffColor.forEach((value, index) => {
+        if (
+          value < VALIDATION.MIN_COLOR_VALUE ||
+          value > VALIDATION.MAX_COLOR_VALUE
+        ) {
+          throw new Error(
+            `diffColor[${index}] must be between ${VALIDATION.MIN_COLOR_VALUE} and ${VALIDATION.MAX_COLOR_VALUE}, got: ${value}`
+          );
+        }
+      });
+    }
+  }
 
   /**
    * Compare two screenshots and generate diff
@@ -101,7 +171,10 @@ export class ComparisonEngine {
     diffOutputPath?: string,
     options: ComparisonOptions = {}
   ): Promise<ComparisonResult> {
-    // Validate inputs
+    // Validate options
+    this.validateOptions(options);
+
+    // Validate file paths
     if (!fs.existsSync(baselinePath)) {
       throw new Error(`Baseline screenshot not found: ${baselinePath}`);
     }
@@ -179,6 +252,8 @@ export class ComparisonEngine {
 
   /**
    * Batch compare multiple screenshot pairs
+   *
+   * Returns both successful and failed comparisons for better error tracking.
    */
   async compareMultiple(
     comparisons: Array<{
@@ -188,8 +263,9 @@ export class ComparisonEngine {
       name?: string;
     }>,
     options: ComparisonOptions = {}
-  ): Promise<Map<string, ComparisonResult>> {
-    const results = new Map<string, ComparisonResult>();
+  ): Promise<BatchComparisonResult> {
+    const successes = new Map<string, ComparisonResult>();
+    const failures = new Map<string, Error>();
 
     for (const { baselinePath, currentPath, diffOutputPath, name } of comparisons) {
       const key = name || path.basename(currentPath);
@@ -200,14 +276,15 @@ export class ComparisonEngine {
           diffOutputPath,
           options
         );
-        results.set(key, result);
+        successes.set(key, result);
       } catch (error) {
-        console.error(`Comparison failed for ${key}:`, error);
-        // Continue with other comparisons
+        const err = error instanceof Error ? error : new Error(String(error));
+        failures.set(key, err);
+        console.error(`Comparison failed for ${key}:`, err.message);
       }
     }
 
-    return results;
+    return { successes, failures };
   }
 
   /**
