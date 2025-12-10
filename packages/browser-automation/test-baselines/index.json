@@ -1,0 +1,84 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2025-12-10T23:41:34.025Z",
+  "baselines": {
+    "cv-builder-visual/dashboard-initial-desktop": {
+      "id": "cv-builder-visual/dashboard-initial-desktop",
+      "testName": "cv-builder-visual",
+      "name": "dashboard-initial-desktop",
+      "createdAt": "2025-12-10T23:40:32.121Z",
+      "updatedAt": "2025-12-10T23:41:29.477Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 81192,
+      "platform": "darwin"
+    },
+    "cv-builder-visual/dashboard-mobile": {
+      "id": "cv-builder-visual/dashboard-mobile",
+      "testName": "cv-builder-visual",
+      "name": "dashboard-mobile",
+      "createdAt": "2025-12-10T23:40:33.499Z",
+      "updatedAt": "2025-12-10T23:41:32.053Z",
+      "dimensions": {
+        "width": 375,
+        "height": 667
+      },
+      "fileSize": 28131,
+      "platform": "darwin"
+    },
+    "cv-builder-visual/dashboard-tablet": {
+      "id": "cv-builder-visual/dashboard-tablet",
+      "testName": "cv-builder-visual",
+      "name": "dashboard-tablet",
+      "createdAt": "2025-12-10T23:40:34.691Z",
+      "updatedAt": "2025-12-10T23:41:33.219Z",
+      "dimensions": {
+        "width": 768,
+        "height": 1024
+      },
+      "fileSize": 77442,
+      "platform": "darwin"
+    },
+    "cv-builder-visual/bio-tab-desktop": {
+      "id": "cv-builder-visual/bio-tab-desktop",
+      "testName": "cv-builder-visual",
+      "name": "bio-tab-desktop",
+      "createdAt": "2025-12-10T23:41:30.197Z",
+      "updatedAt": "2025-12-10T23:41:30.197Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 79166,
+      "platform": "darwin"
+    },
+    "cv-builder-visual/jobs-tab-desktop": {
+      "id": "cv-builder-visual/jobs-tab-desktop",
+      "testName": "cv-builder-visual",
+      "name": "jobs-tab-desktop",
+      "createdAt": "2025-12-10T23:41:30.913Z",
+      "updatedAt": "2025-12-10T23:41:30.913Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 58882,
+      "platform": "darwin"
+    },
+    "cv-builder-visual/chat-component-desktop": {
+      "id": "cv-builder-visual/chat-component-desktop",
+      "testName": "cv-builder-visual",
+      "name": "chat-component-desktop",
+      "createdAt": "2025-12-10T23:41:34.025Z",
+      "updatedAt": "2025-12-10T23:41:34.025Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 81276,
+      "platform": "darwin"
+    }
+  }
+}

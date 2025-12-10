@@ -1,0 +1,5 @@
+# Baseline screenshots are tracked in git
+# Only ignore diffs and temp files
+*.diff.png
+*.tmp.png
+.DS_Store
