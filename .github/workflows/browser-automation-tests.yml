@@ -1,17 +1,24 @@
-name: Browser Automation Tests
+name: Browser Automation Tests (Docker - DISABLED)
+
+# ⚠️ This workflow is DISABLED - requires Docker infrastructure
+# Missing: packages/browser-app/Dockerfile, packages/api/Dockerfile
+# Use browser-automation-tests-no-docker.yml instead (runs services directly)
+#
+# Re-enable when Docker infrastructure is complete (future PR)
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'packages/browser-app/**'
-      - 'packages/browser-automation/**'
-      - 'packages/api/**'
-      - 'packages/agent-core/**'
-      - '.github/workflows/browser-automation-tests.yml'
-      - 'docker-compose.ci.yml'
-  push:
-    branches: [main]
+  # Disabled automatic triggers - only manual dispatch allowed
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'packages/browser-app/**'
+  #     - 'packages/browser-automation/**'
+  #     - 'packages/api/**'
+  #     - 'packages/agent-core/**'
+  #     - '.github/workflows/browser-automation-tests.yml'
+  #     - 'docker-compose.ci.yml'
+  # push:
+  #   branches: [main]
   workflow_dispatch:
     inputs:
       update_baselines:
