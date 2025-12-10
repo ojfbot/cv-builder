@@ -212,11 +212,14 @@ The test framework automatically selects the correct baseline for the platform.
 
   /**
    * Get baseline path for a screenshot
+   *
+   * Checks for platform-specific baseline first ({name}.{platform}.png),
+   * then falls back to generic baseline ({name}.png).
    */
   getBaselinePath(testSuite: string, screenshotName: string, usePlatform = true): string {
     const suiteDir = path.join(this.baselinesDir, this.sanitizePath(testSuite));
 
-    if (usePlatform && process.platform !== 'linux') {
+    if (usePlatform) {
       // Check for platform-specific baseline first
       const platformName = `${screenshotName}.${process.platform}.png`;
       const platformPath = path.join(suiteDir, platformName);
