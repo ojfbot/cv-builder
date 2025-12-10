@@ -1,0 +1,8 @@
+# Git LFS configuration for CV Builder
+
+# Visual regression baseline screenshots
+# Store PNG screenshots in Git LFS to prevent repository bloat
+packages/browser-automation/test-baselines/**/*.png filter=lfs diff=lfs merge=lfs -text
+
+# Exclude diff images from LFS (they're temporary and gitignored anyway)
+packages/browser-automation/test-baselines/**/diffs/*.png !filter !diff !merge
