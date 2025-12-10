@@ -7,10 +7,20 @@
 import { createTestSuite, createTestRunner } from '../../src/test-runner/index.js';
 import { VisualDiffReporter } from '../../src/test-runner/reporters/VisualDiffReporter.js';
 import { createVisualAssertions } from '../../src/test-runner/assertions/visual.js';
+import { VISUAL_THRESHOLDS } from '../../src/visual/constants.js';
 
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.BROWSER_APP_URL || 'http://localhost:3000';
 const UPDATE_BASELINES = process.env.UPDATE_BASELINES === 'true';
+
+// Display startup warning if UPDATE_BASELINES is enabled
+if (UPDATE_BASELINES) {
+  console.log('');
+  console.log('🔄 UPDATE_BASELINES=true - All baselines will be updated');
+  console.log('⚠️  WARNING: This will overwrite existing baselines!');
+  console.log('   Make sure you review the changes before committing.');
+  console.log('');
+}
 
 async function main() {
   const { suite, client } = createTestSuite(
@@ -53,7 +63,7 @@ async function main() {
       result.path,
       'dashboard-initial-desktop',
       {
-        threshold: 0.1,
+        threshold: VISUAL_THRESHOLDS.STANDARD,
         updateBaseline: UPDATE_BASELINES,
       }
     );
@@ -83,7 +93,7 @@ async function main() {
     assert.screenshotCaptured(result);
 
     await visual.matchesBaseline(result.path, 'bio-tab-desktop', {
-      threshold: 0.1,
+      threshold: VISUAL_THRESHOLDS.STANDARD,
       updateBaseline: UPDATE_BASELINES,
     });
   });
@@ -112,7 +122,7 @@ async function main() {
     assert.screenshotCaptured(result);
 
     await visual.matchesBaseline(result.path, 'jobs-tab-desktop', {
-      threshold: 0.1,
+      threshold: VISUAL_THRESHOLDS.STANDARD,
       updateBaseline: UPDATE_BASELINES,
     });
   });
@@ -134,7 +144,7 @@ async function main() {
     assert.screenshotCaptured(result);
 
     await visual.matchesBaseline(result.path, 'dashboard-mobile', {
-      threshold: 0.1,
+      threshold: VISUAL_THRESHOLDS.STANDARD,
       updateBaseline: UPDATE_BASELINES,
     });
   });
@@ -156,7 +166,7 @@ async function main() {
     assert.screenshotCaptured(result);
 
     await visual.matchesBaseline(result.path, 'dashboard-tablet', {
-      threshold: 0.1,
+      threshold: VISUAL_THRESHOLDS.STANDARD,
       updateBaseline: UPDATE_BASELINES,
     });
   });
@@ -189,7 +199,7 @@ async function main() {
       assert.screenshotCaptured(result);
 
       await visual.matchesBaseline(result.path, 'sidebar-collapsed-desktop', {
-        threshold: 0.1,
+        threshold: VISUAL_THRESHOLDS.STANDARD,
         updateBaseline: UPDATE_BASELINES,
       });
     } else {
@@ -221,7 +231,7 @@ async function main() {
     assert.screenshotCaptured(result);
 
     await visual.matchesBaseline(result.path, 'chat-component-desktop', {
-      threshold: 0.1,
+      threshold: VISUAL_THRESHOLDS.STANDARD,
       updateBaseline: UPDATE_BASELINES,
     });
   });
