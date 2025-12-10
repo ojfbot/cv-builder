@@ -4,10 +4,9 @@
  */
 
 import mammoth from 'mammoth'
-// Use dynamic import to avoid TypeScript module resolution issues with workspace dependencies
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pdfParseModule = require('pdf-parse')
-const { PDFParse } = pdfParseModule
+
+// pdf-parse module - will be loaded dynamically when needed
+let pdfParseModule: any = null;
 
 export interface ParsedResume {
   text: string
@@ -21,37 +20,50 @@ export interface ParsedResume {
 }
 
 /**
+ * Load pdf-parse module dynamically (lazy loading)
+ */
+async function loadPdfParse() {
+  if (!pdfParseModule) {
+    // Dynamic import for ESM compatibility
+    pdfParseModule = await import('pdf-parse');
+  }
+  return pdfParseModule;
+}
+
+/**
  * Parse PDF file and extract text content using pdf-parse v2 API
  */
 async function parsePDF(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
-  let parser: InstanceType<typeof PDFParse> | null = null
-
   try {
+    // Load pdf-parse module dynamically
+    const pdfParse = await loadPdfParse();
+    const { PDFParse } = pdfParse;
+
     // Initialize PDFParse with buffer
-    parser = new PDFParse({ data: buffer })
+    const parser = new PDFParse({ data: buffer });
 
-    // Extract text
-    const textResult = await parser.getText()
+    try {
+      // Extract text
+      const textResult = await parser.getText();
 
-    // Get document info for page count
-    const infoResult = await parser.getInfo()
+      // Get document info for page count
+      const infoResult = await parser.getInfo();
 
-    return {
-      text: textResult.text,
-      pageCount: infoResult.total || 0
-    }
-  } catch (error) {
-    throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  } finally {
-    // Clean up resources
-    if (parser) {
+      return {
+        text: textResult.text,
+        pageCount: infoResult.total || 0
+      };
+    } finally {
+      // Clean up resources
       try {
-        await parser.destroy()
+        await parser.destroy();
       } catch (cleanupError) {
         // Log cleanup error but don't mask the original error
-        console.warn('PDF parser cleanup warning:', cleanupError)
+        console.warn('PDF parser cleanup warning:', cleanupError);
       }
     }
+  } catch (error) {
+    throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
