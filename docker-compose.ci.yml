@@ -1,0 +1,117 @@
+version: '3.8'
+
+# CI-specific Docker Compose configuration
+# Optimized for GitHub Actions with health checks and deterministic behavior
+
+services:
+  # Browser App - React UI
+  browser-app:
+    build:
+      context: .
+      dockerfile: packages/browser-app/Dockerfile
+      target: production
+      args:
+        NODE_VERSION: '24'
+    container_name: cv-builder-browser-ci
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      # API URL for internal network
+      - VITE_API_URL=http://api:3001
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+    networks:
+      - test-network
+
+  # API Server - Backend services
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+      target: production
+      args:
+        NODE_VERSION: '24'
+    container_name: cv-builder-api-ci
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - PORT=3001
+      # API key from GitHub secrets (injected at runtime)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    networks:
+      - test-network
+
+  # Browser Automation - Playwright testing service
+  browser-automation:
+    build:
+      context: ./packages/browser-automation
+      dockerfile: Dockerfile
+      args:
+        # Ensure consistent Playwright version
+        PLAYWRIGHT_VERSION: '1.40.0'
+    container_name: cv-builder-automation-ci
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - PORT=3002
+      - HEADLESS=true
+      - BROWSER_APP_URL=http://browser-app:3000
+      # Deterministic screenshot settings
+      - SCREENSHOTS_DIR=/app/temp/screenshots
+      - SCREENSHOT_MAX_AGE_DAYS=7
+      # Disable animations for deterministic rendering
+      - DISABLE_ANIMATIONS=true
+      # Force consistent font rendering
+      - PLAYWRIGHT_BROWSER_EXECUTABLE_PATH=/ms-playwright/chromium-*/chrome-linux/chrome
+    volumes:
+      # Mount test baselines (read-only in CI)
+      - ./packages/browser-automation/test-baselines:/app/test-baselines:ro
+      # Mount temp directory for test outputs
+      - ./temp/screenshots:/app/temp/screenshots
+      - ./temp/test-results:/app/test-results
+    depends_on:
+      browser-app:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    networks:
+      - test-network
+    # Resource limits for CI
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+networks:
+  test-network:
+    driver: bridge
+    ipam:
+      config:
+        # Fixed subnet for deterministic behavior
+        - subnet: 172.28.0.0/16

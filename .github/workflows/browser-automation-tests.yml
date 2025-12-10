@@ -1,0 +1,275 @@
+name: Browser Automation Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/browser-app/**'
+      - 'packages/browser-automation/**'
+      - 'packages/api/**'
+      - 'packages/agent-core/**'
+      - '.github/workflows/browser-automation-tests.yml'
+      - 'docker-compose.ci.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      update_baselines:
+        description: 'Update visual regression baselines'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  # Deterministic CI environment
+  CI: true
+  NODE_ENV: test
+  HEADLESS: true
+  # Force color output for better logs
+  FORCE_COLOR: 1
+
+jobs:
+  browser-tests:
+    name: Visual Regression & UI Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for baseline comparison
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.4 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Setup temp directories
+        run: |
+          mkdir -p temp/screenshots
+          mkdir -p temp/test-results
+          chmod -R 777 temp
+
+      - name: Start services with Docker Compose
+        run: |
+          docker-compose -f docker-compose.ci.yml up -d
+          echo "Waiting for services to be ready..."
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for browser-app (http://localhost:3000)..."
+          timeout 60 bash -c 'until curl -sf http://localhost:3000 > /dev/null; do sleep 2; done'
+
+          echo "Waiting for API (http://localhost:3001/health)..."
+          timeout 60 bash -c 'until curl -sf http://localhost:3001/health > /dev/null; do sleep 2; done'
+
+          echo "Waiting for browser-automation (http://localhost:3002/health)..."
+          timeout 60 bash -c 'until curl -sf http://localhost:3002/health > /dev/null; do sleep 2; done'
+
+          echo "✅ All services are ready"
+
+      - name: Show service logs (debug)
+        if: failure()
+        run: |
+          docker-compose -f docker-compose.ci.yml logs browser-app
+          docker-compose -f docker-compose.ci.yml logs api
+          docker-compose -f docker-compose.ci.yml logs browser-automation
+
+      - name: Run browser automation tests
+        id: tests
+        run: |
+          pnpm --filter @cv-builder/browser-automation test:comprehensive
+        env:
+          API_URL: http://localhost:3002
+          BROWSER_APP_URL: http://localhost:3000
+          UPDATE_BASELINES: ${{ github.event.inputs.update_baselines || 'false' }}
+        continue-on-error: true
+
+      - name: Run visual regression tests
+        id: visual-tests
+        run: |
+          pnpm --filter @cv-builder/browser-automation test:visual
+        env:
+          API_URL: http://localhost:3002
+          BROWSER_APP_URL: http://localhost:3000
+          UPDATE_BASELINES: ${{ github.event.inputs.update_baselines || 'false' }}
+        continue-on-error: true
+
+      - name: Generate test report
+        if: always()
+        run: |
+          if [ -d "temp/test-results" ]; then
+            echo "## Test Results" > temp/test-results/summary.md
+            cat temp/test-results/*.md >> temp/test-results/summary.md 2>/dev/null || true
+          fi
+
+      - name: Upload test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots-${{ github.run_number }}
+          path: temp/screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload visual diff artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs-${{ github.run_number }}
+          path: |
+            temp/test-results/visual-diffs/
+            packages/browser-automation/test-baselines/**/diffs/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ github.run_number }}
+          path: temp/test-results/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Read PR comment summary
+            const summaryPath = 'temp/test-results/pr-comment.md';
+            let comment = '## 🤖 Browser Automation Test Results\n\n';
+
+            if (fs.existsSync(summaryPath)) {
+              comment = fs.readFileSync(summaryPath, 'utf8');
+            } else {
+              comment += '⚠️ Test report not generated. Check workflow logs.\n';
+            }
+
+            // Add artifact links
+            comment += '\n\n### 📦 Artifacts\n\n';
+            comment += `- [📸 Test Screenshots](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            comment += `- [🎯 Visual Diffs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            comment += `- [📊 Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+
+            // Add workflow run link
+            comment += `\n\n**[View Full CI Run →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
+
+            // Post comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Update baselines (if requested)
+        if: |
+          github.event.inputs.update_baselines == 'true' &&
+          github.event_name == 'workflow_dispatch'
+        run: |
+          pnpm --filter @cv-builder/browser-automation test:visual:update:all
+
+          # Commit updated baselines
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/browser-automation/test-baselines/
+          git commit -m "chore: update visual regression baselines [skip ci]" || echo "No baseline changes"
+          git push
+
+      - name: Shutdown services
+        if: always()
+        run: |
+          docker-compose -f docker-compose.ci.yml down -v
+          docker-compose -f docker-compose.ci.yml rm -f
+
+      - name: Check test results
+        if: always()
+        run: |
+          if [ "${{ steps.tests.outcome }}" != "success" ] || [ "${{ steps.visual-tests.outcome }}" != "success" ]; then
+            echo "❌ Tests failed"
+            exit 1
+          fi
+          echo "✅ All tests passed"
+
+  # Optional: Matrix testing across different viewports
+  visual-regression-matrix:
+    name: Visual Regression (${{ matrix.viewport }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+
+    strategy:
+      matrix:
+        viewport: [desktop, tablet, mobile]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.4 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Start services
+        run: docker-compose -f docker-compose.ci.yml up -d
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Wait for services
+        run: |
+          timeout 60 bash -c 'until curl -sf http://localhost:3000 > /dev/null; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:3002/health > /dev/null; do sleep 2; done'
+
+      - name: Run visual tests for ${{ matrix.viewport }}
+        run: |
+          pnpm --filter @cv-builder/browser-automation test:visual -- --viewport ${{ matrix.viewport }}
+        env:
+          API_URL: http://localhost:3002
+          VIEWPORT: ${{ matrix.viewport }}
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-${{ matrix.viewport }}-${{ github.run_number }}
+          path: temp/test-results/
+          retention-days: 7
+
+      - name: Shutdown
+        if: always()
+        run: docker-compose -f docker-compose.ci.yml down -v
