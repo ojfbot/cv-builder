@@ -12,21 +12,60 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Find project root
+/**
+ * Find project root using multiple detection strategies
+ *
+ * Tries in order:
+ * 1. Environment variable (BASELINE_ROOT)
+ * 2. Monorepo markers (pnpm-workspace.yaml, .git)
+ * 3. Package name match (@cv-builder/browser-automation)
+ * 4. Fallback to relative path
+ */
 function findProjectRoot(): string {
+  // Strategy 1: Environment variable override
+  if (process.env.BASELINE_ROOT) {
+    return path.resolve(process.env.BASELINE_ROOT);
+  }
+
   let currentDir = __dirname;
+  const rootMarkers = [
+    'pnpm-workspace.yaml', // pnpm monorepo
+    'lerna.json',          // lerna monorepo
+    '.git',                // git repository root
+  ];
+
   while (currentDir !== path.parse(currentDir).root) {
+    // Strategy 2: Check for monorepo markers
+    for (const marker of rootMarkers) {
+      if (fs.existsSync(path.join(currentDir, marker))) {
+        return currentDir;
+      }
+    }
+
+    // Strategy 3: Check for workspace root via package.json
     try {
       const packageJsonPath = path.join(currentDir, 'package.json');
       if (fs.existsSync(packageJsonPath)) {
         const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+        // Check if this is a workspace root (has workspaces field)
+        if (pkg.workspaces || pkg.private === true && fs.existsSync(path.join(currentDir, 'packages'))) {
+          return currentDir;
+        }
+
+        // Fallback: Check for specific package name (less robust)
         if (pkg.name === '@cv-builder/browser-automation') {
           return path.resolve(currentDir, '../..');
         }
       }
-    } catch {}
+    } catch (error) {
+      // Silent catch - continue searching
+    }
+
     currentDir = path.dirname(currentDir);
   }
+
+  // Strategy 4: Fallback to relative path
   return path.resolve(__dirname, '../../..');
 }
 
