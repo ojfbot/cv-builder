@@ -111,6 +111,7 @@ export interface BaselineIndex {
 export class BaselineManager {
   private baselinesDir: string;
   private indexPath: string;
+  private initPromise: Promise<void> | null = null;
 
   constructor(baselinesDir: string = BASELINES_DIR) {
     this.baselinesDir = baselinesDir;
@@ -119,8 +120,25 @@ export class BaselineManager {
 
   /**
    * Initialize baselines directory and index
+   *
+   * Uses promise caching to prevent race conditions when multiple
+   * tests call initialize() concurrently.
    */
   async initialize(): Promise<void> {
+    // Return existing initialization if already in progress
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    // Cache the promise to prevent concurrent initializations
+    this.initPromise = this._initialize();
+    return this.initPromise;
+  }
+
+  /**
+   * Internal initialization logic
+   */
+  private async _initialize(): Promise<void> {
     // Create baselines directory
     if (!fs.existsSync(this.baselinesDir)) {
       fs.mkdirSync(this.baselinesDir, { recursive: true });
