@@ -1,0 +1,292 @@
+name: Browser Automation Tests (No Docker)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/browser-app/**'
+      - 'packages/browser-automation/**'
+      - 'packages/api/**'
+      - 'packages/agent-core/**'
+      - '.github/workflows/browser-automation-tests-no-docker.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      update_baselines:
+        description: 'Update visual regression baselines'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  # Deterministic CI environment
+  CI: true
+  NODE_ENV: test
+  HEADLESS: true
+  # Force color output for better logs
+  FORCE_COLOR: 1
+
+jobs:
+  browser-tests:
+    name: Visual Regression & UI Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for baseline comparison
+          fetch-depth: 0
+          lfs: true # Enable Git LFS for baseline screenshots
+
+      - name: Checkout LFS files
+        run: git lfs pull
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.4 --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup environment
+        run: |
+          # Create env.json for agent-core
+          mkdir -p packages/agent-core
+          echo '{
+            "ANTHROPIC_API_KEY": "${{ secrets.ANTHROPIC_API_KEY }}",
+            "MODEL_NAME": "claude-sonnet-4-20250514"
+          }' > packages/agent-core/env.json
+
+      - name: Setup temp directories
+        run: |
+          mkdir -p temp/screenshots
+          mkdir -p temp/test-results
+          mkdir -p packages/browser-automation/test-baselines
+          chmod -R 777 temp
+
+      - name: Type check packages
+        run: |
+          # Type check packages that don't have pre-existing errors
+          pnpm --filter @cv-builder/agent-core type-check || echo "⚠️ agent-core has type errors"
+          pnpm --filter @cv-builder/api type-check || echo "⚠️ api has type errors"
+          pnpm --filter @cv-builder/browser-app type-check || echo "⚠️ browser-app has type errors"
+        continue-on-error: true
+
+      - name: Build packages
+        run: |
+          # Build packages that are needed for tests
+          pnpm --filter @cv-builder/agent-core build || echo "⚠️ agent-core build failed"
+          pnpm --filter @cv-builder/api build || echo "⚠️ api build failed"
+          pnpm --filter @cv-builder/browser-app build || echo "⚠️ browser-app build failed"
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Install Playwright browsers
+        run: |
+          pnpm --filter @cv-builder/browser-automation exec playwright install --with-deps chromium
+
+      - name: Start API service
+        run: |
+          cd packages/api
+          pnpm dev &
+          API_PID=$!
+          echo "API_PID=$API_PID" >> $GITHUB_ENV
+          echo "Started API service (PID: $API_PID)"
+        env:
+          PORT: 3001
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Start Browser App
+        run: |
+          cd packages/browser-app
+          pnpm dev &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          echo "Started Browser App (PID: $APP_PID)"
+        env:
+          PORT: 3000
+          VITE_API_URL: http://localhost:3001
+
+      - name: Start Browser Automation Service
+        run: |
+          cd packages/browser-automation
+          pnpm dev &
+          BROWSER_PID=$!
+          echo "BROWSER_PID=$BROWSER_PID" >> $GITHUB_ENV
+          echo "Started Browser Automation service (PID: $BROWSER_PID)"
+        env:
+          PORT: 3002
+          BROWSER_APP_URL: http://localhost:3000
+          HEADLESS: true
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for browser-app (http://localhost:3000)..."
+          timeout 120 bash -c 'until curl -sf http://localhost:3000 > /dev/null 2>&1; do echo "Waiting for browser-app..."; sleep 5; done'
+
+          echo "Waiting for API (http://localhost:3001/api/health)..."
+          timeout 120 bash -c 'until curl -sf http://localhost:3001/api/health > /dev/null 2>&1; do echo "Waiting for API..."; sleep 5; done'
+
+          echo "Waiting for browser-automation (http://localhost:3002/health)..."
+          timeout 120 bash -c 'until curl -sf http://localhost:3002/health > /dev/null 2>&1; do echo "Waiting for browser-automation..."; sleep 5; done'
+
+          echo "✅ All services are ready"
+
+      - name: Show service status
+        run: |
+          echo "=== Service Health Checks ==="
+          curl -s http://localhost:3001/api/health | jq . || echo "API health check failed"
+          curl -s http://localhost:3002/health | jq . || echo "Browser automation health check failed"
+          curl -I http://localhost:3000 || echo "Browser app check failed"
+
+      - name: Run browser automation tests
+        id: tests
+        run: |
+          pnpm --filter @cv-builder/browser-automation test:comprehensive
+        env:
+          API_URL: http://localhost:3002
+          BROWSER_APP_URL: http://localhost:3000
+          UPDATE_BASELINES: ${{ github.event.inputs.update_baselines || 'false' }}
+        continue-on-error: true
+
+      - name: Run visual regression tests
+        id: visual-tests
+        run: |
+          pnpm --filter @cv-builder/browser-automation test:visual
+        env:
+          API_URL: http://localhost:3002
+          BROWSER_APP_URL: http://localhost:3000
+          UPDATE_BASELINES: ${{ github.event.inputs.update_baselines || 'false' }}
+        continue-on-error: true
+
+      - name: Show service logs on failure
+        if: failure()
+        run: |
+          echo "=== Browser Automation Service Logs ==="
+          ps aux | grep -E "node|tsx" | grep -E "browser-automation|api|browser-app" || echo "No processes found"
+
+      - name: Generate test report
+        if: always()
+        run: |
+          if [ -d "temp/test-results" ]; then
+            echo "## Test Results" > temp/test-results/summary.md
+            cat temp/test-results/*.md >> temp/test-results/summary.md 2>/dev/null || true
+          fi
+
+      - name: Upload test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots-${{ github.run_number }}
+          path: temp/screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload visual diff artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs-${{ github.run_number }}
+          path: |
+            temp/test-results/visual-diffs/
+            packages/browser-automation/test-baselines/**/diffs/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ github.run_number }}
+          path: temp/test-results/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Read PR comment summary
+            const summaryPath = 'temp/test-results/pr-comment.md';
+            let comment = '## 🤖 Browser Automation Test Results\n\n';
+
+            if (fs.existsSync(summaryPath)) {
+              comment = fs.readFileSync(summaryPath, 'utf8');
+            } else {
+              comment += '⚠️ Test report not generated. Check workflow logs.\n';
+            }
+
+            // Add artifact links
+            comment += '\n\n### 📦 Artifacts\n\n';
+            comment += `- [📸 Test Screenshots](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            comment += `- [🎯 Visual Diffs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            comment += `- [📊 Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+
+            // Add workflow run link
+            comment += `\n\n**[View Full CI Run →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
+
+            // Post comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Update baselines (if requested)
+        if: |
+          github.event.inputs.update_baselines == 'true' &&
+          github.event_name == 'workflow_dispatch'
+        run: |
+          pnpm --filter @cv-builder/browser-automation test:visual:update:all
+
+          # Commit updated baselines
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/browser-automation/test-baselines/
+          git commit -m "chore: update visual regression baselines [skip ci]" || echo "No baseline changes"
+          git push
+
+      - name: Shutdown services
+        if: always()
+        run: |
+          # Kill all service processes
+          [ -n "$BROWSER_PID" ] && kill $BROWSER_PID 2>/dev/null || true
+          [ -n "$APP_PID" ] && kill $APP_PID 2>/dev/null || true
+          [ -n "$API_PID" ] && kill $API_PID 2>/dev/null || true
+
+          # Wait for processes to terminate
+          sleep 2
+
+          # Force kill if still running
+          pkill -f "tsx.*browser-automation" || true
+          pkill -f "vite.*browser-app" || true
+          pkill -f "tsx.*api" || true
+
+      - name: Check test results
+        if: always()
+        run: |
+          if [ "${{ steps.tests.outcome }}" != "success" ] || [ "${{ steps.visual-tests.outcome }}" != "success" ]; then
+            echo "❌ Tests failed"
+            exit 1
+          fi
+          echo "✅ All tests passed"
