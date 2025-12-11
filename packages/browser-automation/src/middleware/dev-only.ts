@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 
 /**
- * Middleware to restrict endpoints to development mode only.
+ * Middleware to restrict endpoints to development/test mode only.
  *
  * This is a critical security control for observability features that allow
  * access to browser internals and code evaluation.
  *
  * Features:
- * - Blocks all requests when NODE_ENV !== 'development'
+ * - Blocks all requests when NODE_ENV is 'production'
+ * - Allows 'development' and 'test' environments (for CI)
  * - Returns clear 403 Forbidden responses
  * - Includes helpful hints in error messages
  * - Logs blocked attempts for security monitoring
@@ -23,8 +24,9 @@ import { Request, Response, NextFunction } from 'express';
  */
 export function requireDevMode(req: Request, res: Response, next: NextFunction): void {
   const currentEnv = process.env.NODE_ENV || 'production';
+  const allowedEnvs = ['development', 'test'];
 
-  if (currentEnv !== 'development') {
+  if (!allowedEnvs.includes(currentEnv)) {
     // Log blocked attempt for security monitoring
     console.warn(
       `[SECURITY] Blocked ${req.method} ${req.path} - Dev-only endpoint accessed in ${currentEnv} mode`
@@ -34,13 +36,14 @@ export function requireDevMode(req: Request, res: Response, next: NextFunction):
       error: 'This endpoint is only available in development mode',
       endpoint: req.path,
       currentEnv,
-      hint: 'Set NODE_ENV=development to enable observability features',
+      allowedEnvs,
+      hint: 'Set NODE_ENV=development or NODE_ENV=test to enable observability features',
       securityNote: 'This restriction protects production environments from code evaluation and data exposure',
     });
     return;
   }
 
-  // Dev mode confirmed, proceed
+  // Dev/test mode confirmed, proceed
   next();
 }
 

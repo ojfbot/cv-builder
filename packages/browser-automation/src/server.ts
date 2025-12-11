@@ -108,11 +108,12 @@ app.post('/api/close', async (_req: Request, res: Response) => {
  * Only available in development mode for security
  */
 app.post('/api/storage/clear', async (_req: Request, res: Response) => {
-  // Only allow storage clearing in development mode
-  if (NODE_ENV !== 'development') {
+  // Only allow storage clearing in development/test mode
+  const allowedEnvs = ['development', 'test'];
+  if (!allowedEnvs.includes(NODE_ENV)) {
     return res.status(403).json({
       success: false,
-      error: 'Storage clearing is only available in development mode',
+      error: 'Storage clearing is only available in development/test mode',
     });
   }
 
@@ -138,11 +139,12 @@ app.post('/api/storage/clear', async (_req: Request, res: Response) => {
  * Only available in development mode for security
  */
 app.post('/api/context/reset', async (_req: Request, res: Response) => {
-  // Only allow context reset in development mode
-  if (NODE_ENV !== 'development') {
+  // Only allow context reset in development/test mode
+  const allowedEnvs = ['development', 'test'];
+  if (!allowedEnvs.includes(NODE_ENV)) {
     return res.status(403).json({
       success: false,
-      error: 'Context reset is only available in development mode',
+      error: 'Context reset is only available in development/test mode',
     });
   }
 
