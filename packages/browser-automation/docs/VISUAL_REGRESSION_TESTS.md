@@ -235,15 +235,127 @@ suite.test('Feature Name - State Description', async ({ assert }) => {
 3. **Dynamic content:** Consider masking areas with timestamps/IDs
 4. **Animation timing:** Increase stabilization wait
 
-## CI/CD Artifacts
+## CI/CD Integration
 
-On test failure, GitHub Actions uploads:
-- **Baseline images:** Expected screenshots
-- **Current images:** Actual screenshots from test run
-- **Diff images:** Pixel-by-pixel comparison with highlights
-- **PR comment:** Markdown report with embedded images
+### GitHub Actions Workflow
 
-Access artifacts via GitHub Actions workflow run page.
+Visual regression tests run automatically on pull requests via the `browser-automation-tests-no-docker.yml` workflow.
+
+**Workflow Triggers:**
+- Pull requests modifying browser-automation, browser-app, api, or agent-core packages
+- Push to main branch
+- Manual workflow dispatch (with optional baseline update)
+
+**Service Architecture:**
+The workflow starts all required services directly using `pnpm dev` (no Docker required):
+1. **API Service** - Port 3001 (`packages/api`)
+2. **Browser App** - Port 3000 (`packages/browser-app`)
+3. **Browser Automation** - Port 3002 (`packages/browser-automation`)
+
+**Docker Status:**
+- Docker-based workflow (browser-automation-tests.yml) is **currently disabled**
+- Requires: `packages/browser-app/Dockerfile`, `packages/api/Dockerfile`
+- Will be enabled in future PR when containerization is complete
+- Current no-Docker approach works well for CI/CD
+
+### PR Comment Report
+
+When visual tests run in CI, the `GitHubPRReporter` generates a detailed markdown comment posted automatically to the PR:
+
+**Report Sections:**
+- ✅ **Summary Table** - Passed/Failed/Skipped test counts
+- 🎨 **Visual Regression Differences** - Pixel diff details for any regressions
+- ❌ **Failed Test Details** - Error messages and stack traces
+- 📦 **Artifact Links** - Download links for screenshots, diffs, and reports
+
+**Example PR Comment:**
+```markdown
+## 🤖 Browser Automation Test Results
+
+### 📊 Summary
+
+| Metric | Count |
+|--------|-------|
+| ✅ Passed | 17 |
+| ❌ Failed | 1 |
+| ⏭️ Skipped | 0 |
+| 📝 Total | 18 |
+
+### 🎨 Visual Regression Differences
+
+Found 1 visual regression(s):
+
+#### Theme - Light Mode
+
+| Metric | Value |
+|--------|-------|
+| Different Pixels | 1,234 |
+| Difference | 0.15% |
+| Threshold | 0.1% (STANDARD) |
+
+> 📸 **View the diff**: Download the `visual-diffs` artifact below
+
+### 📦 Artifacts
+
+- 📸 **[Test Screenshots](https://github.com/...)** - All captured screenshots
+- 🎯 **[Visual Diffs](https://github.com/...)** - Side-by-side comparison images
+- 📊 **[Test Report](https://github.com/...)** - Detailed test results
+```
+
+### CI/CD Artifacts
+
+On every test run (pass or fail), GitHub Actions uploads:
+
+- **test-screenshots-{run_number}** - All captured screenshots from test execution
+- **visual-diffs-{run_number}** - Pixel-by-pixel comparison images with highlights
+  - Baseline (expected)
+  - Current (actual)
+  - Diff (highlighted differences)
+- **test-report-{run_number}** - Detailed JSON/markdown test results
+
+**Accessing Artifacts:**
+1. Go to the PR's "Checks" tab
+2. Click on the "Browser Automation Tests (No Docker)" workflow
+3. Scroll to "Artifacts" section at bottom
+4. Download the relevant artifact zip file
+5. Extract to view images locally
+
+**Artifact Retention:**
+- Screenshots: 7 days
+- Visual diffs: 30 days
+- Test reports: 30 days
+
+### Environment Variables
+
+The GitHubPRReporter requires these environment variables to activate in CI:
+
+```yaml
+env:
+  GITHUB_RUN_ID: ${{ github.run_id }}       # CI run identifier
+  GITHUB_RUN_NUMBER: ${{ github.run_number }} # Sequential run number
+  GITHUB_REPOSITORY: ${{ github.repository }} # Repo owner/name
+```
+
+These are automatically passed by the workflow to enable:
+- PR comment generation
+- Artifact URL construction
+- Visual diff report creation
+
+### Updating Baselines in CI
+
+To update baselines via GitHub Actions:
+
+1. Go to Actions tab → "Browser Automation Tests (No Docker)"
+2. Click "Run workflow"
+3. Check "Update visual regression baselines"
+4. Select branch
+5. Run workflow
+
+The workflow will:
+- Run visual tests with `UPDATE_BASELINES=true`
+- Generate new baseline images
+- Commit updated baselines with `[skip ci]`
+- Push to the branch automatically
 
 ## Coverage Summary
 
