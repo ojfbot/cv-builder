@@ -6,12 +6,15 @@
 
 import { createTestSuite, createTestRunner } from '../../src/test-runner/index.js';
 import { VisualDiffReporter } from '../../src/test-runner/reporters/VisualDiffReporter.js';
+import { GitHubPRReporter } from '../../src/test-runner/reporters/GitHubPRReporter.js';
 import { createVisualAssertions } from '../../src/test-runner/assertions/visual.js';
 import { VISUAL_THRESHOLDS } from '../../src/visual/constants.js';
 
 const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.BROWSER_APP_URL || 'http://localhost:3000';
 const UPDATE_BASELINES = process.env.UPDATE_BASELINES === 'true';
+const GITHUB_RUN_ID = process.env.GITHUB_RUN_ID;
+const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
 
 // Display startup warning if UPDATE_BASELINES is enabled
 if (UPDATE_BASELINES) {
@@ -225,8 +228,21 @@ async function main() {
   });
 
   // Run tests
+  const reporters: any[] = ['console', visualReporter];
+
+  // Add GitHub PR reporter in CI
+  if (GITHUB_RUN_ID && GITHUB_REPOSITORY) {
+    const prReporter = new GitHubPRReporter({
+      outputPath: './temp/test-results/pr-comment.md',
+      runId: GITHUB_RUN_ID,
+      repository: GITHUB_REPOSITORY,
+      includeVisualDiffs: true,
+    });
+    reporters.push(prReporter);
+  }
+
   const runner = createTestRunner({
-    reporters: ['console', visualReporter],
+    reporters,
     verbose: true,
     stopOnFailure: false,
   });
