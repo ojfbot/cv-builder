@@ -7,7 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { browserManager } from '../automation/browser.js';
 
-const router = Router();
+const router: Router = Router();
 
 type WaitCondition = 'selector' | 'text' | 'network' | 'timeout' | 'url' | 'function';
 

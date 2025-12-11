@@ -7,7 +7,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import { Reporter, TestResult, TestSummary } from '../types.js';
+import { Reporter } from './Reporter.js';
+import { TestResult, TestStatus, SuiteResult } from '../types.js';
 
 export interface GitHubPRReporterOptions {
   outputPath: string;
@@ -29,16 +30,32 @@ export class GitHubPRReporter implements Reporter {
     };
   }
 
-  async onTestComplete(result: TestResult): Promise<void> {
-    this.results.push(result);
+  onSuiteStart(_suiteName: string): void {
+    // No-op for GitHub PR reporter
+  }
+
+  onSuiteEnd(result: SuiteResult): void {
+    // Collect all test results
+    this.results.push(...result.tests);
 
     // Track visual regression failures
-    if (result.error && result.error.message?.includes('Visual regression detected')) {
-      this.extractVisualDiffInfo(result);
+    for (const testResult of result.tests) {
+      if (testResult.error && testResult.error.message?.includes('Visual regression detected')) {
+        this.extractVisualDiffInfo(testResult);
+      }
     }
   }
 
-  async onSuiteComplete(summary: TestSummary): Promise<void> {
+  onRunComplete(
+    _results: SuiteResult[],
+    summary: {
+      totalSuites: number;
+      totalTests: number;
+      passed: number;
+      failed: number;
+      skipped: number;
+    }
+  ): void {
     const markdown = this.generateMarkdown(summary);
 
     // Ensure output directory exists
@@ -74,8 +91,14 @@ export class GitHubPRReporter implements Reporter {
     }
   }
 
-  private generateMarkdown(summary: TestSummary): string {
-    const { passed, failed, skipped, total } = summary;
+  private generateMarkdown(summary: {
+    totalSuites: number;
+    totalTests: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+  }): string {
+    const { passed, failed, skipped, totalTests } = summary;
     const hasFailures = failed > 0;
     const icon = hasFailures ? '❌' : '✅';
 
@@ -88,8 +111,7 @@ export class GitHubPRReporter implements Reporter {
     markdown += `| ✅ Passed | ${passed} |\n`;
     markdown += `| ❌ Failed | ${failed} |\n`;
     markdown += `| ⏭️ Skipped | ${skipped} |\n`;
-    markdown += `| 📝 Total | ${total} |\n`;
-    markdown += `| ⏱️ Duration | ${summary.duration}ms |\n\n`;
+    markdown += `| 📝 Total | ${totalTests} |\n\n`;
 
     // Visual Regression Details
     if (this.visualDiffs.size > 0) {
@@ -149,7 +171,7 @@ export class GitHubPRReporter implements Reporter {
   }
 
   private generateFailureDetails(): string {
-    const failedTests = this.results.filter((r) => !r.success);
+    const failedTests = this.results.filter((r) => r.status === TestStatus.FAILED);
 
     let markdown = '### ❌ Failed Tests\n\n';
 

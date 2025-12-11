@@ -4,7 +4,7 @@
  * Endpoints for querying application state (Redux, MobX, etc.).
  */
 
-import express, { Request, Response } from 'express';
+import express, { Request, Response, Router } from 'express';
 import {
   loadStoreMap,
   queryStore,
@@ -22,7 +22,7 @@ const DEFAULT_EVALUATION_TIMEOUT_MS = 5000; // Default timeout for JavaScript ev
 const MAX_EVALUATION_TIMEOUT_MS = 30000; // Maximum allowed timeout
 const MAX_EXPRESSION_LENGTH = 10000; // Maximum length for evaluation expressions
 
-const router = express.Router();
+const router: Router = express.Router();
 
 /**
  * GET /api/store/schema

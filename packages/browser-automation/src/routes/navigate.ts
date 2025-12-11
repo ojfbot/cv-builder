@@ -7,7 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { browserManager } from '../automation/browser.js';
 
-const router = Router();
+const router: Router = Router();
 
 interface NavigateRequest {
   url: string;

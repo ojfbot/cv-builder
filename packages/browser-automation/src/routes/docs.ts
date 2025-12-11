@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const router = Router();
+const router: Router = Router();
 
 // Load OpenAPI specification
 const openApiPath = path.resolve(__dirname, '../../docs/openapi.yaml');
