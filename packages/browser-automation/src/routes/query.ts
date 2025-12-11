@@ -7,7 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { browserManager } from '../automation/browser.js';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET /api/element/exists
@@ -189,7 +189,7 @@ router.get('/element/attribute', async (req: Request, res: Response) => {
  * GET /api/page/title
  * Get current page title
  */
-router.get('/page/title', async (req: Request, res: Response) => {
+router.get('/page/title', async (_req: Request, res: Response) => {
   try {
     const page = await browserManager.getPage();
     const title = await page.evaluate(() => document.title);

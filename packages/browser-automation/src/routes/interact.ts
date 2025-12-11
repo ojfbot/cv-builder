@@ -19,7 +19,7 @@ import {
   HoverOptions,
 } from '../automation/actions.js';
 
-const router = Router();
+const router: Router = Router();
 
 interface ClickRequest {
   selector: string;

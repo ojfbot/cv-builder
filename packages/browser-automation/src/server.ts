@@ -119,14 +119,14 @@ app.post('/api/storage/clear', async (_req: Request, res: Response) => {
 
   try {
     await browserManager.clearStorage();
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Browser storage cleared successfully',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error clearing storage:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -150,14 +150,14 @@ app.post('/api/context/reset', async (_req: Request, res: Response) => {
 
   try {
     await browserManager.resetContext();
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Browser context reset successfully',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error resetting context:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     });

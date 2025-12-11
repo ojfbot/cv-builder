@@ -9,7 +9,7 @@ import { browserManager } from '../automation/browser.js';
 import { captureScreenshot, listSessions, listScreenshotsInSession, ImageFormat } from '../automation/screenshots.js';
 import { ViewportPreset, ViewportSize } from '../automation/viewport.js';
 
-const router = Router();
+const router: Router = Router();
 
 interface CaptureRequest {
   name: string;

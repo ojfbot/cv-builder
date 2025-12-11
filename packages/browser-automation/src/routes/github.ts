@@ -19,7 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const execAsync = promisify(exec);
-const router = Router();
+const router: Router = Router();
 
 interface AttachScreenshotsRequest {
   prOrIssueNumber: number;

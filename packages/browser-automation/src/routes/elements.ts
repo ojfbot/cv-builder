@@ -4,7 +4,7 @@
  * Endpoints for element map operations, semantic search, and validation.
  */
 
-import express, { Request, Response } from 'express';
+import express, { Request, Response, Router } from 'express';
 import {
   loadElementMap,
   searchElements,
@@ -17,7 +17,7 @@ import {
 } from '../maps/index.js';
 import { browserManager } from '../automation/browser.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 /**
  * GET /api/elements/map

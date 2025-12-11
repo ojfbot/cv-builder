@@ -45,7 +45,7 @@ export async function saveStoreMap(map: StoreMap): Promise<void> {
 /**
  * Query store state by query name
  */
-export async function queryStore(page: Page, storeMap: StoreMap, query: StoreQuery): Promise<any> {
+export async function queryStore(page: Page, _storeMap: StoreMap, query: StoreQuery): Promise<any> {
   const queryPath = query.path;
 
   try {
@@ -131,7 +131,7 @@ export async function waitForStoreState(
 /**
  * Get full store snapshot
  */
-export async function getStoreSnapshot(page: Page, storeMap: StoreMap): Promise<any> {
+export async function getStoreSnapshot(page: Page, _storeMap: StoreMap): Promise<any> {
   try {
     const snapshot = await page.evaluate(() => {
       // Access Redux state via DevTools extension

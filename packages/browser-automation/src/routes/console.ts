@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, Router } from 'express';
 import {
   requireDevMode,
   addDevModeHeaders,
@@ -11,7 +11,7 @@ import {
 import { getBrowserManager } from '../automation/browser';
 import { LogLevel } from '../observability/console-logger';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Apply dev mode check and headers to all console routes
 router.use(requireDevMode);
