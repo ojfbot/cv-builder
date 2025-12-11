@@ -177,6 +177,9 @@ jobs:
           API_URL: http://localhost:3002
           BROWSER_APP_URL: http://localhost:3000
           UPDATE_BASELINES: ${{ github.event.inputs.update_baselines || 'false' }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         continue-on-error: true
 
       - name: Show service logs on failure
