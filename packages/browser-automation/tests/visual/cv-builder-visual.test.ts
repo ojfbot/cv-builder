@@ -14,6 +14,7 @@ const API_URL = process.env.API_URL || 'http://localhost:3002';
 const APP_URL = process.env.BROWSER_APP_URL || 'http://localhost:3000';
 const UPDATE_BASELINES = process.env.UPDATE_BASELINES === 'true';
 const GITHUB_RUN_ID = process.env.GITHUB_RUN_ID;
+const GITHUB_RUN_NUMBER = process.env.GITHUB_RUN_NUMBER;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
 
 // Display startup warning if UPDATE_BASELINES is enabled
@@ -560,6 +561,7 @@ async function main() {
     const prReporter = new GitHubPRReporter({
       outputPath: './temp/test-results/pr-comment.md',
       runId: GITHUB_RUN_ID,
+      runNumber: GITHUB_RUN_NUMBER,
       repository: GITHUB_REPOSITORY,
       includeVisualDiffs: true,
     });
