@@ -51,7 +51,10 @@ function App() {
     const port = APP_PORTS[appName];
     if (port) {
       const url = `http://localhost:${port}`;
-      window.open(url, '_blank'); // Open in new tab to preserve state
+      const newWindow = window.open(url, '_blank'); // Open in new tab to preserve state
+      if (newWindow) {
+        newWindow.opener = null; // Security: prevent reverse tabnabbing
+      }
     }
     setSideNavExpanded(false); // Close sidebar after click
   };
