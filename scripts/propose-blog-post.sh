@@ -33,6 +33,17 @@ if ! command -v gh &> /dev/null; then
     exit 1
 fi
 
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo -e "${RED}Error: jq is required for JSON parsing${NC}"
+    echo "Install: https://stedolan.github.io/jq/download/"
+    echo ""
+    echo "  macOS:   brew install jq"
+    echo "  Ubuntu:  sudo apt-get install jq"
+    echo "  Fedora:  sudo dnf install jq"
+    exit 1
+fi
+
 # Check if logged in
 if ! gh auth status &> /dev/null; then
     echo -e "${RED}Error: Not logged in to GitHub CLI${NC}"

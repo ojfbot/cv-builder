@@ -99,58 +99,96 @@ jobs:
         id: agent
         env:
           GH_TOKEN: ${{ github.token }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           PR_NUMBER=${{ steps.pr.outputs.number }}
           EVENT_TYPE=${{ steps.event_type.outputs.type }}
 
-          # Create a prompt file for the agent
-          cat > agent_prompt.txt << 'EOF'
-          You are the Blog Post Proposer Agent. Analyze PR #${{ steps.pr.outputs.number }} and determine if it warrants a blog post.
+          # Read the agent system prompt
+          AGENT_SYSTEM_PROMPT=$(cat .agents/blog-post-proposer.md)
 
-          PR Event: ${{ steps.event_type.outputs.type }}
+          # Read PR information
+          PR_INFO=$(cat pr_info.json)
+          PR_DIFF=$(head -n 500 pr_diff.txt || echo "Diff too large")
+          RELATED_ISSUES=$(cat related_issues.txt || echo "None")
+
+          # Create the user prompt
+          cat > user_prompt.txt << EOF
+          Analyze PR #${PR_NUMBER} and determine if it warrants a blog post.
+
+          PR Event: ${EVENT_TYPE}
           PR Action: ${{ steps.event_type.outputs.action }}
 
-          Available files:
-          - pr_info.json: PR metadata (title, author, commits, stats)
-          - pr_diff.txt: PR diff content
-          - related_issues.txt: Related issue numbers
+          ## PR Information
+          ${PR_INFO}
 
-          Your tasks:
-          1. Read the PR information and diff
-          2. Calculate the blog-worthiness score (1-10)
-          3. If score >= 5:
-             - Create a proposal file in docs/blog/proposals/
-             - Use format: YYYY-MM-DD-pr-${{ steps.pr.outputs.number }}-<slug>.md
-             - Use the template from docs/blog/_proposal-template.md
-             - Fill in all sections with specific details from the PR
-          4. If score < 5:
-             - Create a brief analysis file explaining why
-          5. Generate a summary comment for the PR
+          ## Related Issues
+          ${RELATED_ISSUES}
+
+          ## PR Diff (first 500 lines)
+          ${PR_DIFF}
+
+          ## Your Tasks
+          1. Calculate the blog-worthiness score (1-10) based on the scoring criteria
+          2. If score >= 5:
+             - Create a proposal file following docs/blog/_proposal-template.md
+             - Use filename format: $(date +%Y-%m-%d)-pr-${PR_NUMBER}-<slug>.md
+             - Fill in ALL sections with specific details from this PR
+          3. Generate a summary comment for the PR
 
           If this is a MERGE event:
           - Check for existing proposal in docs/blog/proposals/
           - Update status to "✅ Ready to Draft"
-          - Add final metrics if available
-          - Suggest updates to related blog posts if applicable
 
-          Output:
-          - Proposal file: docs/blog/proposals/YYYY-MM-DD-pr-${{ steps.pr.outputs.number }}-<slug>.md
-          - Comment: comment.md (summary for PR comment)
-          - Score: score.txt (just the number 1-10)
+          ## Output Format
+
+          First line must be SCORE: <number>
+
+          Then create the proposal file content (if score >= 5) or brief analysis (if score < 5).
+
+          Then end with:
+          ---COMMENT---
+          <PR comment content here>
           EOF
 
-          # Note: In actual implementation, you would invoke Claude Code here
-          # For now, create a placeholder that can be replaced with actual agent invocation
+          # Call Anthropic API using curl
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-sonnet-4-20250514\",
+              \"max_tokens\": 4096,
+              \"system\": $(jq -Rs . <<< "$AGENT_SYSTEM_PROMPT"),
+              \"messages\": [{
+                \"role\": \"user\",
+                \"content\": $(jq -Rs . < user_prompt.txt)
+              }]
+            }")
 
-          echo "8" > score.txt  # Placeholder score
-          echo "## Blog Post Proposal Analysis" > comment.md
-          echo "" >> comment.md
-          echo "This PR has been analyzed by the Blog Post Proposer Agent." >> comment.md
-          echo "" >> comment.md
-          echo "**Blog-Worthiness Score**: 8/10 🟡" >> comment.md
-          echo "**Recommendation**: This PR should be considered for a blog post." >> comment.md
-          echo "" >> comment.md
-          echo "A detailed proposal will be created shortly." >> comment.md
+          # Extract the response content
+          AGENT_OUTPUT=$(echo "$RESPONSE" | jq -r '.content[0].text')
+
+          # Parse score from first line
+          SCORE=$(echo "$AGENT_OUTPUT" | grep -oP 'SCORE:\s*\K\d+' | head -1)
+          echo "${SCORE:-5}" > score.txt
+
+          # Extract comment section
+          echo "$AGENT_OUTPUT" | sed -n '/---COMMENT---/,$p' | tail -n +2 > comment.md
+
+          # If score >= 5, create proposal file
+          if [ "${SCORE:-5}" -ge 5 ]; then
+            # Extract proposal content (everything between SCORE line and ---COMMENT---)
+            PROPOSAL_CONTENT=$(echo "$AGENT_OUTPUT" | sed -n '/SCORE:/,/---COMMENT---/p' | sed '1d;$d')
+
+            # Generate filename
+            SLUG=$(echo "${{ github.event.pull_request.title || 'proposal' }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | cut -c1-50)
+            PROPOSAL_FILE="docs/blog/proposals/$(date +%Y-%m-%d)-pr-${PR_NUMBER}-${SLUG}.md"
+
+            # Write proposal
+            echo "$PROPOSAL_CONTENT" > "$PROPOSAL_FILE"
+            echo "Proposal created: $PROPOSAL_FILE"
+          fi
 
       - name: Read analysis results
         id: results
@@ -187,7 +225,7 @@ jobs:
             echo "No proposal files to commit"
           else
             git commit -m "docs(blog): add blog post proposal for PR #${{ steps.pr.outputs.number }}"
-            git push
+            git push origin HEAD:main
           fi
 
       - name: Comment on PR
@@ -217,19 +255,19 @@ jobs:
 
             const comment = `## Blog Post Proposal Analysis
 
-            **Blog-Worthiness Score**: ${score}/10 ${priority}
+**Blog-Worthiness Score**: ${score}/10 ${priority}
 
-            This PR does not meet the threshold for a blog post proposal (score < 5).
+This PR does not meet the threshold for a blog post proposal (score < 5).
 
-            **Why?**
-            The changes in this PR, while valuable, are either:
-            - Routine maintenance or small improvements
-            - Lack significant educational value for a blog audience
-            - Don't introduce novel solutions or patterns
-            - Have limited measurable impact
+**Why?**
+The changes in this PR, while valuable, are either:
+- Routine maintenance or small improvements
+- Lack significant educational value for a blog audience
+- Don't introduce novel solutions or patterns
+- Have limited measurable impact
 
-            If you believe this PR should have a blog post, you can manually run the proposer agent with the \`--force\` flag.
-            `;
+If you believe this PR should have a blog post, you can manually run the proposer agent with the \`--force\` flag.
+`;
 
             await github.rest.issues.createComment({
               issue_number: ${{ steps.pr.outputs.number }},

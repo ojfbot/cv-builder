@@ -410,6 +410,39 @@ cv-builder/
 
 ## Configuration
 
+### Required Repository Secrets
+
+The GitHub Actions workflow requires the following secrets to be configured in your repository:
+
+#### `ANTHROPIC_API_KEY` (Required)
+
+This secret is used to authenticate with the Anthropic API for invoking the Claude AI model.
+
+**How to configure**:
+
+1. Go to your repository on GitHub
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **"New repository secret"**
+4. Name: `ANTHROPIC_API_KEY`
+5. Value: Your Anthropic API key from https://console.anthropic.com/settings/keys
+6. Click **"Add secret"**
+
+**Security notes**:
+- The API key is never exposed to the browser or logged in workflow outputs
+- The key is passed securely via environment variables to the workflow
+- API calls use the `claude-sonnet-4-20250514` model
+- Rate limiting and error handling are implemented
+- The workflow uses `::add-mask::` internally to prevent accidental logging
+
+**Required permissions**:
+- Read access to your Anthropic account
+- Ability to call the Messages API
+
+**Cost considerations**:
+- Each PR analysis costs approximately $0.50-$2.00 depending on PR size
+- Only runs on non-draft PRs with significant changes (docs-only PRs are ignored)
+- Score threshold prevents unnecessary proposals (only score ≥ 5 generates proposals)
+
 ### Disable for Specific PR
 
 Add to PR description:
