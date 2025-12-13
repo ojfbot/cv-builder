@@ -16,7 +16,6 @@ import { store } from './store'
 import { AgentProvider } from './contexts/AgentContext'
 import Dashboard from './components/Dashboard'
 import ApiKeySettings from './components/ApiKeySettings'
-import { V2Toggle } from './components/V2Toggle'
 import './App.css'
 
 function App() {
@@ -30,17 +29,16 @@ function App() {
   const applications = [
     'CV Builder',
     'BlogEngine',
-    'HR Portal',
-    'Analytics Dashboard',
+    'TripPlanner',
     'Project Manager',
-    'Document Editor',
-    'Calendar App'
+    'Analytics Dashboard',
   ]
 
   // Port mapping for app navigation
   const appPorts: Record<string, number> = {
     'CV Builder': 3000,
     'BlogEngine': 3005,
+    'TripPlanner': 3010,
   };
 
   // Filter applications based on search query
@@ -95,7 +93,6 @@ function App() {
             />
             <HeaderName prefix="">CV Builder</HeaderName>
             <HeaderGlobalBar>
-              <V2Toggle />
               <HeaderGlobalAction
                 data-element="settings-button"
                 aria-label="Settings"
