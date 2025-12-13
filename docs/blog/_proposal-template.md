@@ -1,0 +1,239 @@
+# Blog Post Proposal: [Title]
+
+**Proposed by**: Blog Post Proposer Agent
+**Date**: [YYYY-MM-DD]
+**PR**: #[number]
+**Status**: 📝 Proposal | ✍️ Drafting | 📊 Review | ✅ Published
+
+---
+
+## Quick Summary
+
+[2-3 sentence summary of what this blog post would cover and why it matters]
+
+**Estimated Reading Time**: [X] minutes
+**Target Audience**: [Who would benefit from this article]
+**Urgency**: 🔥 High | 🟡 Medium | 🟢 Low
+
+---
+
+## Why This Deserves a Blog Post
+
+**Impact Metrics**:
+- [ ] Solves significant technical challenge
+- [ ] Demonstrates unique solution or pattern
+- [ ] Provides measurable improvements (performance, cost, etc.)
+- [ ] Educational value for community
+- [ ] Shows production-ready practices
+
+**Quantified Impact** (if applicable):
+- Performance improvement: [X]%
+- Cost savings: $[X]/year
+- Time savings: [X] hours/week
+- Bugs prevented: [X]
+- Other metrics: [...]
+
+---
+
+## Proposed Article Structure
+
+### Hook Options
+
+**Option 1: [Type] Hook** (Recommended)
+> "[Hook text]"
+
+**Strength**: [Why this works]
+**Weakness**: [Potential drawback]
+
+**Option 2: [Type] Hook**
+> "[Hook text]"
+
+**Strength**: [Why this works]
+**Weakness**: [Potential drawback]
+
+---
+
+### Outline
+
+**Proposed Length**: [X,XXX]-[X,XXX] words (~[X]-[X] min read)
+
+1. **Introduction** ([XXX] words)
+   - Hook
+   - Context and problem statement
+   - What readers will learn
+   - Preview of results
+
+2. **[Section 2 Title]** ([XXX] words)
+   - [Key points to cover]
+   - Code examples needed: [X]
+   - Diagrams needed: [X]
+
+3. **[Section 3 Title]** ([XXX] words)
+   - [Key points to cover]
+
+4. **[Section 4 Title]** ([XXX] words)
+   - [Key points to cover]
+
+5. **Results and Impact** ([XXX] words)
+   - Before/after metrics
+   - User feedback
+   - Cost implications
+   - Unexpected benefits
+
+6. **Lessons Learned** ([XXX] words)
+   - What went well
+   - What we'd do differently
+   - When to apply these patterns
+
+7. **Key Takeaways** ([XXX] words)
+   - 5-7 actionable takeaways
+
+8. **Related Reading** ([XXX] words)
+   - Internal documentation links
+   - External resources
+
+---
+
+## Code Examples to Include
+
+1. **[Example 1 Description]**
+   - File: `[path/to/file.ts:lines]`
+   - Purpose: [Why this example matters]
+
+2. **[Example 2 Description]**
+   - File: `[path/to/file.ts:lines]`
+   - Purpose: [Why this example matters]
+
+[Continue for all examples...]
+
+---
+
+## Diagrams to Create
+
+1. **[Diagram 1 Name]**
+   - Type: Architecture | Flow | Comparison | Graph
+   - Shows: [What this diagram illustrates]
+   - Complexity: Simple | Medium | Complex
+
+2. **[Diagram 2 Name]**
+   - Type: [...]
+   - Shows: [...]
+   - Complexity: [...]
+
+[Continue for all diagrams...]
+
+---
+
+## Key Metrics to Highlight
+
+- **[Metric 1]**: [before] → [after] ([X]% improvement)
+- **[Metric 2]**: [before] → [after] ([X]% improvement)
+- **[Metric 3]**: [value]
+- **[Metric 4]**: [value]
+
+---
+
+## Related PRs and Issues
+
+- PR #[X]: [Title and link]
+- Issue #[X]: [Title and link]
+- Related documentation: [links]
+
+---
+
+## Writing Style Recommendations
+
+- [ ] Use second person ("you") for engagement
+- [ ] Include before/after code comparisons
+- [ ] Show real error messages and output
+- [ ] Add "Why this matters" callouts
+- [ ] Progressive disclosure (simple → complex)
+- [ ] Include visual breaks (diagrams, code, quotes)
+- [ ] Quantify everything (numbers > adjectives)
+- [ ] Focus on user experience over metrics
+
+---
+
+## Target Blog Article Files
+
+**New Article**: `docs/blog/[XX]-[slug].md`
+**Outline**: `docs/blog/[XX]-[slug]-OUTLINE.md`
+
+**Or Update Existing**:
+- Article: `docs/blog/[existing-article].md`
+- Section: [Which section to update]
+- Type: 🆕 New Section | ✏️ Edit Existing | 📊 Add Metrics
+
+---
+
+## Priority and Timeline
+
+**Priority**: 🔴 Critical | 🟡 High | 🟢 Medium | ⚪ Low
+
+**Reasoning**: [Why this priority level]
+
+**Suggested Timeline**:
+- Outline: [X] days
+- Draft: [X] days
+- Review: [X] days
+- Publication: [X] days
+
+**Dependencies**:
+- [ ] Waiting for PR merge
+- [ ] Need performance data
+- [ ] Requires user feedback
+- [ ] Need additional metrics
+
+---
+
+## Review Checklist
+
+**Before Drafting**:
+- [ ] Proposal reviewed by team
+- [ ] Impact metrics validated
+- [ ] Code examples identified
+- [ ] Diagrams scoped
+
+**Before Publishing**:
+- [ ] Technical accuracy verified
+- [ ] Code examples tested
+- [ ] Metrics rechecked
+- [ ] Links validated
+- [ ] Proofread for clarity
+
+---
+
+## Notes
+
+[Any additional context, considerations, or open questions]
+
+---
+
+## Agent Analysis
+
+**PR Changes Analyzed**:
+- Files changed: [X]
+- Lines added: [+X]
+- Lines removed: [-X]
+- Commits: [X]
+
+**Change Categories**:
+- [ ] New Feature
+- [ ] Bug Fix
+- [ ] Refactoring
+- [ ] Performance Optimization
+- [ ] Security Enhancement
+- [ ] Testing Infrastructure
+- [ ] Documentation
+- [ ] DevOps/CI/CD
+
+**Complexity Score**: [1-10]
+**Blog-Worthiness Score**: [1-10]
+
+**Reasoning**: [Agent's analysis of why this PR warrants a blog post]
+
+---
+
+**Auto-generated by**: Blog Post Proposer Agent v1.0
+**Confidence Level**: [High | Medium | Low]
+**Needs Human Review**: [Yes | No]
