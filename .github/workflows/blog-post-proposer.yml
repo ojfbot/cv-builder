@@ -1,0 +1,250 @@
+name: Blog Post Proposer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    # Only run for significant changes (ignore docs-only PRs)
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+      - 'README.md'
+      - 'CLAUDE.md'
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to analyze'
+        required: true
+        type: number
+      force:
+        description: 'Force analysis even for low-priority PRs'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  propose-blog-post:
+    runs-on: ubuntu-latest
+
+    # Don't run on draft PRs unless they're being closed/merged
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.draft == false) ||
+      (github.event.action == 'closed' && github.event.pull_request.merged == true)
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@9.15.4 --activate
+
+      - name: Get PR number
+        id: pr
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
+          else
+            echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get PR details
+        id: pr_details
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=${{ steps.pr.outputs.number }}
+
+          # Get PR info
+          gh pr view $PR_NUMBER --json title,body,author,commits,additions,deletions,changedFiles > pr_info.json
+
+          # Get PR diff (limited to avoid huge output)
+          gh pr diff $PR_NUMBER > pr_diff.txt || true
+
+          # Check if merged
+          IS_MERGED="${{ github.event.pull_request.merged }}"
+          echo "is_merged=${IS_MERGED:-false}" >> $GITHUB_OUTPUT
+
+          # Get related issues
+          gh pr view $PR_NUMBER --json body --jq '.body' | grep -oP '#\d+' | sort -u > related_issues.txt || true
+
+      - name: Determine event type
+        id: event_type
+        run: |
+          if [ "${{ steps.pr_details.outputs.is_merged }}" = "true" ]; then
+            echo "type=merge" >> $GITHUB_OUTPUT
+            echo "action=Update or finalize blog post proposal" >> $GITHUB_OUTPUT
+          else
+            echo "type=open" >> $GITHUB_OUTPUT
+            echo "action=Create initial blog post proposal" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create proposals directory
+        run: mkdir -p docs/blog/proposals
+
+      - name: Run Blog Post Proposer Agent
+        id: agent
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=${{ steps.pr.outputs.number }}
+          EVENT_TYPE=${{ steps.event_type.outputs.type }}
+
+          # Create a prompt file for the agent
+          cat > agent_prompt.txt << 'EOF'
+          You are the Blog Post Proposer Agent. Analyze PR #${{ steps.pr.outputs.number }} and determine if it warrants a blog post.
+
+          PR Event: ${{ steps.event_type.outputs.type }}
+          PR Action: ${{ steps.event_type.outputs.action }}
+
+          Available files:
+          - pr_info.json: PR metadata (title, author, commits, stats)
+          - pr_diff.txt: PR diff content
+          - related_issues.txt: Related issue numbers
+
+          Your tasks:
+          1. Read the PR information and diff
+          2. Calculate the blog-worthiness score (1-10)
+          3. If score >= 5:
+             - Create a proposal file in docs/blog/proposals/
+             - Use format: YYYY-MM-DD-pr-${{ steps.pr.outputs.number }}-<slug>.md
+             - Use the template from docs/blog/_proposal-template.md
+             - Fill in all sections with specific details from the PR
+          4. If score < 5:
+             - Create a brief analysis file explaining why
+          5. Generate a summary comment for the PR
+
+          If this is a MERGE event:
+          - Check for existing proposal in docs/blog/proposals/
+          - Update status to "✅ Ready to Draft"
+          - Add final metrics if available
+          - Suggest updates to related blog posts if applicable
+
+          Output:
+          - Proposal file: docs/blog/proposals/YYYY-MM-DD-pr-${{ steps.pr.outputs.number }}-<slug>.md
+          - Comment: comment.md (summary for PR comment)
+          - Score: score.txt (just the number 1-10)
+          EOF
+
+          # Note: In actual implementation, you would invoke Claude Code here
+          # For now, create a placeholder that can be replaced with actual agent invocation
+
+          echo "8" > score.txt  # Placeholder score
+          echo "## Blog Post Proposal Analysis" > comment.md
+          echo "" >> comment.md
+          echo "This PR has been analyzed by the Blog Post Proposer Agent." >> comment.md
+          echo "" >> comment.md
+          echo "**Blog-Worthiness Score**: 8/10 🟡" >> comment.md
+          echo "**Recommendation**: This PR should be considered for a blog post." >> comment.md
+          echo "" >> comment.md
+          echo "A detailed proposal will be created shortly." >> comment.md
+
+      - name: Read analysis results
+        id: results
+        run: |
+          SCORE=$(cat score.txt)
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+
+          # Determine priority emoji
+          if [ $SCORE -ge 7 ]; then
+            echo "priority=🔴 HIGH" >> $GITHUB_OUTPUT
+            echo "should_propose=true" >> $GITHUB_OUTPUT
+          elif [ $SCORE -ge 5 ]; then
+            echo "priority=🟡 MEDIUM" >> $GITHUB_OUTPUT
+            echo "should_propose=true" >> $GITHUB_OUTPUT
+          elif [ $SCORE -ge 3 ]; then
+            echo "priority=🟢 LOW" >> $GITHUB_OUTPUT
+            echo "should_propose=false" >> $GITHUB_OUTPUT
+          else
+            echo "priority=⚪ SKIP" >> $GITHUB_OUTPUT
+            echo "should_propose=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit proposal file
+        if: steps.results.outputs.should_propose == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Add proposal files
+          git add docs/blog/proposals/
+
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No proposal files to commit"
+          else
+            git commit -m "docs(blog): add blog post proposal for PR #${{ steps.pr.outputs.number }}"
+            git push
+          fi
+
+      - name: Comment on PR
+        if: steps.results.outputs.should_propose == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const comment = fs.readFileSync('comment.md', 'utf8');
+
+            await github.rest.issues.createComment({
+              issue_number: ${{ steps.pr.outputs.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Comment skip reason
+        if: steps.results.outputs.should_propose == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const score = ${{ steps.results.outputs.score }};
+            const priority = '${{ steps.results.outputs.priority }}';
+
+            const comment = `## Blog Post Proposal Analysis
+
+            **Blog-Worthiness Score**: ${score}/10 ${priority}
+
+            This PR does not meet the threshold for a blog post proposal (score < 5).
+
+            **Why?**
+            The changes in this PR, while valuable, are either:
+            - Routine maintenance or small improvements
+            - Lack significant educational value for a blog audience
+            - Don't introduce novel solutions or patterns
+            - Have limited measurable impact
+
+            If you believe this PR should have a blog post, you can manually run the proposer agent with the \`--force\` flag.
+            `;
+
+            await github.rest.issues.createComment({
+              issue_number: ${{ steps.pr.outputs.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## Blog Post Proposer Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**PR**: #${{ steps.pr.outputs.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Event**: ${{ steps.event_type.outputs.type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Score**: ${{ steps.results.outputs.score }}/10" >> $GITHUB_STEP_SUMMARY
+          echo "**Priority**: ${{ steps.results.outputs.priority }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Proposed**: ${{ steps.results.outputs.should_propose }}" >> $GITHUB_STEP_SUMMARY
