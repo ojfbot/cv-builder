@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Theme,
   Header,
@@ -16,6 +16,7 @@ import { store } from './store'
 import { AgentProvider } from './contexts/AgentContext'
 import Dashboard from './components/Dashboard'
 import ApiKeySettings from './components/ApiKeySettings'
+import { APP_PORTS, APPLICATIONS } from './constants'
 import './App.css'
 
 function App() {
@@ -25,25 +26,12 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Mock applications for demo
-  const applications = [
-    'CV Builder',
-    'BlogEngine',
-    'TripPlanner',
-    'Project Manager',
-    'Analytics Dashboard',
-  ]
-
-  // Port mapping for app navigation
-  const appPorts: Record<string, number> = {
-    'CV Builder': 3000,
-    'BlogEngine': 3005,
-    'TripPlanner': 3010,
-  };
-
-  // Filter applications based on search query
-  const filteredApplications = applications.filter(app =>
-    app.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter applications based on search query (memoized for performance)
+  const filteredApplications = useMemo(
+    () => APPLICATIONS.filter(app =>
+      app.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [searchQuery]
   )
 
   useEffect(() => {
@@ -60,10 +48,10 @@ function App() {
   }
 
   const handleAppClick = (appName: string) => {
-    const port = appPorts[appName];
+    const port = APP_PORTS[appName];
     if (port) {
       const url = `http://localhost:${port}`;
-      window.location.href = url;
+      window.open(url, '_blank'); // Open in new tab to preserve state
     }
     setSideNavExpanded(false); // Close sidebar after click
   };
