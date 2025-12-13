@@ -23,6 +23,7 @@ import PipelinesDashboard from './PipelinesDashboard'
 import ToolboxDashboard from './ToolboxDashboard'
 import CondensedChat from './CondensedChat'
 import { ThreadSidebar } from './ThreadSidebar'
+import { V2Toggle } from './V2Toggle'
 import './Dashboard.css'
 
 function DashboardContent() {
@@ -85,21 +86,25 @@ function DashboardContent() {
         <div className="dashboard-header">
           <Heading className="page-header">CV Builder Dashboard</Heading>
 
-          {/* Thread sidebar toggle button (V2 only) */}
-          {v2Enabled && showThreadSidebar && (
-            <Tooltip
-              align="bottom-right"
-              label={sidebarExpanded ? 'Close threads' : 'Show threads'}
-            >
-              <button
-                className="sidebar-toggle-btn"
-                onClick={() => dispatch(setSidebarExpanded(!sidebarExpanded))}
-                aria-label="Toggle thread sidebar"
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <V2Toggle />
+
+            {/* Thread sidebar toggle button (V2 only) */}
+            {v2Enabled && showThreadSidebar && (
+              <Tooltip
+                align="bottom-right"
+                label={sidebarExpanded ? 'Close threads' : 'Show threads'}
               >
-                {sidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
-              </button>
-            </Tooltip>
-          )}
+                <button
+                  className="sidebar-toggle-btn"
+                  onClick={() => dispatch(setSidebarExpanded(!sidebarExpanded))}
+                  aria-label="Toggle thread sidebar"
+                >
+                  {sidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
+                </button>
+              </Tooltip>
+            )}
+          </div>
         </div>
 
         <Tabs

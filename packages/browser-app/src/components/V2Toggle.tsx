@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Rocket, Information } from '@carbon/icons-react';
+import { Rocket } from '@carbon/icons-react';
 import { RootState, AppDispatch } from '../store';
 import {
   setV2Enabled,
@@ -61,13 +61,6 @@ export function V2Toggle() {
       onMouseLeave={() => setIsPopoverOpen(false)}
     >
       <button
-        className="v2-info-button"
-        aria-label="V2 mode information"
-        tabIndex={0}
-      >
-        <Information size={16} />
-      </button>
-      <button
         className="v2-toggle-button"
         onClick={() => !apiAvailable ? null : handleToggle(!enabled)}
         disabled={!apiAvailable}
@@ -116,24 +109,6 @@ export function V2Toggle() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-        }
-
-        .v2-info-button {
-          padding: 0;
-          margin: 0;
-          background: none;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          color: var(--cds-icon-secondary);
-          transition: color 0.2s;
-        }
-
-        .v2-info-button:hover,
-        .v2-info-button:focus {
-          color: var(--cds-icon-primary);
-          outline: none;
         }
 
         .v2-toggle-button {
