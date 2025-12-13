@@ -16,4 +16,4 @@ export const APP_PORTS = {
  * List of all available applications in the suite
  * Only includes applications with defined ports to prevent runtime errors
  */
-export const APPLICATIONS = Object.keys(APP_PORTS) as ReadonlyArray<keyof typeof APP_PORTS>
+export const APPLICATIONS = Object.keys(APP_PORTS) as (keyof typeof APP_PORTS)[]
