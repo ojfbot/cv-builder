@@ -16,7 +16,7 @@ export interface V2State {
 }
 
 const initialState: V2State = {
-  enabled: false, // Default to V1 (backwards compatible)
+  enabled: true, // Default to V2 (LangGraph)
   apiAvailable: false,
   streamingEnabled: true,
   showThreadSidebar: false,
