@@ -75,6 +75,11 @@ if (ENABLE_V2_API) {
   }
 }
 
+// Simple health check for Docker/K8s (no auth, minimal overhead)
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Routes (v1 - agent-core)
 app.use('/api/health', healthRouter);
 app.use('/api/chat', chatRouter);

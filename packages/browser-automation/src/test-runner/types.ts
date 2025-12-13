@@ -133,3 +133,22 @@ export interface RunnerConfig {
   verbose?: boolean;
   filter?: string; // Test name filter
 }
+
+/**
+ * Test summary for reporting
+ */
+export interface TestSummary {
+  total: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  duration?: number;
+}
+
+/**
+ * Reporter interface for test result reporting
+ */
+export interface Reporter {
+  onTestComplete(result: TestResult): Promise<void>;
+  onSuiteComplete(summary: TestSummary): Promise<void>;
+}

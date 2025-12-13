@@ -29,12 +29,19 @@ function App() {
   // Mock applications for demo
   const applications = [
     'CV Builder',
+    'BlogEngine',
     'HR Portal',
     'Analytics Dashboard',
     'Project Manager',
     'Document Editor',
     'Calendar App'
   ]
+
+  // Port mapping for app navigation
+  const appPorts: Record<string, number> = {
+    'CV Builder': 3000,
+    'BlogEngine': 3005,
+  };
 
   // Filter applications based on search query
   const filteredApplications = applications.filter(app =>
@@ -53,6 +60,15 @@ function App() {
   const onClickSideNavExpand = () => {
     setSideNavExpanded(!sideNavExpanded)
   }
+
+  const handleAppClick = (appName: string) => {
+    const port = appPorts[appName];
+    if (port) {
+      const url = `http://localhost:${port}`;
+      window.location.href = url;
+    }
+    setSideNavExpanded(false); // Close sidebar after click
+  };
 
   // Focus search input when sidebar expands
   useEffect(() => {
@@ -120,7 +136,19 @@ function App() {
                   <div className="applications-list">
                     {filteredApplications.length > 0 ? (
                       filteredApplications.map((app, index) => (
-                        <div key={index} className="application-item">
+                        <div
+                          key={index}
+                          className="application-item"
+                          onClick={() => handleAppClick(app)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleAppClick(app);
+                            }
+                          }}
+                        >
                           {app}
                         </div>
                       ))

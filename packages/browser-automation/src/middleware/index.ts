@@ -6,6 +6,6 @@
  * @module middleware
  */
 
-export { requireDevMode, addDevModeHeaders, isDevMode } from './dev-only';
-export { consoleLimiter, evaluateLimiter, errorLimiter } from './rate-limit';
-export { requireConsoleLogger, requireErrorTracker, requireObservability } from './browser-manager';
+export { requireDevMode, addDevModeHeaders, isDevMode } from './dev-only.js';
+export { consoleLimiter, evaluateLimiter, errorLimiter } from './rate-limit.js';
+export { requireConsoleLogger, requireErrorTracker, requireObservability } from './browser-manager.js';

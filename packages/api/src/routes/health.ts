@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { agentManager } from '../services/agent-manager.js';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET /api/health

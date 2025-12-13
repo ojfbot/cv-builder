@@ -10,7 +10,7 @@ import { Router, Request, Response } from 'express';
 import { graphManager } from '../../services/graph-manager';
 import { getRateLimiter } from '../../middleware/rate-limit';
 
-const router = Router();
+const router: Router = Router();
 
 // Simple logger for API routes
 const logger = {

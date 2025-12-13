@@ -7,5 +7,5 @@
  * @module observability
  */
 
-export { ConsoleLogger, ConsoleEntry, GetLogsOptions } from './console-logger';
-export { ErrorTracker, JavaScriptError } from './error-tracker';
+export { ConsoleLogger, ConsoleEntry, GetLogsOptions } from './console-logger.js';
+export { ErrorTracker, JavaScriptError } from './error-tracker.js';

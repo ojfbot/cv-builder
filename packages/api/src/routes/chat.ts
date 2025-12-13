@@ -4,7 +4,7 @@ import { agentManager } from '../services/agent-manager.js';
 import { validateBody } from '../middleware/validation.js';
 import { authenticate } from '../middleware/auth.js';
 
-const router = Router();
+const router: Router = Router();
 
 // Request schemas
 const ChatRequestSchema = z.object({

@@ -10,7 +10,7 @@ import { getRateLimiter } from '../../middleware/rate-limit';
 import chatRouter from './chat';
 import threadsRouter from './threads';
 
-const v2Router = Router();
+const v2Router: Router = Router();
 
 // Apply rate limiting to V2 routes
 // Chat endpoints are more resource-intensive (LangGraph execution)

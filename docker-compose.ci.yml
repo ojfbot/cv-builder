@@ -2,6 +2,7 @@ version: '3.8'
 
 # CI-specific Docker Compose configuration
 # Optimized for GitHub Actions with health checks and deterministic behavior
+# Fixed: Disabled duplicate no-docker workflow to eliminate resource contention
 
 services:
   # Browser App - React UI
@@ -12,14 +13,14 @@ services:
       target: production
       args:
         NODE_VERSION: '24'
+        # API URL for Docker internal network (embedded at build time)
+        VITE_API_URL: http://api:3001/api
     container_name: cv-builder-browser-ci
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=test
       - CI=true
-      # API URL for internal network
-      - VITE_API_URL=http://api:3001
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 5s
@@ -58,8 +59,8 @@ services:
   # Browser Automation - Playwright testing service
   browser-automation:
     build:
-      context: ./packages/browser-automation
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: packages/browser-automation/Dockerfile
       args:
         # Ensure consistent Playwright version
         PLAYWRIGHT_VERSION: '1.40.0'
@@ -72,6 +73,9 @@ services:
       - PORT=3002
       - HEADLESS=true
       - BROWSER_APP_URL=http://browser-app:3000
+      # Aliases for tests that use different variable names
+      - APP_URL=http://browser-app:3000
+      - CV_BUILDER_URL=http://browser-app:3000
       # Deterministic screenshot settings
       - SCREENSHOTS_DIR=/app/temp/screenshots
       - SCREENSHOT_MAX_AGE_DAYS=7

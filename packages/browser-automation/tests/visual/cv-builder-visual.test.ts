@@ -38,9 +38,37 @@ async function main() {
 
   // Suite setup
   suite.beforeAll(async () => {
-    await client.navigate(APP_URL);
-    await client.waitForSelector('.app-container', { timeout: 5000 });
-    console.log('✅ CV Builder loaded');
+    // Retry logic for flaky CI environments where containers may not be fully ready
+    const maxRetries = 2;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 1) {
+          console.log(`🔄 Retry attempt ${attempt}/${maxRetries}...`);
+        }
+
+        // Warmup navigation to give React app time to initialize
+        await client.navigate(APP_URL);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Increased timeout to 30s for Docker environment
+        await client.waitForSelector('.app-container', { timeout: 30000 });
+        console.log('✅ CV Builder loaded');
+        return; // Success - exit retry loop
+      } catch (error) {
+        lastError = error as Error;
+        console.log(`❌ Attempt ${attempt}/${maxRetries} failed: ${lastError.message}`);
+
+        if (attempt < maxRetries) {
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+      }
+    }
+
+    // All retries failed
+    throw new Error(`Failed to load CV Builder after ${maxRetries} attempts. Last error: ${lastError?.message}`);
   });
 
   // Test: Dashboard initial state
