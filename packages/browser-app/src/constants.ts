@@ -6,19 +6,14 @@
  * Port mapping for multi-application navigation
  * Maps application names to their respective localhost ports
  */
-export const APP_PORTS: Record<string, number> = {
+export const APP_PORTS = {
   'CV Builder': 3000,
   'BlogEngine': 3005,
   'TripPlanner': 3010,
-} as const
+} as const satisfies Record<string, number>
 
 /**
  * List of all available applications in the suite
+ * Only includes applications with defined ports to prevent runtime errors
  */
-export const APPLICATIONS = [
-  'CV Builder',
-  'BlogEngine',
-  'TripPlanner',
-  'Project Manager',
-  'Analytics Dashboard',
-] as const
+export const APPLICATIONS = Object.keys(APP_PORTS) as ReadonlyArray<keyof typeof APP_PORTS>

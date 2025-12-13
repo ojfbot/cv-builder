@@ -29,7 +29,7 @@
 /* Remove default h1 top/side margins for proper vertical alignment, keep bottom spacing */
 .dashboard-header .page-header {
   margin: 0;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 /* Dashboard header actions container */
