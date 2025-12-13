@@ -141,9 +141,10 @@ See [`SECURITY.md`](SECURITY.md) for detailed security policies and incident rep
 pnpm dev:all        # API server + Browser UI (agent-core)
 ```
 
-### Run Full Stack (V2 - LangGraph) ⭐ NEW
+### Run Full Stack (V2 - LangGraph) ⭐ DEFAULT
 ```bash
 pnpm dev:v2         # API server + Browser UI (agent-graph)
+# Or use pnpm dev:all - V2 is now the default mode in the browser UI
 ```
 
 This uses the new LangGraph-based architecture with:
@@ -151,6 +152,8 @@ This uses the new LangGraph-based architecture with:
 - 💾 State persistence (checkpointing)
 - 🧵 Thread-based conversations
 - 📡 Streaming support (SSE)
+
+**Note:** V2 (LangGraph) mode is now enabled by default in the browser UI. Users can toggle between V1 and V2 modes using the toggle in the dashboard header.
 
 See [V2_QUICKSTART.md](V2_QUICKSTART.md) for details.
 
