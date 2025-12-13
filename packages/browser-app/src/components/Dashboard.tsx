@@ -86,7 +86,7 @@ function DashboardContent() {
         <div className="dashboard-header">
           <Heading className="page-header">CV Builder Dashboard</Heading>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="dashboard-header-actions">
             <V2Toggle />
 
             {/* Thread sidebar toggle button (V2 only) */}
