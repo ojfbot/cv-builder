@@ -3,42 +3,29 @@
   display: flex !important;
 }
 
-/* Sidebar search container */
+/* Sidebar styles */
 .sidebar-search-container {
   padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
-/* Applications list */
 .applications-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-height: calc(100vh - 250px);
-  overflow-y: auto;
+  margin-top: 1rem;
 }
 
-/* Individual application item */
 .application-item {
   padding: 0.75rem 1rem;
-  background-color: var(--cds-layer-02);
-  border: 1px solid var(--cds-border-subtle);
-  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-  color: var(--cds-text-primary);
+  border-radius: 4px;
+  transition: background-color 0.1s;
+  user-select: none;
 }
 
 .application-item:hover {
-  background-color: var(--cds-layer-hover-02);
-  border-color: var(--cds-border-interactive);
+  background-color: var(--cds-layer-hover);
 }
 
 .application-item:active {
-  background-color: var(--cds-layer-active-02);
+  background-color: var(--cds-layer-active);
 }
 
 .application-item.current-app {
@@ -52,13 +39,10 @@
   outline-offset: -2px;
 }
 
-/* No results message */
 .no-results {
-  padding: 2rem 1rem;
-  text-align: center;
+  padding: 1rem;
   color: var(--cds-text-secondary);
-  font-style: italic;
-  font-size: 0.875rem;
+  text-align: center;
 }
 
 /* Modal height constraints to fit between header and minimized chat */
