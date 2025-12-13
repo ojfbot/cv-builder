@@ -14,7 +14,7 @@
 import { Router, Request, Response } from 'express';
 import { graphManager } from '../../services/graph-manager';
 
-const router = Router();
+const router: Router = Router();
 
 // Simple logger for API routes
 const logger = {

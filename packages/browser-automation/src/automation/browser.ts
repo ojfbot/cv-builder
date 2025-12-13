@@ -334,8 +334,8 @@ class BrowserManager {
 
             await Promise.all(
               databases
-                .filter((db) => db.name)
-                .map((db) => {
+                .filter((db: any) => db.name)
+                .map((db: any) => {
                   return new Promise<void>((resolve, reject) => {
                     const request = indexedDB.deleteDatabase(db.name!);
                     request.onsuccess = () => resolve();

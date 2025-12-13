@@ -41,6 +41,17 @@
   background-color: var(--cds-layer-active-02);
 }
 
+.application-item.current-app {
+  background-color: var(--cds-layer-selected);
+  border-color: var(--cds-border-interactive);
+  font-weight: 600;
+}
+
+.application-item:focus {
+  outline: 2px solid var(--cds-focus);
+  outline-offset: -2px;
+}
+
 /* No results message */
 .no-results {
   padding: 2rem 1rem;

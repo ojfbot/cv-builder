@@ -11,5 +11,11 @@ export default defineConfig({
   },
   server: {
     port: 3000
+  },
+  preview: {
+    port: 3000,
+    strictPort: true,
+    host: true,
+    allowedHosts: true  // Allow all hosts (workaround for Vite bug in 6.0.9+)
   }
 })

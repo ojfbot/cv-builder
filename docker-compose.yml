@@ -36,7 +36,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - VITE_ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # REMOVED: VITE_ANTHROPIC_API_KEY - browser communicates through API server
+      # API should be run separately via 'pnpm dev:api' for local development
     command: sh -c "corepack enable && corepack prepare pnpm@9.15.4 --activate && pnpm install && pnpm dev -- --host"
     networks:
       - cv-builder-network

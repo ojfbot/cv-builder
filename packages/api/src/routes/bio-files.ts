@@ -11,7 +11,7 @@ import { bioFileManager } from '../services/bio-file-manager'
 import { upload, validateFileContent } from '../middleware/file-upload'
 import { authenticate } from '../middleware/auth'
 
-const router = Router()
+const router: Router = Router()
 
 // Input validation constants
 const MAX_CHAT_MESSAGE_LENGTH = 10000 // Maximum characters in a chat message

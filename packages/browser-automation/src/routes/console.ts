@@ -7,9 +7,9 @@ import {
   requireConsoleLogger,
   requireErrorTracker,
   requireObservability,
-} from '../middleware';
-import { getBrowserManager } from '../automation/browser';
-import { LogLevel } from '../observability/console-logger';
+} from '../middleware/index.js';
+import { getBrowserManager } from '../automation/browser.js';
+import { LogLevel } from '../observability/console-logger.js';
 
 const router: Router = express.Router();
 

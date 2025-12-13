@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { getBrowserManager } from '../automation/browser';
+import { getBrowserManager } from '../automation/browser.js';
 
 /**
  * Middleware to ensure console logger is available

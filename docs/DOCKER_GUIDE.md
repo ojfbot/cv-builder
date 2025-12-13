@@ -2,367 +2,512 @@
 
 ## Overview
 
-The CV Builder agent system is containerized for easy deployment and isolation. The browser app can also run in a container for development.
+CV Builder uses a multi-container Docker architecture for development, testing, and production deployments. The system consists of three main services:
+
+1. **Browser App** - React UI served with Vite
+2. **API Server** - Express backend with Claude AI agents
+3. **Browser Automation** - Playwright testing service for visual regression tests
 
 ## Architecture
 
-### Agent System Container
+### Service Containers
 
-The agent core runs in a lightweight Node.js Alpine container:
-- **Base**: node:20-alpine
-- **Purpose**: Run Claude-powered AI agents
-- **Storage**: Volume-mounted data directory
-- **Modes**: Interactive CLI or headless automation
+#### Browser App (`packages/browser-app/Dockerfile`)
+- **Base**: node:24-alpine
+- **Build**: Multi-stage (dependencies → build → production)
+- **Purpose**: Production-optimized React app with Vite
+- **Port**: 3000
+- **Health Check**: HTTP GET / (200 OK)
 
-### Browser App Container (Optional)
+#### API Server (`packages/api/Dockerfile`)
+- **Base**: node:24-alpine
+- **Build**: Multi-stage (dependencies → build → production)
+- **Purpose**: Express server running compiled TypeScript
+- **Port**: 3001
+- **Health Check**: HTTP GET /health (returns `{"status":"ok"}`)
+- **Dependencies**: agent-core, agent-graph (TypeScript sources)
 
-For development, the browser app can also run containerized:
-- **Base**: node:20-alpine
-- **Purpose**: React UI with Vite dev server
-- **Ports**: 3000 (dev server)
+#### Browser Automation (`packages/browser-automation/Dockerfile`)
+- **Base**: mcr.microsoft.com/playwright:v1.40.0-jammy
+- **Purpose**: Playwright-based visual regression testing
+- **Port**: 3002
+- **Health Check**: HTTP GET /health
 
 ## Quick Start
 
-### Using Docker Compose (Recommended)
+### Development (Local - No Docker)
 
 ```bash
-# Start both services
-docker-compose up
+# Run both API and browser app
+pnpm dev:all
 
-# Start in background
-docker-compose up -d
+# Or run separately
+pnpm dev:api    # Terminal 1: API server (port 3001)
+pnpm dev        # Terminal 2: Browser app (port 3000)
+```
+
+### CI/CD Testing with Docker Compose
+
+```bash
+# Build and start all services
+docker compose -f docker-compose.ci.yml up -d
+
+# Check service health
+curl http://localhost:3000              # Browser app
+curl http://localhost:3001/health       # API
+curl http://localhost:3002/health       # Browser automation
 
 # View logs
-docker-compose logs -f
+docker compose -f docker-compose.ci.yml logs -f
+
+# Run visual regression tests
+pnpm --filter @cv-builder/browser-automation test:visual
 
 # Stop all services
-docker-compose down
+docker compose -f docker-compose.ci.yml down -v
 ```
 
-### Using Docker Directly
+## Docker Compose Configurations
 
-```bash
-# Build the agent image
-docker build -t cv-builder-agents .
+### `docker-compose.ci.yml` (CI/CD)
 
-# Run interactively
-docker run -it --rm \
-  -v $(pwd)/data:/app/data \
-  --env-file .env \
-  cv-builder-agents
-
-# Run headless
-docker run -it --rm \
-  -v $(pwd)/data:/app/data \
-  --env-file .env \
-  cv-builder-agents \
-  npm run cli:headless --workspace=@cv-builder/agent-core
-```
-
-## Docker Compose Services
-
-### Agent Service
-
-```yaml
-services:
-  agents:
-    build: .
-    volumes:
-      - ./packages/agent-core:/app/packages/agent-core
-      - ./data:/app/data
-    environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-```
-
-**Usage:**
-```bash
-docker-compose up agents
-```
-
-### Browser App Service
+Optimized for GitHub Actions and deterministic testing:
 
 ```yaml
 services:
   browser-app:
-    image: node:20-alpine
-    volumes:
-      - ./packages/browser-app:/app
+    build:
+      context: .
+      dockerfile: packages/browser-app/Dockerfile
+      target: production
+      args:
+        VITE_API_URL: http://api:3001/api  # Docker internal network
     ports:
       - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+      target: production
+    ports:
+      - "3001:3001"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}  # From GitHub secrets
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+
+  browser-automation:
+    depends_on:
+      browser-app:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    volumes:
+      - ./packages/browser-automation/test-baselines:/app/test-baselines:ro
+      - ./temp/screenshots:/app/temp/screenshots
 ```
 
-**Usage:**
-```bash
-docker-compose up browser-app
-# Access at http://localhost:3000
-```
+**Key Features:**
+- Health checks with proper retries
+- Service dependency ordering (browser-automation waits for app + API)
+- Fixed subnet (172.28.0.0/16) for deterministic networking
+- Read-only baseline mounts
+- Secret injection from environment
 
-## Environment Variables
+## Building Individual Services
 
-Create `.env` file:
-
-```bash
-# Required for agent system
-ANTHROPIC_API_KEY=sk-ant-api03-...
-
-# Optional for browser app
-VITE_ANTHROPIC_API_KEY=sk-ant-api03-...
-```
-
-## Data Persistence
-
-### Agent Data
-
-The `/app/data` directory is mounted as a volume:
-
-```bash
-docker run -v $(pwd)/data:/app/data cv-builder-agents
-```
-
-All agent-generated files (resumes, job analysis, etc.) are stored here.
-
-### Browser Data
-
-Browser app uses LocalStorage - no volume needed for development.
-
-## Common Use Cases
-
-### 1. Development with Hot Reload
-
-```bash
-# Start both services with code mounted
-docker-compose up
-```
-
-Changes to code are automatically reflected (volume mounted).
-
-### 2. Production Agent System
+### Browser App
 
 ```bash
 # Build production image
-docker build --target production -t cv-builder-agents:prod .
+docker build -f packages/browser-app/Dockerfile -t cv-builder-browser-app:latest --target production .
 
-# Run in production
-docker run -d \
-  --name cv-builder-agents \
-  -v /path/to/data:/app/data \
-  --env-file .env \
-  --restart unless-stopped \
-  cv-builder-agents:prod
+# Build with custom API URL
+docker build -f packages/browser-app/Dockerfile \
+  --build-arg VITE_API_URL=http://api:3001/api \
+  -t cv-builder-browser-app:latest .
+
+# Run standalone
+docker run -p 3000:3000 cv-builder-browser-app:latest
 ```
 
-### 3. CI/CD Pipeline
+### API Server
 
 ```bash
-# In your CI pipeline
-docker build -t cv-builder-agents:${CI_COMMIT_SHA} .
-docker push registry.example.com/cv-builder-agents:${CI_COMMIT_SHA}
+# Build production image
+docker build -f packages/api/Dockerfile -t cv-builder-api:latest --target production .
+
+# Run with API key
+docker run -p 3001:3001 \
+  -e ANTHROPIC_API_KEY=sk-ant-... \
+  cv-builder-api:latest
+
+# Test health endpoint
+curl http://localhost:3001/health
 ```
 
-### 4. Kubernetes Deployment
+### Browser Automation
+
+```bash
+# Build test image
+docker build -f packages/browser-automation/Dockerfile -t cv-builder-automation:latest .
+
+# Run tests (requires browser-app and API running)
+docker run --network=host \
+  -e BROWSER_APP_URL=http://localhost:3000 \
+  -e API_URL=http://localhost:3001 \
+  -v $(pwd)/packages/browser-automation/test-baselines:/app/test-baselines:ro \
+  cv-builder-automation:latest
+```
+
+## Multi-Stage Build Details
+
+### Browser App Stages
+
+1. **base** - Node.js Alpine with pnpm
+2. **dependencies** - Install workspace dependencies
+3. **build** - Compile agent-core, build Vite app
+4. **production** - Minimal runtime with `vite preview`
+
+### API Server Stages
+
+1. **base** - Node.js Alpine with pnpm
+2. **dependencies** - Install workspace dependencies + copy agent sources
+3. **build** - Compile TypeScript with `tsconfig.build.json`
+4. **production** - Minimal runtime with `node dist/api/src/server.js`
+
+**Important:** API's TypeScript compilation includes agent-core and agent-graph sources, resulting in `dist/api/src/` and `dist/agent-core/` directories.
+
+## Environment Variables
+
+### Browser App
+
+Build-time variables (embedded in bundle):
+- `VITE_API_URL` - API base URL (default: http://localhost:3001/api)
+
+### API Server
+
+Runtime variables:
+- `ANTHROPIC_API_KEY` - Claude API key (required)
+- `PORT` - Server port (default: 3001)
+- `NODE_ENV` - Environment (test/production)
+- `CORS_ORIGIN` - Allowed CORS origin (default: http://localhost:3000)
+
+### Browser Automation
+
+Runtime variables:
+- `BROWSER_APP_URL` - Browser app URL (default: http://localhost:3000)
+- `API_URL` - API URL (default: http://localhost:3001)
+- `HEADLESS` - Run headless mode (default: true in CI)
+- `CI` - CI environment flag
+
+## GitHub Actions Integration
+
+### Workflow: `.github/workflows/browser-automation-tests.yml`
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cv-builder-agents
-spec:
-  replicas: 1
-  template:
-    spec:
-      containers:
-      - name: agents
-        image: cv-builder-agents:latest
-        env:
-        - name: ANTHROPIC_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: anthropic-secret
-              key: api-key
-        volumeMounts:
-        - name: data
-          mountPath: /app/data
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: cv-builder-data
+- name: Start services with Docker Compose
+  run: docker compose -f docker-compose.ci.yml up -d
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+- name: Wait for services
+  run: |
+    timeout 60 bash -c 'until curl -sf http://localhost:3000 > /dev/null; do sleep 2; done'
+    timeout 60 bash -c 'until curl -sf http://localhost:3001/health > /dev/null; do sleep 2; done'
+
+- name: Run visual regression tests
+  run: pnpm --filter @cv-builder/browser-automation test:visual
+
+- name: Upload artifacts
+  uses: actions/upload-artifact@v4
+  with:
+    name: visual-diffs-${{ github.run_number }}
+    path: temp/test-results/visual-diffs/
 ```
 
-## Build Stages
+**Required GitHub Secret:**
+- `ANTHROPIC_API_KEY` - Claude API key for agent operations
 
-### Development Stage
+## Common Use Cases
 
-```dockerfile
-FROM base AS development
-# Includes all dev dependencies
-# Hot reload enabled
-# tsx for running TypeScript
-```
+### 1. Local Development Testing
 
-**Use:**
 ```bash
-docker build --target development -t cv-builder-dev .
+# Build images locally to test CI configuration
+docker compose -f docker-compose.ci.yml build
+
+# Start services
+docker compose -f docker-compose.ci.yml up
+
+# Run visual tests
+pnpm --filter @cv-builder/browser-automation test:visual
+
+# Clean up
+docker compose -f docker-compose.ci.yml down -v
 ```
 
-### Production Stage
+### 2. Visual Regression Testing
 
-```dockerfile
-FROM base AS production
-# Production optimized
-# Minimal dependencies
-# Non-root user
-```
-
-**Use:**
 ```bash
-docker build --target production -t cv-builder-prod .
+# Start services in background
+docker compose -f docker-compose.ci.yml up -d
+
+# Wait for health checks
+timeout 60 bash -c 'until curl -sf http://localhost:3000 > /dev/null; do sleep 2; done'
+
+# Run tests with baseline comparison
+pnpm --filter @cv-builder/browser-automation test:visual
+
+# Update baselines if needed
+pnpm --filter @cv-builder/browser-automation test:visual:update:all
+```
+
+### 3. CI/CD Pipeline Debugging
+
+```bash
+# Reproduce CI environment locally
+export ANTHROPIC_API_KEY=sk-ant-...
+export CI=true
+export NODE_ENV=test
+
+# Run exactly as CI does
+docker compose -f docker-compose.ci.yml up -d
+pnpm --filter @cv-builder/browser-automation test:comprehensive
+
+# Check logs if failing
+docker compose -f docker-compose.ci.yml logs browser-app
+docker compose -f docker-compose.ci.yml logs api
 ```
 
 ## Networking
 
-### Docker Compose Network
+### Docker Compose Network (test-network)
 
-Services can communicate via service names:
+Fixed subnet: `172.28.0.0/16`
 
-```yaml
-networks:
-  cv-builder-network:
-    driver: bridge
-```
+**Service Discovery:**
+- `browser-app:3000` - Accessible by other containers
+- `api:3001` - Accessible by other containers
+- `browser-automation:3002` - Accessible by other containers
 
-**Example:** Browser app could call agent API at `http://agents:8080`
+**External Access:**
+- `localhost:3000` - Browser app (host → container)
+- `localhost:3001` - API (host → container)
+- `localhost:3002` - Browser automation (host → container)
 
-### External Access
+### Health Checks
+
+All services implement health checks:
 
 ```bash
-# Expose agent API (if implemented)
-docker run -p 8080:8080 cv-builder-agents
+# Browser app
+wget --quiet --tries=1 --spider http://localhost:3000 || exit 1
 
-# Expose browser app
-docker run -p 3000:3000 cv-builder-browser
+# API
+wget --quiet --tries=1 --spider http://localhost:3001/health || exit 1
+
+# Browser automation
+wget --quiet --tries=1 --spider http://localhost:3002/health || exit 1
 ```
+
+**Timing:**
+- Interval: 5-30s
+- Timeout: 3-10s
+- Retries: 3-12
+- Start period: 15-40s
 
 ## Troubleshooting
 
 ### Container Won't Start
 
 ```bash
-# Check logs
-docker logs <container-id>
+# Check build logs
+docker build -f packages/api/Dockerfile -t test-api .
+
+# Check container logs
+docker compose -f docker-compose.ci.yml logs api
 
 # Interactive shell
-docker run -it --entrypoint sh cv-builder-agents
+docker run -it --entrypoint sh cv-builder-api:latest
 ```
 
-### API Key Issues
+### Health Check Failing
 
 ```bash
-# Verify env vars
-docker run --rm cv-builder-agents env | grep ANTHROPIC
+# Test health endpoint manually
+curl -v http://localhost:3001/health
 
-# Pass directly (not recommended for production)
-docker run -e ANTHROPIC_API_KEY=sk-ant-... cv-builder-agents
+# Check service logs
+docker compose -f docker-compose.ci.yml logs api | grep health
+
+# Check if service is listening
+docker exec <container-id> netstat -tuln | grep 3001
 ```
 
-### Volume Permission Issues
+### TypeScript Compilation Errors
 
 ```bash
-# Check ownership
-docker run -v $(pwd)/data:/app/data cv-builder-agents ls -la /app/data
+# Check if tsconfig.build.json exists
+ls packages/api/tsconfig.build.json
 
-# Fix permissions
-sudo chown -R 1001:1001 ./data
+# Test build locally
+pnpm --filter @cv-builder/api build
+
+# Check dist output structure
+ls -R packages/api/dist/
+```
+
+### Visual Tests Failing
+
+```bash
+# Ensure baselines exist
+ls packages/browser-automation/test-baselines/
+
+# Check if services are accessible
+curl http://localhost:3000
+curl http://localhost:3001/health
+
+# Run tests with verbose output
+DEBUG=pw:api pnpm --filter @cv-builder/browser-automation test:visual
 ```
 
 ### Build Cache Issues
 
 ```bash
-# Clean build
-docker build --no-cache -t cv-builder-agents .
+# Clean build all services
+docker compose -f docker-compose.ci.yml build --no-cache
 
 # Remove old images
 docker image prune -a
+
+# Clear pnpm store cache
+docker builder prune
 ```
 
 ## Best Practices
 
-1. **Never commit .env files** - Use .env.example as template
-2. **Use specific tags** - Avoid :latest in production
-3. **Multi-stage builds** - Separate dev and prod images
-4. **Health checks** - Add health check endpoints
-5. **Resource limits** - Set memory/CPU limits
-6. **Logging** - Configure proper log aggregation
-7. **Secrets management** - Use Docker secrets or external vault
+### 1. Layer Caching
 
-## Security Considerations
+Optimize Dockerfile for faster builds:
 
-1. **API Keys**: Never hardcode, use environment variables
-2. **User Permissions**: Container runs as non-root user (1001)
-3. **Network Isolation**: Use internal networks when possible
-4. **Image Scanning**: Scan images for vulnerabilities
-5. **Updates**: Keep base images updated
+```dockerfile
+# ✅ Good - Copy package.json first (changes less frequently)
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
+
+# ❌ Bad - Copy everything first
+COPY . .
+RUN pnpm install
+```
+
+### 2. Multi-Stage Builds
+
+Use stages to minimize production image size:
+
+```dockerfile
+FROM base AS dependencies
+# Install all dependencies
+
+FROM dependencies AS build
+# Build application
+
+FROM base AS production
+# Copy only production artifacts
+```
+
+### 3. Health Checks
+
+Always implement health checks for service orchestration:
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=10s \
+  CMD wget --quiet --tries=1 --spider http://localhost:3001/health || exit 1
+```
+
+### 4. Secret Management
+
+Never hardcode secrets:
+
+```bash
+# ✅ Good - Use environment variable
+ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+# ❌ Bad - Hardcoded secret
+ANTHROPIC_API_KEY=sk-ant-1234567890
+```
+
+### 5. Resource Limits
+
+Set appropriate limits for CI:
+
+```yaml
+deploy:
+  resources:
+    limits:
+      cpus: '2.0'
+      memory: 2G
+```
 
 ## Performance Optimization
 
-### Reduce Image Size
+### Build Time
 
-```dockerfile
-# Use alpine base
-FROM node:20-alpine
+- Use pnpm cache mount: `--mount=type=cache,target=/root/.pnpm-store`
+- Copy dependencies before source code
+- Use `.dockerignore` to exclude unnecessary files
 
-# Remove dev dependencies in production
-RUN npm ci --production
+### Runtime
 
-# Multi-stage builds
-COPY --from=builder /app/dist ./dist
-```
+- Use Alpine base images (smaller size)
+- Multi-stage builds (production doesn't need build tools)
+- Health check intervals tuned for responsiveness
 
-### Layer Caching
+### CI/CD
 
-```dockerfile
-# Copy package files first
-COPY package*.json ./
-RUN npm ci
+- Build images in parallel when possible
+- Use GitHub Actions cache for Docker layers
+- Set appropriate timeouts (15 min for full workflow)
 
-# Then copy source (changes frequently)
-COPY . .
-```
+## Security Considerations
 
-### Volume Performance
+1. **API Keys**: Stored in GitHub secrets, injected at runtime
+2. **Read-Only Volumes**: Test baselines mounted as `:ro`
+3. **Network Isolation**: Services on private network
+4. **Health Checks**: Prevent deploying unhealthy containers
+5. **No Root User**: Containers run as node user
 
-```yaml
-volumes:
-  # For macOS/Windows, use delegated for better performance
-  - ./data:/app/data:delegated
-```
+## Maintenance
 
-## Monitoring
-
-### Container Stats
+### Updating Base Images
 
 ```bash
-docker stats cv-builder-agents
+# Update Node.js version in Dockerfiles
+FROM node:24-alpine  # Change version here
+
+# Update pnpm version
+corepack prepare pnpm@9.15.4 --activate  # Change version here
 ```
 
-### Logs
+### Updating Dependencies
 
 ```bash
-# Follow logs
-docker logs -f cv-builder-agents
+# Update pnpm-lock.yaml
+pnpm install
 
-# Last 100 lines
-docker logs --tail 100 cv-builder-agents
-```
-
-### Health Checks
-
-```dockerfile
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD node healthcheck.js || exit 1
+# Rebuild images
+docker compose -f docker-compose.ci.yml build --no-cache
 ```
 
 ## Resources
 
-- [Docker Documentation](https://docs.docker.com/)
-- [Docker Compose Reference](https://docs.docker.com/compose/)
-- [Node.js Docker Best Practices](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md)
+- [Multi-Stage Builds](https://docs.docker.com/build/building/multi-stage/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- [Health Checks](https://docs.docker.com/reference/dockerfile/#healthcheck)
+- [Node.js Best Practices](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md)

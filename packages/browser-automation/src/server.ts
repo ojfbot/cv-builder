@@ -107,29 +107,32 @@ app.post('/api/close', async (_req: Request, res: Response) => {
  * Clears localStorage, sessionStorage, cookies, and indexedDB
  * Only available in development mode for security
  */
-app.post('/api/storage/clear', async (_req: Request, res: Response) => {
+app.post('/api/storage/clear', async (_req: Request, res: Response): Promise<void> => {
   // Only allow storage clearing in development/test mode
   const allowedEnvs = ['development', 'test'];
   if (!allowedEnvs.includes(NODE_ENV)) {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       error: 'Storage clearing is only available in development/test mode',
     });
+    return;
   }
 
   try {
     await browserManager.clearStorage();
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: 'Browser storage cleared successfully',
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (error) {
     console.error('Error clearing storage:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
+    return;
   }
 });
 
@@ -138,29 +141,32 @@ app.post('/api/storage/clear', async (_req: Request, res: Response) => {
  * Creates a completely new browser context with clean state
  * Only available in development mode for security
  */
-app.post('/api/context/reset', async (_req: Request, res: Response) => {
+app.post('/api/context/reset', async (_req: Request, res: Response): Promise<void> => {
   // Only allow context reset in development/test mode
   const allowedEnvs = ['development', 'test'];
   if (!allowedEnvs.includes(NODE_ENV)) {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       error: 'Context reset is only available in development/test mode',
     });
+    return;
   }
 
   try {
     await browserManager.resetContext();
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: 'Browser context reset successfully',
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (error) {
     console.error('Error resetting context:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
+    return;
   }
 });
 
