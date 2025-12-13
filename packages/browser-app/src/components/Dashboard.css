@@ -21,9 +21,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
   position: relative;
   overflow: visible;
+}
+
+/* Remove default h1 top/side margins for proper vertical alignment, keep bottom spacing */
+.dashboard-header .page-header {
+  margin: 0;
+  line-height: 1;
 }
 
 /* Dashboard header actions container */
