@@ -58,7 +58,7 @@ function InteractiveChat() {
   // @ts-expect-error - TS6133: Variables are used in JSX below
   const [showContextualSuggestions, setShowContextualSuggestions] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const sharedInputRef = useRef<HTMLTextAreaElement>(null)
 
   // Slash commands setup
   const slashCommands = useSlashCommands({
@@ -67,13 +67,12 @@ function InteractiveChat() {
       // Update input with selected command
       dispatch(setDraftInputAction(commandString + ' '))
       // Focus input after selection
-      setTimeout(() => inputRef.current?.focus(), 0)
+      setTimeout(() => sharedInputRef.current?.focus(), 0)
     },
     context: {
-      sendMessage: async (message: string) => {
-        dispatch(setDraftInputAction(message))
-        // Delay slightly to allow input to update before sending
-        setTimeout(() => handleSend(message), 50)
+      sendMessage: async (_message: string) => {
+        // This should never be called now - commands return messages instead
+        console.warn('Deprecated sendMessage called from command context')
       },
       clearChat: () => {
         // Clear chat functionality
@@ -82,6 +81,9 @@ function InteractiveChat() {
       }
     }
   })
+
+  // Share the ref with the slash commands hook
+  slashCommands.inputRef.current = sharedInputRef.current
 
   // Auto-scroll to bottom - direct scrollTop manipulation is more reliable
   const scrollToBottom = useCallback((smooth = false) => {
@@ -288,14 +290,30 @@ function InteractiveChat() {
 
     // Check if this is a slash command
     if (textToSend.startsWith('/')) {
-      const executed = await slashCommands.executeCommand(textToSend)
-      if (executed) {
-        // Command was executed successfully, clear input
+      const result = await slashCommands.executeCommand(textToSend)
+
+      if (result.error) {
+        // Show error message to user
+        const errorMessage: Message = {
+          role: 'assistant',
+          content: `❌ **Command Error:** ${result.error}`
+        }
+        dispatch(addMessageToStore({ message: errorMessage, markAsRead: true }))
         dispatch(setDraftInputAction(''))
         return
       }
-      // If command execution failed, continue with normal message flow
-      // This allows partial commands to be sent as regular messages
+
+      if (result.success) {
+        // Command was executed successfully, clear input
+        dispatch(setDraftInputAction(''))
+
+        // If command returned a message, send it as a regular chat message
+        if (result.message) {
+          // Recursively call handleSend with the message (not a command anymore)
+          await handleSend(result.message)
+        }
+        return
+      }
     }
 
     // Check if V2 is active or V1 is initialized
@@ -484,7 +502,7 @@ function InteractiveChat() {
     // Otherwise, it's a chat query action
     dispatch(setDraftInputAction(action.query))
     // Focus the input to show the auto-populated text
-    inputRef.current?.focus()
+    sharedInputRef.current?.focus()
     // Animate the send button click after a brief delay
     setTimeout(() => {
       handleSend(action.query)
@@ -543,7 +561,7 @@ function InteractiveChat() {
           await handleSend(content)
         } else {
           // No navigation, just focus for manual sending
-          inputRef.current?.focus()
+          sharedInputRef.current?.focus()
         }
       } else if (role === 'assistant') {
         // Assistant-perspective message: add as assistant message WITHOUT triggering agent
@@ -558,7 +576,7 @@ function InteractiveChat() {
         // Focus input for user to type their response
         // Small delay to ensure message is rendered first
         setTimeout(() => {
-          inputRef.current?.focus()
+          sharedInputRef.current?.focus()
         }, 100)
       }
     }
@@ -660,11 +678,7 @@ function InteractiveChat() {
         <div className="input-wrapper">
           <div className="textarea-container">
             <TextArea
-              ref={(el) => {
-                // @ts-expect-error - Carbon ref types are readonly but we need to assign for dual refs
-                inputRef.current = el
-                slashCommands.inputRef.current = el
-              }}
+              ref={sharedInputRef}
               labelText="Message"
               placeholder="Type / for commands, or ask about resume generation, job analysis, learning paths..."
               value={draftInput}
@@ -675,6 +689,10 @@ function InteractiveChat() {
               rows={3}
               disabled={!isInitialized}
               data-element="chat-input"
+              aria-controls={slashCommands.showMenu ? 'slash-command-menu' : undefined}
+              aria-activedescendant={slashCommands.showMenu ? `command-option-${slashCommands.selectedIndex}` : undefined}
+              aria-autocomplete="list"
+              aria-expanded={slashCommands.showMenu}
             />
             <div className="input-actions">
               <IconButton

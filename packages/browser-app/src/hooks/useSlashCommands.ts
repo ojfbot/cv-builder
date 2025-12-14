@@ -44,10 +44,27 @@ export function useSlashCommands({ input, onCommandExecuted, context }: UseSlash
   const updateMenuPosition = useCallback(() => {
     if (inputRef.current) {
       const rect = inputRef.current.getBoundingClientRect();
-      setMenuPosition({
-        top: rect.top - 10, // Position above the input
-        left: rect.left
-      });
+      const viewportHeight = window.innerHeight;
+      const menuHeight = 300; // Approximate max menu height
+
+      // Check if there's enough space above the input
+      const spaceAbove = rect.top;
+      const spaceBelow = viewportHeight - rect.bottom;
+
+      // Position menu where there's more space
+      if (spaceAbove > menuHeight || spaceAbove > spaceBelow) {
+        // Position above input
+        setMenuPosition({
+          top: rect.top - 10,
+          left: rect.left
+        });
+      } else {
+        // Position below input
+        setMenuPosition({
+          top: rect.bottom + 10,
+          left: rect.left
+        });
+      }
     }
   }, []);
 
@@ -60,7 +77,9 @@ export function useSlashCommands({ input, onCommandExecuted, context }: UseSlash
       window.addEventListener('resize', updateMenuPosition);
       return () => window.removeEventListener('resize', updateMenuPosition);
     }
-  }, [showMenu, updateMenuPosition]);
+    // updateMenuPosition is stable (no dependencies), so we exclude it from deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMenu]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
@@ -126,9 +145,9 @@ export function useSlashCommands({ input, onCommandExecuted, context }: UseSlash
     [matches, onCommandExecuted]
   );
 
-  // Execute command string
+  // Execute command string and return result
   const executeCommand = useCallback(
-    async (commandString: string): Promise<boolean> => {
+    async (commandString: string): Promise<{ success: boolean; message?: string; error?: string }> => {
       return await slashCommandService.executeCommand(commandString, context);
     },
     [context]

@@ -56,6 +56,7 @@ export default function CommandMenu({
   return (
     <div
       ref={menuRef}
+      id="slash-command-menu"
       className="command-menu"
       style={{
         top: `${position.top}px`,
@@ -67,6 +68,7 @@ export default function CommandMenu({
       {matches.map((match, index) => (
         <div
           key={`${match.command.name}-${index}`}
+          id={`command-option-${index}`}
           ref={index === selectedIndex ? selectedItemRef : null}
           className={`command-menu-item ${index === selectedIndex ? 'selected' : ''}`}
           role="option"
