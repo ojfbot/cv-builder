@@ -1,0 +1,104 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "modal-1",
+      "type": "component",
+      "label": "Main Page",
+      "metadata": {},
+      "screenshotConfig": {
+        "viewport": "desktop",
+        "captureAt": "before"
+      }
+    },
+    {
+      "id": "modal-2",
+      "type": "action",
+      "label": "user clicks Settings button",
+      "metadata": {},
+      "interaction": {
+        "type": "click",
+        "target": "settings-button",
+        "description": "Open settings modal"
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "modal-3",
+      "type": "state",
+      "label": "Settings modal shown",
+      "metadata": {},
+      "assertions": [
+        {
+          "selector": ".settings-modal",
+          "expected": {
+            "visible": true
+          },
+          "description": "Modal is visible"
+        }
+      ],
+      "screenshotConfig": {
+        "viewport": "desktop",
+        "captureAt": "after"
+      }
+    },
+    {
+      "id": "modal-4",
+      "type": "action",
+      "label": "user clicks close button",
+      "metadata": {},
+      "interaction": {
+        "type": "click",
+        "target": "modal-close-button",
+        "description": "Close modal"
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "modal-5",
+      "type": "state",
+      "label": "Settings modal hidden",
+      "metadata": {},
+      "assertions": [
+        {
+          "selector": ".settings-modal",
+          "expected": {
+            "visible": false
+          },
+          "description": "Modal is hidden"
+        }
+      ],
+      "screenshotConfig": {
+        "viewport": "desktop",
+        "captureAt": "after"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "modal-1",
+      "target": "modal-2"
+    },
+    {
+      "id": "e2",
+      "source": "modal-2",
+      "target": "modal-3"
+    },
+    {
+      "id": "e3",
+      "source": "modal-3",
+      "target": "modal-4"
+    },
+    {
+      "id": "e4",
+      "source": "modal-4",
+      "target": "modal-5"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2025-12-14T01:12:27.861Z",
+    "sourceFile": "modal-dialog.drawio"
+  }
+}

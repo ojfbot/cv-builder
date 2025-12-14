@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "name": "Form Interaction",
+    "description": "Template for documenting form filling, validation, and submission flows",
+    "category": "form",
+    "expectedScreenshots": 6,
+    "tags": [
+      "form",
+      "input",
+      "validation",
+      "submit"
+    ],
+    "examples": [
+      "User fills out registration form",
+      "User submits contact form with validation errors",
+      "User uploads file and sees preview"
+    ]
+  },
+  "fewShotExamples": [
+    {
+      "input": "User enters \"test@example.com\" in email field",
+      "output": "{\n  \"type\": \"action\",\n  \"interaction\": {\n    \"type\": \"type\",\n    \"target\": \"email-field\",\n    \"value\": \"test@example.com\"\n  }\n}",
+      "explanation": "Type interactions capture both target field and input value"
+    },
+    {
+      "input": "Form shows validation error",
+      "output": "{\n  \"type\": \"state\",\n  \"assertions\": [\n    {\n      \"selector\": \".error-message\",\n      \"expected\": {\n        \"visible\": true,\n        \"text\": \"Email is required\"\n      }\n    }\n  ]\n}",
+      "explanation": "State changes include assertions to verify expected UI state"
+    }
+  ]
+}

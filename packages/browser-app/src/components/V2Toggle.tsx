@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Rocket, Information } from '@carbon/icons-react';
+import { Rocket } from '@carbon/icons-react';
 import { RootState, AppDispatch } from '../store';
 import {
   setV2Enabled,
@@ -80,16 +80,6 @@ export function V2Toggle() {
         </div>
       </button>
 
-      {/* Info icon button for mobile accessibility */}
-      <button
-        className="v2-info-button"
-        onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-        aria-label="Toggle V2 mode information"
-        type="button"
-      >
-        <Information size={16} />
-      </button>
-
       {isPopoverOpen && (
         <div className="v2-popover">
           <div className="v2-popover-header">
@@ -104,6 +94,13 @@ export function V2Toggle() {
             <div className="v2-popover-warning">
               <strong>⚠️ V2 API Not Available</strong>
               <p>Set ENABLE_V2_API=true on the server</p>
+            </div>
+          )}
+
+          {!enabled && (
+            <div className="v2-popover-warning">
+              <strong>⚠️ V1 Mode (Deprecated)</strong>
+              <p>Limited functionality. V2 recommended for all new workflows.</p>
             </div>
           )}
 
