@@ -179,11 +179,23 @@ export class InteractionExecutor {
     const value = node.interaction!.value;
 
     if (!target) {
-      throw new Error(`Type node ${node.id} missing target selector`);
+      throw new Error(
+        `Type node ${node.id} missing target selector\n` +
+        `Node label: "${node.label}"\n` +
+        `Expected format: type 'value' into target\n` +
+        `Example: user types 'test@example.com' into email field\n` +
+        `The target should describe the input field (e.g., "name field", "email", "search box")`
+      );
     }
 
     if (!value) {
-      throw new Error(`Type node ${node.id} missing value`);
+      throw new Error(
+        `Type node ${node.id} missing value\n` +
+        `Node label: "${node.label}"\n` +
+        `Expected format: type 'value' into target\n` +
+        `Example: user types 'John Doe' into name field\n` +
+        `Tip: Wrap the value in single or double quotes. See DRAWIO_SYNTAX.md for details.`
+      );
     }
 
     // Wait for input field

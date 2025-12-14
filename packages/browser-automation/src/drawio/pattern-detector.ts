@@ -276,6 +276,20 @@ export class PatternDetector {
   private extractTypeValue(label: string): string | undefined {
     // Pattern: "type '[value]'" or "enter '[value]'"
     const match = label.match(/(?:type|enter)\s+['"]([^'"]+)['"]/i);
+
+    if (!match) {
+      // Check if this looks like a type action but is missing quotes
+      const hasTypeKeyword = /(?:type|enter)\s+/i.test(label);
+      if (hasTypeKeyword) {
+        console.warn(
+          `⚠️  Type action missing quoted value in label: "${label}"\n` +
+          `   Expected format: type 'value' into target\n` +
+          `   Example: type 'John Doe' into name field\n` +
+          `   See DRAWIO_SYNTAX.md for details`
+        );
+      }
+    }
+
     return match ? match[1] : undefined;
   }
 
