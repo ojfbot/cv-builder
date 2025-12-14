@@ -6,7 +6,9 @@ import { useState } from 'react';
 import type { TestRun, ScreenshotMetadata } from '../types';
 import { useManifest } from '../hooks/useManifest';
 import { ScreenshotGallery } from './ScreenshotGallery';
-import { getScreenshotUrl } from '../utils/dataLoader';
+import { DiagramViewer } from './DiagramViewer';
+import { InteractionInspector } from './InteractionInspector';
+import { getDiagramUrl } from '../utils/dataLoader';
 
 interface TestRunDetailProps {
   run: TestRun;
@@ -114,74 +116,58 @@ export function TestRunDetail({ run, onBack }: TestRunDetailProps) {
         </div>
       </div>
 
-      {/* Interactions */}
-      <h3>Test Interactions</h3>
-      {manifest.interactions.map((interaction, index) => (
-        <div key={index} className="card">
-          <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-            <h4 style={{ margin: 0 }}>
-              Step {interaction.stepNumber}: {interaction.node.label}
-            </h4>
-            <span className={`badge ${interaction.success ? 'success' : 'error'}`}>
-              {interaction.success ? 'PASSED' : 'FAILED'}
-            </span>
-          </div>
+      {/* Diagram Viewer */}
+      {run.diagrams && run.diagrams.length > 0 && (
+        <DiagramViewer
+          diagramUrl={getDiagramUrl(run.diagrams[0], run.manifestPath)}
+          diagramName={run.diagrams[0]}
+        />
+      )}
 
-          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
-            <div>Duration: {interaction.duration}ms</div>
-            {interaction.error && <div style={{ color: 'var(--color-error)' }}>Error: {interaction.error}</div>}
-          </div>
-
-          {/* Screenshots */}
-          {interaction.screenshots.length > 0 && (
-            <div>
-              <strong style={{ display: 'block', marginBottom: '0.5rem' }}>
-                Screenshots ({interaction.screenshots.length}):
-              </strong>
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
-                {interaction.screenshots.map((screenshot, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => handleScreenshotClick(interaction.screenshots)}
-                    style={{
-                      cursor: 'pointer',
-                      border: `2px solid ${screenshot.passed ? 'var(--color-success)' : 'var(--color-error)'}`,
-                      borderRadius: 'var(--border-radius)',
-                      overflow: 'hidden',
-                      transition: 'transform 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <img
-                      src={getScreenshotUrl(screenshot.screenshotPath, run.manifestPath)}
-                      alt={`Screenshot ${idx + 1}`}
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                        display: 'block',
-                      }}
-                    />
-                    <div
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        fontSize: '0.75rem',
-                        backgroundColor: screenshot.passed ? '#d1f1dc' : '#ffd7d9',
-                        textAlign: 'center',
-                      }}
-                    >
-                      {screenshot.captureAt} - {screenshot.passed ? 'OK' : `${screenshot.diffPercentage?.toFixed(2)}%`}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Test Analysis */}
+      {manifest.summary.totalFailed > 0 && (
+        <div
+          className="card"
+          style={{
+            border: '2px solid var(--color-error)',
+            backgroundColor: '#520408',
+          }}
+        >
+          <h3 style={{ marginTop: 0, color: 'var(--color-error)' }}>
+            ⚠️ Test Failures Detected
+          </h3>
+          <p style={{ marginBottom: '0.5rem' }}>
+            This test run shows <strong>{manifest.summary.totalFailed}</strong> failing interaction(s).
+            These failures indicate that the interactions defined in the Draw.io diagram could not execute
+            successfully.
+          </p>
+          <details style={{ marginTop: '1rem' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+              Common Causes & Next Steps
+            </summary>
+            <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
+              <li>Missing values in interaction nodes (e.g., type actions without input values)</li>
+              <li>Incorrect CSS selectors or element locators</li>
+              <li>Target elements not present in the UI</li>
+              <li>Network timeouts or slow page loads</li>
+            </ul>
+            <p style={{ marginTop: '1rem', fontSize: '0.875rem' }}>
+              💡 <strong>Tip:</strong> Expand each interaction below to see detailed error messages and node metadata.
+            </p>
+          </details>
         </div>
+      )}
+
+      {/* Interactions */}
+      <h3>Test Interactions ({manifest.interactions.length})</h3>
+      {manifest.interactions.map((interaction, index) => (
+        <InteractionInspector
+          key={index}
+          interaction={interaction}
+          index={index}
+          manifestPath={run.manifestPath}
+          onScreenshotClick={handleScreenshotClick}
+        />
       ))}
 
       {/* Screenshot Gallery */}

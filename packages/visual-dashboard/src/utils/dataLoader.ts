@@ -69,3 +69,12 @@ export function getScreenshotUrl(screenshotPath: string, manifestPath?: string):
   // Fallback to direct path
   return `${BASE_PATH}/${sanitizedScreenshot}`;
 }
+
+export function getDiagramUrl(diagramName: string, manifestPath: string): string {
+  const sanitizedDiagram = sanitizePath(diagramName);
+  const sanitizedManifest = sanitizePath(manifestPath);
+
+  // Extract directory from manifest path
+  const dir = sanitizedManifest.replace('manifests/', '').replace('/manifest.json', '');
+  return `${BASE_PATH}/diagrams/${dir}/${sanitizedDiagram}`;
+}
