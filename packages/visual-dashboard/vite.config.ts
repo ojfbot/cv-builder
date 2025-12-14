@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/cv-builder/visual-regression/',
+  base: '/cv-builder/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
