@@ -50,11 +50,7 @@ function App() {
   const handleAppClick = (appName: keyof typeof APP_PORTS) => {
     const port = APP_PORTS[appName];
     const url = `http://localhost:${port}`;
-    const newWindow = window.open(url, '_blank'); // Open in new tab to preserve state
-    if (newWindow) {
-      newWindow.opener = null; // Security: prevent reverse tabnabbing
-    }
-    setSideNavExpanded(false); // Close sidebar after click
+    window.location.href = url; // Navigate in same tab
   };
 
   // Focus search input when sidebar expands
