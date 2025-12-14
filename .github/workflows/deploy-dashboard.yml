@@ -57,11 +57,32 @@ jobs:
           mkdir -p packages/visual-dashboard/public/data/screenshots
           mkdir -p packages/visual-dashboard/public/data/diagrams
 
-          # Copy manifests (if they exist)
+          # Copy manifests preserving directory structure from temp/
           if [ -d "packages/browser-automation/temp" ]; then
-            find packages/browser-automation/temp -name "manifest.json" -exec cp --parents {} packages/visual-dashboard/public/data/manifests/ \; || true
-            find packages/browser-automation/temp -name "*.png" -exec cp --parents {} packages/visual-dashboard/public/data/screenshots/ \; || true
-            find packages/browser-automation/temp -name "*.drawio" -exec cp --parents {} packages/visual-dashboard/public/data/diagrams/ \; || true
+            cd packages/browser-automation/temp
+
+            # Copy manifests
+            find . -name "manifest.json" | while read file; do
+              dest="../../../visual-dashboard/public/data/manifests/$(dirname "$file")"
+              mkdir -p "$dest"
+              cp "$file" "$dest/"
+            done
+
+            # Copy screenshots
+            find . -name "*.png" | while read file; do
+              dest="../../../visual-dashboard/public/data/screenshots/$(dirname "$file")"
+              mkdir -p "$dest"
+              cp "$file" "$dest/"
+            done
+
+            # Copy diagrams
+            find . -name "*.drawio" | while read file; do
+              dest="../../../visual-dashboard/public/data/diagrams/$(dirname "$file")"
+              mkdir -p "$dest"
+              cp "$file" "$dest/"
+            done
+
+            cd ../../..
           fi
 
       - name: Build dashboard
