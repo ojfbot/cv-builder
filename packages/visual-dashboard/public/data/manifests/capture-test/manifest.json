@@ -1,0 +1,110 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-12-14T01:36:57.672Z",
+  "gitCommit": "c7b32fe2ac2a4d353e402c9346aaf3ae6cf4b7ce",
+  "diagramSource": "form-interaction.drawio",
+  "totalSteps": 2,
+  "screenshotsCaptured": 2,
+  "duration": 2403,
+  "passed": false,
+  "interactions": [
+    {
+      "node": {
+        "id": "form-2",
+        "type": "action",
+        "label": "user types name into name field",
+        "rawLabel": "user types name into name field",
+        "metadata": {
+          "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;",
+          "parentId": "1",
+          "geometry": {
+            "x": 400,
+            "y": 100,
+            "width": 200,
+            "height": 80
+          }
+        },
+        "interaction": {
+          "type": "type",
+          "target": "name into name",
+          "description": "user types name into name field"
+        },
+        "confidence": 0.8
+      },
+      "stepNumber": 1,
+      "success": false,
+      "error": "Type node form-2 missing value",
+      "screenshots": [
+        {
+          "nodeId": "form-2",
+          "stepNumber": 1,
+          "interactionType": "type",
+          "timestamp": "2025-12-14T01:36:57.611Z",
+          "viewport": {
+            "width": 1280,
+            "height": 720,
+            "deviceScaleFactor": 1
+          },
+          "screenshotPath": "step-01-before-desktop.png",
+          "passed": true,
+          "captureAt": "before",
+          "gitCommit": "c7b32fe2ac2a4d353e402c9346aaf3ae6cf4b7ce",
+          "nodeLabel": "user types name into name field"
+        }
+      ],
+      "duration": 70
+    },
+    {
+      "node": {
+        "id": "form-3",
+        "type": "action",
+        "label": "user types email into email field",
+        "rawLabel": "user types email into email field",
+        "metadata": {
+          "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;",
+          "parentId": "1",
+          "geometry": {
+            "x": 100,
+            "y": 220,
+            "width": 200,
+            "height": 80
+          }
+        },
+        "interaction": {
+          "type": "type",
+          "target": "email into email",
+          "description": "user types email into email field"
+        },
+        "confidence": 0.8
+      },
+      "stepNumber": 2,
+      "success": false,
+      "error": "Type node form-3 missing value",
+      "screenshots": [
+        {
+          "nodeId": "form-3",
+          "stepNumber": 2,
+          "interactionType": "type",
+          "timestamp": "2025-12-14T01:36:57.655Z",
+          "viewport": {
+            "width": 1280,
+            "height": 720,
+            "deviceScaleFactor": 1
+          },
+          "screenshotPath": "step-02-before-desktop.png",
+          "passed": true,
+          "captureAt": "before",
+          "gitCommit": "c7b32fe2ac2a4d353e402c9346aaf3ae6cf4b7ce",
+          "nodeLabel": "user types email into email field"
+        }
+      ],
+      "duration": 39
+    }
+  ],
+  "summary": {
+    "totalPassed": 0,
+    "totalFailed": 2,
+    "totalScreenshots": 2,
+    "averageDiffPercentage": 0
+  }
+}

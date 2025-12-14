@@ -1,0 +1,82 @@
+name: Deploy Visual Regression Dashboard
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/visual-dashboard/**'
+      - 'packages/browser-automation/temp/**'
+      - '.github/workflows/deploy-dashboard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate data index
+        run: |
+          cd packages/visual-dashboard
+          pnpm generate-index
+
+      - name: Copy test artifacts to public/data
+        run: |
+          # Create directories
+          mkdir -p packages/visual-dashboard/public/data/manifests
+          mkdir -p packages/visual-dashboard/public/data/screenshots
+          mkdir -p packages/visual-dashboard/public/data/diagrams
+
+          # Copy manifests (if they exist)
+          if [ -d "packages/browser-automation/temp" ]; then
+            find packages/browser-automation/temp -name "manifest.json" -exec cp --parents {} packages/visual-dashboard/public/data/manifests/ \; || true
+            find packages/browser-automation/temp -name "*.png" -exec cp --parents {} packages/visual-dashboard/public/data/screenshots/ \; || true
+            find packages/browser-automation/temp -name "*.drawio" -exec cp --parents {} packages/visual-dashboard/public/data/diagrams/ \; || true
+          fi
+
+      - name: Build dashboard
+        run: |
+          cd packages/visual-dashboard
+          pnpm build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'packages/visual-dashboard/dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

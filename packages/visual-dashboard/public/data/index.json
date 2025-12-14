@@ -1,0 +1,18 @@
+{
+  "runs": [
+    {
+      "id": "1765676217672-c7b32fe",
+      "timestamp": "2025-12-14T01:36:57.672Z",
+      "commit": "c7b32fe2ac2a4d353e402c9346aaf3ae6cf4b7ce",
+      "branch": "unknown",
+      "passed": false,
+      "totalSteps": 2,
+      "failedSteps": 2,
+      "diagrams": [
+        "form-interaction.drawio"
+      ],
+      "manifestPath": "manifests/capture-test/manifest.json"
+    }
+  ],
+  "lastUpdated": "2025-12-14T02:33:55.322Z"
+}
