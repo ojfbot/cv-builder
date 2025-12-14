@@ -7,30 +7,6 @@
   gap: 0.5rem;
 }
 
-.v2-info-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem;
-  background: transparent;
-  border: 1px solid var(--cds-border-subtle);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--cds-icon-secondary);
-}
-
-.v2-info-button:hover {
-  background: var(--cds-layer-hover);
-  border-color: var(--cds-border-strong);
-  color: var(--cds-icon-primary);
-}
-
-.v2-info-button:focus {
-  outline: 2px solid var(--cds-focus);
-  outline-offset: 2px;
-}
-
 .v2-toggle-button {
   display: flex;
   align-items: center;

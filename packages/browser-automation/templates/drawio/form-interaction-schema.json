@@ -1,0 +1,110 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "form-1",
+      "type": "component",
+      "label": "Contact Form",
+      "metadata": {},
+      "screenshotConfig": {
+        "viewport": "desktop",
+        "captureAt": "before"
+      }
+    },
+    {
+      "id": "form-2",
+      "type": "action",
+      "label": "user types name into name field",
+      "metadata": {},
+      "interaction": {
+        "type": "type",
+        "target": "name-input",
+        "value": "John Doe",
+        "description": "Fill name field"
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "form-3",
+      "type": "action",
+      "label": "user types email into email field",
+      "metadata": {},
+      "interaction": {
+        "type": "type",
+        "target": "email-input",
+        "value": "john@example.com",
+        "description": "Fill email field"
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "form-4",
+      "type": "component",
+      "label": "Filled Form",
+      "metadata": {},
+      "screenshotConfig": {
+        "viewport": "desktop",
+        "captureAt": "after"
+      }
+    },
+    {
+      "id": "form-5",
+      "type": "action",
+      "label": "user clicks Submit button",
+      "metadata": {},
+      "interaction": {
+        "type": "click",
+        "target": "submit-button",
+        "description": "Submit form"
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "form-6",
+      "type": "state",
+      "label": "Form validation error shown",
+      "metadata": {},
+      "assertions": [
+        {
+          "selector": ".error-message",
+          "expected": {
+            "visible": true
+          },
+          "description": "Validation error is displayed"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "form-1",
+      "target": "form-2"
+    },
+    {
+      "id": "e2",
+      "source": "form-2",
+      "target": "form-3"
+    },
+    {
+      "id": "e3",
+      "source": "form-3",
+      "target": "form-4"
+    },
+    {
+      "id": "e4",
+      "source": "form-4",
+      "target": "form-5"
+    },
+    {
+      "id": "e5",
+      "source": "form-5",
+      "target": "form-6"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2025-12-14T01:12:27.861Z",
+    "sourceFile": "form-interaction.drawio"
+  }
+}

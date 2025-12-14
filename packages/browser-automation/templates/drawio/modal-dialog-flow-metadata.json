@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "name": "Modal Dialog Flow",
+    "description": "Template for documenting modal opening, interaction, and closing",
+    "category": "modal",
+    "expectedScreenshots": 4,
+    "tags": [
+      "modal",
+      "dialog",
+      "overlay",
+      "popup"
+    ],
+    "examples": [
+      "User opens settings modal and changes preferences",
+      "User sees confirmation dialog and clicks OK",
+      "User closes modal by clicking outside"
+    ]
+  },
+  "fewShotExamples": [
+    {
+      "input": "User clicks \"Delete\" button",
+      "output": "{\n  \"type\": \"action\",\n  \"interaction\": {\n    \"type\": \"click\",\n    \"target\": \"delete-button\"\n  },\n  \"expectedModal\": {\n    \"selector\": \".confirmation-dialog\",\n    \"visible\": true\n  }\n}",
+      "explanation": "Modal-triggering actions should document expected modal appearance"
+    }
+  ]
+}
