@@ -24,6 +24,8 @@ import MarkdownMessage from './MarkdownMessage'
 import { bioFilesApi } from '../api/bioFilesApi'
 import { navigateToTab } from '../store/slices/navigationSlice'
 import { sendChatMessage, isV2Active } from '../services/chat-service'
+import { useSlashCommands } from '../hooks/useSlashCommands'
+import CommandMenu from './CommandMenu'
 import './InteractiveChat.css'
 
 interface Message {
@@ -57,6 +59,29 @@ function InteractiveChat() {
   const [showContextualSuggestions, setShowContextualSuggestions] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Slash commands setup
+  const slashCommands = useSlashCommands({
+    input: draftInput,
+    onCommandExecuted: (commandString: string) => {
+      // Update input with selected command
+      dispatch(setDraftInputAction(commandString + ' '))
+      // Focus input after selection
+      setTimeout(() => inputRef.current?.focus(), 0)
+    },
+    context: {
+      sendMessage: async (message: string) => {
+        dispatch(setDraftInputAction(message))
+        // Delay slightly to allow input to update before sending
+        setTimeout(() => handleSend(message), 50)
+      },
+      clearChat: () => {
+        // Clear chat functionality
+        // TODO: Implement proper clear chat action
+        console.log('Clear chat requested')
+      }
+    }
+  })
 
   // Auto-scroll to bottom - direct scrollTop manipulation is more reliable
   const scrollToBottom = useCallback((smooth = false) => {
@@ -261,6 +286,18 @@ function InteractiveChat() {
     const textToSend = messageText || draftInput.trim()
     if (!textToSend || isLoading) return
 
+    // Check if this is a slash command
+    if (textToSend.startsWith('/')) {
+      const executed = await slashCommands.executeCommand(textToSend)
+      if (executed) {
+        // Command was executed successfully, clear input
+        dispatch(setDraftInputAction(''))
+        return
+      }
+      // If command execution failed, continue with normal message flow
+      // This allows partial commands to be sent as regular messages
+    }
+
     // Check if V2 is active or V1 is initialized
     const useV2 = isV2Active()
     if (!useV2 && (!isInitialized || !orchestrator)) {
@@ -319,7 +356,7 @@ function InteractiveChat() {
       // Error is already handled by chat service, but log it here too
       console.error('[InteractiveChat] Unexpected error:', error)
     }
-  }, [currentTab, draftInput, isLoading, isInitialized, orchestrator, dispatch, streamingContent])
+  }, [currentTab, draftInput, isLoading, isInitialized, orchestrator, dispatch, streamingContent, slashCommands])
 
   // File upload handler
   const handleFileUpload = useCallback(async (accept?: string, multiple?: boolean) => {
@@ -528,11 +565,18 @@ function InteractiveChat() {
   }, [dispatch, handleSend])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    // Check if slash command menu should handle this key
+    const slashHandled = slashCommands.handleKeyDown(e)
+    if (slashHandled) {
+      return // Slash command menu handled the key
+    }
+
+    // Normal enter key handling
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
-  }, [handleSend])
+  }, [handleSend, slashCommands])
 
   return (
     <div className="interactive-chat">
@@ -616,9 +660,13 @@ function InteractiveChat() {
         <div className="input-wrapper">
           <div className="textarea-container">
             <TextArea
-              ref={inputRef}
+              ref={(el) => {
+                // @ts-expect-error - Carbon ref types are readonly but we need to assign for dual refs
+                inputRef.current = el
+                slashCommands.inputRef.current = el
+              }}
               labelText="Message"
-              placeholder="Ask about resume generation, job analysis, learning paths..."
+              placeholder="Type / for commands, or ask about resume generation, job analysis, learning paths..."
               value={draftInput}
               onChange={(e) => dispatch(setDraftInputAction(e.target.value))}
               onKeyDown={handleKeyDown}
@@ -654,6 +702,16 @@ function InteractiveChat() {
                 data-element="chat-send-button"
               />
             </div>
+            {/* Slash command menu */}
+            {slashCommands.showMenu && (
+              <CommandMenu
+                matches={slashCommands.matches}
+                selectedIndex={slashCommands.selectedIndex}
+                onSelect={slashCommands.selectCommand}
+                onClose={slashCommands.closeMenu}
+                position={slashCommands.menuPosition}
+              />
+            )}
           </div>
         </div>
 

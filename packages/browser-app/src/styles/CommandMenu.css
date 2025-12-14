@@ -1,0 +1,136 @@
+/**
+ * CommandMenu Styles
+ * Styling for the slash command autocomplete menu
+ */
+
+.command-menu {
+  position: absolute;
+  z-index: 9999;
+  background: var(--cds-background);
+  border: 1px solid var(--cds-border-strong);
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  width: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.command-menu-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  border-bottom: 1px solid var(--cds-border-subtle);
+}
+
+.command-menu-item:last-child {
+  border-bottom: none;
+}
+
+.command-menu-item:hover,
+.command-menu-item.selected {
+  background-color: var(--cds-layer-hover);
+}
+
+.command-menu-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.command-menu-item-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--cds-text-primary);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.command-menu-item-category {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.category-agent {
+  background-color: var(--cds-support-success);
+  color: var(--cds-text-on-color);
+}
+
+.category-navigation {
+  background-color: var(--cds-support-info);
+  color: var(--cds-text-on-color);
+}
+
+.category-utility {
+  background-color: var(--cds-border-subtle);
+  color: var(--cds-text-secondary);
+}
+
+.command-menu-item-description {
+  font-size: 13px;
+  color: var(--cds-text-secondary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.command-menu-item-args {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.command-arg {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+}
+
+.command-arg.required {
+  background-color: var(--cds-support-warning-inverse);
+  color: var(--cds-support-warning);
+  border: 1px solid var(--cds-support-warning);
+}
+
+.command-arg.optional {
+  background-color: var(--cds-layer-accent);
+  color: var(--cds-text-secondary);
+  border: 1px solid var(--cds-border-subtle);
+}
+
+/* Dark theme adjustments */
+[data-carbon-theme='g100'] .command-menu {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .command-menu {
+    width: calc(100vw - 32px);
+    max-width: 400px;
+  }
+}
+
+/* Scrollbar styling */
+.command-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.command-menu::-webkit-scrollbar-track {
+  background: var(--cds-layer);
+}
+
+.command-menu::-webkit-scrollbar-thumb {
+  background: var(--cds-border-subtle);
+  border-radius: 4px;
+}
+
+.command-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--cds-border-strong);
+}
