@@ -137,27 +137,89 @@ class SlashCommandService {
   }
 
   /**
-   * Execute a command string
+   * Sanitize an argument value to prevent injection attacks
+   * Allows only alphanumeric characters, hyphens, and underscores
    */
-  async executeCommand(input: string, context: CommandContext): Promise<boolean> {
+  private sanitizeArg(arg: string): string {
+    return arg.replace(/[^a-zA-Z0-9_-]/g, '');
+  }
+
+  /**
+   * Validate and sanitize command arguments
+   */
+  private validateAndSanitizeArgs(args: string[]): { valid: boolean; sanitized: string[]; error?: string } {
+    const sanitized = args.map(arg => this.sanitizeArg(arg));
+
+    // Check if any args became empty after sanitization
+    const hasInvalidArgs = sanitized.some((arg, index) => {
+      return args[index].length > 0 && arg.length === 0;
+    });
+
+    if (hasInvalidArgs) {
+      return {
+        valid: false,
+        sanitized: [],
+        error: 'Invalid characters in arguments. Only alphanumeric, hyphens, and underscores are allowed.'
+      };
+    }
+
+    return { valid: true, sanitized };
+  }
+
+  /**
+   * Execute a command string and return the message to send (if any)
+   * Returns null if command not found or execution failed
+   */
+  async executeCommand(input: string, context: CommandContext): Promise<{ success: boolean; message?: string; error?: string }> {
     const parsed = this.parseCommand(input);
 
     if (!parsed) {
-      return false;
+      return {
+        success: false,
+        error: 'Unknown command. Type /help to see available commands.'
+      };
     }
 
     const { command, args } = parsed;
 
     if (!command) {
-      return false;
+      return {
+        success: false,
+        error: 'Unknown command. Type /help to see available commands.'
+      };
+    }
+
+    // Validate and sanitize arguments
+    const validation = this.validateAndSanitizeArgs(args);
+    if (!validation.valid) {
+      return {
+        success: false,
+        error: validation.error
+      };
     }
 
     try {
-      await command.handler(args, context);
-      return true;
+      // Create a message collector context instead of direct sendMessage
+      let collectedMessage: string | undefined;
+      const messageCollectorContext: CommandContext = {
+        ...context,
+        sendMessage: async (message: string) => {
+          collectedMessage = message;
+        }
+      };
+
+      await command.handler(validation.sanitized, messageCollectorContext);
+
+      return {
+        success: true,
+        message: collectedMessage
+      };
     } catch (error) {
       console.error('Command execution failed:', error);
-      return false;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Command execution failed'
+      };
     }
   }
 
