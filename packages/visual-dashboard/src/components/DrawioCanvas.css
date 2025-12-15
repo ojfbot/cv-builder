@@ -1,0 +1,193 @@
+/**
+ * DrawioCanvas Styles
+ */
+
+.drawio-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.drawio-canvas-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: var(--color-text-secondary);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+}
+
+/* Page tabs */
+.drawio-page-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.drawio-page-tab {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.drawio-page-tab:hover {
+  background-color: var(--color-hover);
+  border-color: var(--color-primary);
+}
+
+.drawio-page-tab.active {
+  background-color: var(--color-primary);
+  color: var(--color-bg);
+  border-color: var(--color-primary);
+}
+
+/* Zoom controls */
+.drawio-zoom-controls {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.drawio-zoom-controls button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.drawio-zoom-controls button:hover {
+  background-color: var(--color-primary);
+  color: var(--color-bg);
+  border-color: var(--color-primary);
+}
+
+.drawio-zoom-controls button:active {
+  transform: scale(0.95);
+}
+
+/* Transform wrapper */
+.drawio-transform-wrapper {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.drawio-transform-wrapper:active {
+  cursor: grabbing;
+}
+
+.drawio-transform-content {
+  width: 100%;
+  height: 100%;
+}
+
+/* SVG canvas */
+.drawio-svg {
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+/* SVG elements */
+.drawio-cells {
+  /* Group for all cells */
+}
+
+.drawio-vertex {
+  /* Vertex group */
+}
+
+.drawio-vertex rect,
+.drawio-vertex ellipse,
+.drawio-vertex polygon {
+  transition: opacity 0.2s ease;
+}
+
+.drawio-vertex:hover rect,
+.drawio-vertex:hover ellipse,
+.drawio-vertex:hover polygon {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.drawio-text {
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.drawio-edge {
+  /* Edge group */
+}
+
+.drawio-edge line {
+  transition: stroke-width 0.2s ease;
+}
+
+.drawio-edge:hover line {
+  stroke-width: 3 !important;
+  cursor: pointer;
+}
+
+.drawio-edge-label {
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .drawio-canvas-container {
+    height: 400px;
+  }
+
+  .drawio-zoom-controls {
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .drawio-zoom-controls button {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+}
