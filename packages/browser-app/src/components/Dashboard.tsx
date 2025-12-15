@@ -35,6 +35,7 @@ function DashboardContent() {
   const v2Enabled = useAppSelector(state => state.v2.enabled)
   const showThreadSidebar = useAppSelector(state => state.v2.showThreadSidebar)
   const sidebarExpanded = useAppSelector(state => state.v2.sidebarExpanded)
+  const bioModalOpen = useAppSelector(state => state.v2.bioModalOpen)
 
   // Load V2 settings on mount
   useEffect(() => {
@@ -98,7 +99,14 @@ function DashboardContent() {
                 <button
                   className="sidebar-toggle-btn"
                   onClick={() => dispatch(setSidebarExpanded(!sidebarExpanded))}
+                  disabled={bioModalOpen}
                   aria-label="Toggle thread sidebar"
+                  aria-hidden={bioModalOpen}
+                  style={{
+                    opacity: bioModalOpen ? 0.3 : 1,
+                    pointerEvents: bioModalOpen ? 'none' : 'auto',
+                    cursor: bioModalOpen ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   {sidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
                 </button>
