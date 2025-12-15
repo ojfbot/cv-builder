@@ -66,6 +66,11 @@
   z-index: 9000 !important; /* Above ThreadSidebar (z-index: 999) */
 }
 
+/* Prevent sidebar overlay from covering modals */
+.cds--side-nav__overlay {
+  z-index: 8999 !important; /* Below modals (z-index: 9000) */
+}
+
 /* Modal width responsiveness for sidebars */
 /* Default: Full width with standard margins */
 /* Use higher specificity to override Carbon defaults */

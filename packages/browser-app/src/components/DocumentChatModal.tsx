@@ -19,7 +19,8 @@ interface DocumentChatModalProps {
 export function DocumentChatModal({ fileId, fileName, onClose }: DocumentChatModalProps) {
   const dispatch = useDispatch()
   const currentDisplayState = useSelector((state: RootState) => state.chat.displayState)
-  const sidebarExpanded = useSelector((state: RootState) => state.v2.sidebarExpanded)
+  const sidebarExpanded = useSelector((state: RootState) => state.v2.sidebarExpanded) // Right sidebar (thread list)
+  const appSwitcherExpanded = useSelector((state: RootState) => state.v2.appSwitcherExpanded) // Left sidebar (app switcher)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -49,21 +50,28 @@ export function DocumentChatModal({ fileId, fileName, onClose }: DocumentChatMod
     }
   }, [currentDisplayState])
 
-  // Add/remove sidebar class AND inline styles to modal container
+  // Adjust modal size and position based on both sidebars
   useEffect(() => {
     const modalContainer = document.querySelector('.cds--modal-container') as HTMLElement
     if (modalContainer) {
+      // Calculate margins and width based on which sidebars are expanded
+      const leftMargin = appSwitcherExpanded ? 256 : 0 // App switcher width
+      const rightMargin = sidebarExpanded ? 320 : 0 // Thread sidebar width
+      const baseMargin = 144 // Default margins (72px left + 72px right)
+
+      const totalHorizontalSpace = baseMargin + leftMargin + rightMargin
+      const maxWidth = `calc(100vw - ${totalHorizontalSpace}px)`
+
+      // Apply styles
       if (sidebarExpanded) {
         modalContainer.classList.add('with-right-sidebar')
-        // Also set inline styles as fallback to ensure width changes
-        modalContainer.style.maxWidth = 'calc(100vw - 464px)'
-        modalContainer.style.width = 'calc(100vw - 464px)'
       } else {
         modalContainer.classList.remove('with-right-sidebar')
-        // Reset to default width
-        modalContainer.style.maxWidth = 'calc(100vw - 144px)'
-        modalContainer.style.width = ''
       }
+
+      modalContainer.style.maxWidth = maxWidth
+      modalContainer.style.width = sidebarExpanded ? maxWidth : ''
+      modalContainer.style.marginLeft = appSwitcherExpanded ? `${leftMargin}px` : ''
     }
 
     // Cleanup on unmount
@@ -73,9 +81,10 @@ export function DocumentChatModal({ fileId, fileName, onClose }: DocumentChatMod
         modalContainer.classList.remove('with-right-sidebar')
         modalContainer.style.maxWidth = ''
         modalContainer.style.width = ''
+        modalContainer.style.marginLeft = ''
       }
     }
-  }, [sidebarExpanded])
+  }, [sidebarExpanded, appSwitcherExpanded])
 
   useEffect(() => {
     loadDocumentContext()
