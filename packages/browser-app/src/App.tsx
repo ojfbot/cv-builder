@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   Theme,
   Header,
@@ -12,17 +13,19 @@ import {
 } from '@carbon/react'
 import { Asleep, Light, Settings } from '@carbon/icons-react'
 import { Provider } from 'react-redux'
-import { store } from './store'
+import { store, RootState } from './store'
+import { setAppSwitcherExpanded } from './store/slices/v2Slice'
 import { AgentProvider } from './contexts/AgentContext'
 import Dashboard from './components/Dashboard'
 import ApiKeySettings from './components/ApiKeySettings'
 import { APP_PORTS, APPLICATIONS } from './constants'
 import './App.css'
 
-function App() {
+function AppContent() {
+  const dispatch = useDispatch()
+  const sideNavExpanded = useSelector((state: RootState) => state.v2.appSwitcherExpanded)
   const [theme, setTheme] = useState<'white' | 'g100'>('g100')
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [sideNavExpanded, setSideNavExpanded] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -44,7 +47,7 @@ function App() {
   }
 
   const onClickSideNavExpand = () => {
-    setSideNavExpanded(!sideNavExpanded)
+    dispatch(setAppSwitcherExpanded(!sideNavExpanded))
   }
 
   const handleAppClick = (appName: keyof typeof APP_PORTS) => {
@@ -64,9 +67,7 @@ function App() {
   }, [sideNavExpanded])
 
   return (
-    <Provider store={store}>
-      <AgentProvider>
-        <Theme theme={theme}>
+    <Theme theme={theme}>
         <div className="app-container" style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Header aria-label="CV Builder">
             <HeaderMenuButton
@@ -153,7 +154,15 @@ function App() {
           onClose={() => setSettingsOpen(false)}
         />
       </Theme>
-    </AgentProvider>
+  )
+}
+
+function App() {
+  return (
+    <Provider store={store}>
+      <AgentProvider>
+        <AppContent />
+      </AgentProvider>
     </Provider>
   )
 }
