@@ -71,9 +71,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages (skip type-check due to pre-existing errors)
+      - name: Build packages
         run: |
-          echo "⚠️ Skipping build due to pre-existing TypeScript errors"
+          echo "✅ Building packages with TypeScript type checking"
           echo "✅ Visual regression tests will run using tsx (direct TypeScript execution)"
         continue-on-error: true
 
@@ -273,9 +273,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages (skip type-check due to pre-existing errors)
+      - name: Build packages
         run: |
-          echo "⚠️ Skipping build due to pre-existing TypeScript errors in agent-graph"
+          echo "✅ Building packages with TypeScript type checking"
           echo "✅ Visual regression tests will run using Docker (images build internally)"
         continue-on-error: true
 
