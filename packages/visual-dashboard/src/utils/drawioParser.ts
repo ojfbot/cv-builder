@@ -227,14 +227,15 @@ export function drawioColorToCSS(color: string | undefined): string {
 
 /**
  * Get text from HTML-encoded draw.io value
+ * Uses DOMParser for secure HTML entity decoding without XSS risk
  */
 export function decodeDrawioValue(value: string): string {
   if (!value) {
     return '';
   }
 
-  // Create temporary element to decode HTML entities
-  const textarea = document.createElement('textarea');
-  textarea.innerHTML = value;
-  return textarea.value;
+  // Use DOMParser for safer HTML entity decoding
+  const parser = new DOMParser();
+  const doc = parser.parseFromString('<!doctype html><body>' + value, 'text/html');
+  return doc.body.textContent || '';
 }

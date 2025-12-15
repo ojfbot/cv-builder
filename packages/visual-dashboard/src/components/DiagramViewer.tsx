@@ -2,7 +2,7 @@
  * DiagramViewer component for displaying Draw.io diagrams
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DrawioCanvas } from './DrawioCanvas';
 import { parseDrawioXML } from '../utils/drawioParser';
 import type { DrawioDiagram } from '../utils/drawioParser';
@@ -18,13 +18,7 @@ export function DiagramViewer({ diagramUrl, diagramName }: DiagramViewerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isExpanded && !diagram && !loading) {
-      loadDiagram();
-    }
-  }, [isExpanded, diagram, loading]);
-
-  const loadDiagram = async () => {
+  const loadDiagram = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -44,7 +38,13 @@ export function DiagramViewer({ diagramUrl, diagramName }: DiagramViewerProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [diagramUrl]);
+
+  useEffect(() => {
+    if (isExpanded && !diagram && !loading) {
+      loadDiagram();
+    }
+  }, [isExpanded, diagram, loading, loadDiagram]);
 
   return (
     <div className="card">
@@ -95,7 +95,7 @@ export function DiagramViewer({ diagramUrl, diagramName }: DiagramViewerProps) {
             <div
               style={{
                 padding: '1rem',
-                backgroundColor: '#520408',
+                backgroundColor: 'var(--color-error-bg, rgba(255, 0, 0, 0.1))',
                 border: '2px solid var(--color-error)',
                 borderRadius: 'var(--border-radius)',
                 color: 'var(--color-error)',
