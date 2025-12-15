@@ -121,5 +121,5 @@ jobs:
           pnpm --filter @cv-builder/agent-core build
           pnpm --filter @cv-builder/api build
           pnpm --filter @cv-builder/browser-app build
-          echo "Note: @cv-builder/browser-automation and @cv-builder/agent-graph excluded due to pre-existing TypeScript errors"
+          pnpm --filter @cv-builder/browser-automation build
           echo "✅ Build successful"
