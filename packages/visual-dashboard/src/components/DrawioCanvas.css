@@ -122,14 +122,6 @@
 }
 
 /* SVG elements */
-.drawio-cells {
-  /* Group for all cells */
-}
-
-.drawio-vertex {
-  /* Vertex group */
-}
-
 .drawio-vertex rect,
 .drawio-vertex ellipse,
 .drawio-vertex polygon {
@@ -150,10 +142,6 @@
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-.drawio-edge {
-  /* Edge group */
 }
 
 .drawio-edge line {

@@ -2,7 +2,7 @@
  * DrawioCanvas component - Interactive SVG canvas for draw.io diagrams
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import type { DrawioPage, DrawioCell } from '../utils/drawioParser';
 import { parseDrawioStyle, drawioColorToCSS, decodeDrawioValue } from '../utils/drawioParser';
@@ -16,7 +16,6 @@ interface DrawioCanvasProps {
 
 export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanvasProps) {
   const [currentPage, setCurrentPage] = useState(activePage);
-  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     setCurrentPage(activePage);
@@ -100,11 +99,27 @@ export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanv
               contentClass="drawio-transform-content"
             >
               <svg
-                ref={svgRef}
                 className="drawio-svg"
                 viewBox={`${page.viewBox.x} ${page.viewBox.y} ${page.viewBox.width} ${page.viewBox.height}`}
                 xmlns="http://www.w3.org/2000/svg"
               >
+                {/* Arrow marker definitions - define once per unique color */}
+                <defs>
+                  {getUniqueEdgeColors(page.cells).map((color) => (
+                    <marker
+                      key={`arrowhead-${color}`}
+                      id={`arrowhead-${color}`}
+                      markerWidth="10"
+                      markerHeight="10"
+                      refX="9"
+                      refY="3"
+                      orient="auto"
+                    >
+                      <polygon points="0 0, 10 3, 0 6" fill={color} />
+                    </marker>
+                  ))}
+                </defs>
+
                 <g className="drawio-cells">
                   {page.cells.map((cell) => renderCell(cell, page.cells))}
                 </g>
@@ -115,6 +130,27 @@ export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanv
       </TransformWrapper>
     </div>
   );
+}
+
+// Constants for shape rendering
+const CYLINDER_TOP_HEIGHT = 10;
+const CYLINDER_BOTTOM_HEIGHT = 10;
+const ROUNDED_CORNER_RADIUS = 10;
+const DEFAULT_FONT_SIZE = 12;
+
+/**
+ * Get unique edge colors from all cells to create marker definitions
+ */
+function getUniqueEdgeColors(cells: DrawioCell[]): string[] {
+  const colors = new Set<string>();
+  cells.forEach((cell) => {
+    if (cell.edge) {
+      const style = parseDrawioStyle(cell.style);
+      const strokeColor = drawioColorToCSS(style.strokeColor);
+      colors.add(strokeColor);
+    }
+  });
+  return Array.from(colors);
 }
 
 /**
@@ -201,22 +237,8 @@ function renderCell(cell: DrawioCell, allCells: DrawioCell[]): JSX.Element | nul
           y2={y2}
           stroke={strokeColor}
           strokeWidth={strokeWidth}
-          markerEnd="url(#arrowhead)"
+          markerEnd={`url(#arrowhead-${strokeColor})`}
         />
-
-        {/* Arrow marker definition */}
-        <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="10"
-            refX="9"
-            refY="3"
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3, 0 6" fill={strokeColor} />
-          </marker>
-        </defs>
 
         {/* Edge label */}
         {value && (
@@ -225,7 +247,7 @@ function renderCell(cell: DrawioCell, allCells: DrawioCell[]): JSX.Element | nul
             y={(y1 + y2) / 2}
             dominantBaseline="middle"
             textAnchor="middle"
-            fontSize={12}
+            fontSize={DEFAULT_FONT_SIZE}
             fill={strokeColor}
             className="drawio-edge-label"
           >
@@ -309,42 +331,42 @@ function renderShape(
         <g>
           <ellipse
             cx={x + width / 2}
-            cy={y + 10}
+            cy={y + CYLINDER_TOP_HEIGHT}
             rx={width / 2}
-            ry={10}
+            ry={CYLINDER_TOP_HEIGHT}
             fill={fill}
             stroke={stroke}
             strokeWidth={strokeWidth}
           />
           <rect
             x={x}
-            y={y + 10}
+            y={y + CYLINDER_TOP_HEIGHT}
             width={width}
-            height={height - 20}
+            height={height - CYLINDER_TOP_HEIGHT - CYLINDER_BOTTOM_HEIGHT}
             fill={fill}
             stroke="none"
           />
           <line
             x1={x}
-            y1={y + 10}
+            y1={y + CYLINDER_TOP_HEIGHT}
             x2={x}
-            y2={y + height - 10}
+            y2={y + height - CYLINDER_BOTTOM_HEIGHT}
             stroke={stroke}
             strokeWidth={strokeWidth}
           />
           <line
             x1={x + width}
-            y1={y + 10}
+            y1={y + CYLINDER_TOP_HEIGHT}
             x2={x + width}
-            y2={y + height - 10}
+            y2={y + height - CYLINDER_BOTTOM_HEIGHT}
             stroke={stroke}
             strokeWidth={strokeWidth}
           />
           <ellipse
             cx={x + width / 2}
-            cy={y + height - 10}
+            cy={y + height - CYLINDER_BOTTOM_HEIGHT}
             rx={width / 2}
-            ry={10}
+            ry={CYLINDER_BOTTOM_HEIGHT}
             fill={fill}
             stroke={stroke}
             strokeWidth={strokeWidth}
@@ -360,8 +382,8 @@ function renderShape(
           y={y}
           width={width}
           height={height}
-          rx={rounded ? 10 : 0}
-          ry={rounded ? 10 : 0}
+          rx={rounded ? ROUNDED_CORNER_RADIUS : 0}
+          ry={rounded ? ROUNDED_CORNER_RADIUS : 0}
           fill={fill}
           stroke={stroke}
           strokeWidth={strokeWidth}
