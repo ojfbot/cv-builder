@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="CV Builder Test Suite" modified="2025-12-14T04:00:00.000Z" version="1.0.0">
+  <diagram name="CV Builder App Tests" id="cv-builder-tests">
+    <mxGraphModel dx="2000" dy="1500" grid="1" gridSize="10" guides="1">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Test 1: Navigate to app -->
+        <mxCell id="nav-1" value="navigate|http://localhost:3000/cv-builder/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 2: Wait for app load -->
+        <mxCell id="wait-1" value="wait|[data-testid='dashboard']|5000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="400" y="100" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 3: Expand left sidebar (app switcher) -->
+        <mxCell id="sidebar-left-expand" value="click|button[aria-label='Toggle application switcher']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="220" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 4: Wait for sidebar animation -->
+        <mxCell id="wait-sidebar" value="wait|.app-switcher.expanded|1000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="420" y="220" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 5: Collapse left sidebar -->
+        <mxCell id="sidebar-left-collapse" value="click|button[aria-label='Toggle application switcher']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="340" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 6: Expand right sidebar (threads) -->
+        <mxCell id="sidebar-right-expand" value="click|button[aria-label='Toggle thread sidebar']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="420" y="340" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 7: Collapse right sidebar -->
+        <mxCell id="sidebar-right-collapse" value="click|button[aria-label='Toggle thread sidebar']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="460" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 8: Navigate to Bio tab -->
+        <mxCell id="tab-bio" value="click|button:has-text('Bio')" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="420" y="460" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 9: Navigate to Jobs tab -->
+        <mxCell id="tab-jobs" value="click|button:has-text('Jobs')" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="580" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 10: Navigate to Outputs tab -->
+        <mxCell id="tab-outputs" value="click|button:has-text('Outputs')" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="380" y="580" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 11: Navigate back to Interactive tab -->
+        <mxCell id="tab-interactive" value="click|button:has-text('Interactive')" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="660" y="580" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 12: Expand chat (if condensed) -->
+        <mxCell id="chat-expand" value="click|button[aria-label='Expand chat']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="700" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 13: Focus chat input -->
+        <mxCell id="chat-focus" value="click|textarea[placeholder*='ask']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="380" y="700" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 14: Collapse chat -->
+        <mxCell id="chat-collapse" value="click|button[aria-label='Collapse chat']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="660" y="700" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 15: Toggle accessibility theme -->
+        <mxCell id="theme-toggle" value="click|button[aria-label*='theme']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="820" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 16: Wait for theme change -->
+        <mxCell id="wait-theme" value="wait|[data-carbon-theme]|500" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="380" y="820" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 17: Navigate to Bio tab for modal tests -->
+        <mxCell id="nav-bio-for-modals" value="click|button:has-text('Bio')" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="680" y="820" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 18: Switch to Files view -->
+        <mxCell id="files-view" value="click|button:has-text('View Files')" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="940" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 19: Wait for files to load -->
+        <mxCell id="wait-files" value="wait|[data-element='bio-file-card']|2000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="380" y="940" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 20: Open document preview modal -->
+        <mxCell id="open-preview-modal" value="click|button[iconDescription='Preview']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="680" y="940" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 21: Wait for preview modal -->
+        <mxCell id="wait-preview-modal" value="wait|[data-element='document-preview-modal']|1000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1060" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 22: Close preview modal -->
+        <mxCell id="close-preview-modal" value="click|button:has-text('Close')" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1060" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 23: Open document chat modal -->
+        <mxCell id="open-chat-modal" value="click|button[iconDescription='Chat about document']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1060" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 24: Wait for chat modal -->
+        <mxCell id="wait-chat-modal" value="wait|[data-element='document-chat-modal']|1000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1180" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 25: Close chat modal -->
+        <mxCell id="close-chat-modal" value="click|button[aria-label='Close']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1180" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 26: Open settings modal -->
+        <mxCell id="open-settings-modal" value="click|button[data-element='settings-button']" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1180" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 27: Wait for settings modal -->
+        <mxCell id="wait-settings-modal" value="wait|[data-element='settings-modal']|1000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1300" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Test 28: Close settings modal -->
+        <mxCell id="close-settings-modal" value="click|button:has-text('Close')" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1300" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Connectors -->
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="nav-1" target="wait-1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="wait-1" target="sidebar-left-expand">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="sidebar-left-expand" target="wait-sidebar">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="wait-sidebar" target="sidebar-left-collapse">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="sidebar-left-collapse" target="sidebar-right-expand">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="sidebar-right-expand" target="sidebar-right-collapse">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="sidebar-right-collapse" target="tab-bio">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="tab-bio" target="tab-jobs">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="tab-jobs" target="tab-outputs">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="tab-outputs" target="tab-interactive">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="tab-interactive" target="chat-expand">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="chat-expand" target="chat-focus">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="chat-focus" target="chat-collapse">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="chat-collapse" target="theme-toggle">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="theme-toggle" target="wait-theme">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="wait-theme" target="nav-bio-for-modals">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="nav-bio-for-modals" target="files-view">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="files-view" target="wait-files">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="wait-files" target="open-preview-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="open-preview-modal" target="wait-preview-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="wait-preview-modal" target="close-preview-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="close-preview-modal" target="open-chat-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="open-chat-modal" target="wait-chat-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="wait-chat-modal" target="close-chat-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="close-chat-modal" target="open-settings-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="open-settings-modal" target="wait-settings-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;" edge="1" parent="1" source="wait-settings-modal" target="close-settings-modal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
