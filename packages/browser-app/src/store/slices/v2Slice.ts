@@ -4,8 +4,10 @@ export interface V2State {
   enabled: boolean; // Whether V2 is enabled in the UI
   apiAvailable: boolean; // Whether V2 API is available on server
   streamingEnabled: boolean; // Whether to use streaming
-  showThreadSidebar: boolean; // Show thread list sidebar
-  sidebarExpanded: boolean; // Whether sidebar is currently expanded (UI state)
+  showThreadSidebar: boolean; // Show thread list sidebar (right side)
+  sidebarExpanded: boolean; // Whether thread sidebar is currently expanded (right side)
+  appSwitcherExpanded: boolean; // Whether application switcher sidebar is expanded (left side)
+  bioModalOpen: boolean; // Whether a bio modal (preview/chat) is currently open
   showStateInspector: boolean; // Show LangGraph state inspector (debug)
   preferences: {
     autoCreateThread: boolean; // Auto-create thread on first message
@@ -21,6 +23,8 @@ const initialState: V2State = {
   streamingEnabled: true,
   showThreadSidebar: false,
   sidebarExpanded: false,
+  appSwitcherExpanded: false,
+  bioModalOpen: false,
   showStateInspector: false,
   preferences: {
     autoCreateThread: true,
@@ -52,6 +56,12 @@ const v2Slice = createSlice({
     },
     setSidebarExpanded: (state, action: PayloadAction<boolean>) => {
       state.sidebarExpanded = action.payload;
+    },
+    setAppSwitcherExpanded: (state, action: PayloadAction<boolean>) => {
+      state.appSwitcherExpanded = action.payload;
+    },
+    setBioModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.bioModalOpen = action.payload;
     },
     setShowStateInspector: (state, action: PayloadAction<boolean>) => {
       state.showStateInspector = action.payload;
@@ -89,6 +99,8 @@ export const {
   setStreamingEnabled,
   setShowThreadSidebar,
   setSidebarExpanded,
+  setAppSwitcherExpanded,
+  setBioModalOpen,
   setShowStateInspector,
   updatePreferences,
   loadV2Settings,
