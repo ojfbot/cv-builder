@@ -21,6 +21,7 @@ import { BioFile } from '@cv-builder/agent-core'
 import { bioFilesApi } from '../api/bioFilesApi'
 import { setIsExpanded } from '../store/slices/chatSlice'
 import { setBioViewMode, type BioViewMode } from '../store/slices/navigationSlice'
+import { setBioModalOpen } from '../store/slices/v2Slice'
 import { DocumentPreviewModal } from './DocumentPreviewModal'
 import { DocumentChatModal } from './DocumentChatModal'
 
@@ -138,21 +139,25 @@ function BioDashboard() {
   // Handle file preview
   const handlePreviewFile = (fileId: string) => {
     setPreviewFileId(fileId)
+    dispatch(setBioModalOpen(true))
   }
 
   // Close preview modal
   const closePreview = () => {
     setPreviewFileId(null)
+    dispatch(setBioModalOpen(false))
   }
 
   // Handle file chat
   const handleChatAboutFile = (fileId: string) => {
     setChatFileId(fileId)
+    dispatch(setBioModalOpen(true))
   }
 
   // Close chat modal
   const closeChat = () => {
     setChatFileId(null)
+    dispatch(setBioModalOpen(false))
   }
 
   // Collapse chat when navigating to Bio panel if on files/tiles view
