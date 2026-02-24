@@ -154,44 +154,78 @@ jobs:
           MANIFEST="packages/browser-automation/templates/drawio/screenshot-manifest.json"
           BASELINES="packages/browser-automation/test-baselines/cv-builder-visual"
 
-          # Enumerate expected baselines from manifest
-          EXPECTED="?"
-          NAMES=""
-          if [ -f "$MANIFEST" ]; then
-            EXPECTED=$(python3 -c "import json; d=json.load(open('$MANIFEST')); print(len(d['cells']))" 2>/dev/null || echo "?")
-            NAMES=$(python3 -c "import json; [print(c['screenshotBaseline']) for c in json.load(open('$MANIFEST'))['cells']]" 2>/dev/null || true)
-          fi
+          python3 - <<'PYEOF'
+import json, os, sys
 
-          AVAILABLE=0
-          MISSING=""
-          for NAME in $NAMES; do
-            if [ -f "$BASELINES/${NAME}.png" ]; then
-              AVAILABLE=$((AVAILABLE+1))
-            else
-              MISSING="${MISSING}\n- \`${NAME}.png\`"
-            fi
-          done
+manifest_path = os.environ.get('MANIFEST', 'packages/browser-automation/templates/drawio/screenshot-manifest.json')
+baselines_dir = os.environ.get('BASELINES', 'packages/browser-automation/test-baselines/cv-builder-visual')
+tests_outcome = os.environ.get('TESTS_OUTCOME', 'skipped')
+visual_outcome = os.environ.get('VISUAL_OUTCOME', 'skipped')
 
-          {
-            echo "## Browser Automation Test Results"
-            echo ""
-            echo "| Step | Result |"
-            echo "|------|--------|"
-            echo "| Comprehensive tests | $(icon "${TESTS_OUTCOME}") \`${TESTS_OUTCOME}\` |"
-            echo "| Visual regression   | $(icon "${VISUAL_OUTCOME}") \`${VISUAL_OUTCOME}\` |"
-            echo ""
-            echo "### Screenshot Baselines"
-            echo ""
-            echo "${AVAILABLE} / ${EXPECTED} baseline PNGs available in \`test-baselines/cv-builder-visual/\`"
-            if [ -n "${MISSING}" ]; then
-              echo ""
-              echo "<details><summary>Missing baselines — re-run with <code>update_baselines: true</code> to generate</summary>"
-              echo ""
-              printf "${MISSING}"
-              echo ""
-              echo "</details>"
-            fi
-          } > temp/test-results/pr-comment.md
+def icon(s):
+    return {'success': '✅', 'failure': '❌'}.get(s, '⚠️')
+
+cells = []
+if os.path.exists(manifest_path):
+    with open(manifest_path) as f:
+        cells = json.load(f)['cells']
+
+rows = []
+available = 0
+for c in cells:
+    name = c['screenshotBaseline']
+    exists = os.path.exists(f"{baselines_dir}/{name}.png")
+    if exists:
+        available += 1
+    status = '✅ captured' if exists else '⬜ missing'
+    test_step = c.get('testStep', name)
+    ui_state = c.get('uiState', {})
+    tab = ui_state.get('TabPanel', '')
+    sidebar = ui_state.get('AppSidebar', '')
+    chat = ui_state.get('ChatWindow', '')
+    state_str = ', '.join(f'{k}={v}' for k, v in ui_state.items() if v)
+    rows.append(f'| {status} | `{name}` | {test_step} | {state_str} |')
+
+total = len(cells)
+missing = total - available
+
+lines = []
+lines.append('## Browser Automation Test Results')
+lines.append('')
+lines.append('| Suite | Result |')
+lines.append('|-------|--------|')
+lines.append(f'| Comprehensive tests | {icon(tests_outcome)} `{tests_outcome}` |')
+lines.append(f'| Visual regression   | {icon(visual_outcome)} `{visual_outcome}` |')
+lines.append('')
+
+# Summary badge
+if available == total:
+    lines.append(f'### Screenshot Baselines — {available}/{total} ✅ Complete')
+else:
+    lines.append(f'### Screenshot Baselines — {available}/{total} ({missing} missing)')
+
+lines.append('')
+lines.append('| Status | Baseline | Test Step | UI State |')
+lines.append('|--------|----------|-----------|----------|')
+lines.extend(rows)
+
+if missing > 0:
+    lines.append('')
+    lines.append('<details>')
+    lines.append(f'<summary>Re-run with <code>update_baselines: true</code> to generate {missing} missing baseline(s)</summary>')
+    lines.append('')
+    lines.append('Trigger the workflow manually:')
+    lines.append('1. Go to **Actions → Browser Automation Tests (Docker)**')
+    lines.append('2. Click **Run workflow**')
+    lines.append('3. Set **Update visual regression baselines** → `true`')
+    lines.append('</details>')
+
+out_path = 'temp/test-results/pr-comment.md'
+with open(out_path, 'w') as f:
+    f.write('\n'.join(lines) + '\n')
+
+print(f'PR comment written to {out_path} ({available}/{total} baselines available)')
+PYEOF
 
       - name: Upload test screenshots
         if: always()
