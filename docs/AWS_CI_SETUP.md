@@ -182,6 +182,37 @@ It does **not** allow listing the bucket contents.
 
 ---
 
+## Step 4b — Bucket CORS configuration
+
+The visual dashboard (`DiagramViewer.tsx`) fetches the draw.io XML directly from S3
+in the browser with `fetch(diagramUrl)`. This is a cross-origin request — without a
+CORS policy on the bucket the browser will block it and the diagram viewer will show
+an error state even though the file is publicly readable.
+
+In **S3 → bucket → Permissions → Cross-origin resource sharing (CORS)**, paste:
+
+```json
+[
+  {
+    "AllowedHeaders": [],
+    "AllowedMethods": ["GET"],
+    "AllowedOrigins": ["*"],
+    "ExposeHeaders": [],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+> **Why `*` for origins?** The dashboard runs on `http://localhost:3000` during
+> development and on whatever domain you deploy to in production. The draw.io
+> web viewer (`app.diagrams.net`) also fetches diagram files directly. Rather than
+> maintaining a list of allowed origins, `*` on `GET`-only is safe because the
+> bucket only contains non-sensitive screenshot images (public anyway by the bucket
+> policy). If you lock down the bucket to private + CloudFront (see Future
+> improvements), restrict `AllowedOrigins` to your specific domains at that point.
+
+---
+
 ## Step 5 — GitHub repository variables
 
 In **GitHub → repo → Settings → Secrets and variables → Actions → Variables**:
