@@ -227,22 +227,46 @@ No secrets needed — OIDC uses the role ARN directly.
 
 ---
 
+## Step 5b — Enable GitHub Pages
+
+The CI pipeline deploys an interactive draw.io viewer to GitHub Pages on every run.
+Enable the feature once in the repository settings:
+
+1. Go to **GitHub → repo → Settings → Pages**
+2. Under **Build and deployment → Source**, select **GitHub Actions**
+3. Save
+
+That's all. On the next workflow run, `actions/deploy-pages@v4` will publish
+`_site/index.html` (a full-viewport iframe pointing at `viewer.diagrams.net`) to
+`https://ojfbot.github.io/cv-builder/`.
+
+> **No branch needed.** The `build_type: workflow` setting means GitHub Pages is
+> driven entirely by the Actions workflow — no `gh-pages` branch required.
+
+---
+
 ## Step 6 — Verify
 
 Trigger the workflow manually (`workflow_dispatch`) on any branch. In the Actions log you
 should see:
 
 ```
-Configure AWS credentials (OIDC)   ✅
-Run screenshot pipeline            ✅
+Configure AWS credentials (OIDC)        ✅
+Run screenshot pipeline                 ✅
   Uploading dashboard-initial-desktop.png → s3://ojfbot-cv-builder-.../cv-builder/run-42/...
   ...
   Updated draw.io written to: templates/drawio/cvBuilder.drawio.xml
-Commit updated draw.io canvas      ✅  (skipped on PR, runs on main push)
+Generate draw.io viewer page            ✅
+Upload draw.io viewer to GitHub Pages   ✅
+Deploy draw.io viewer to GitHub Pages   ✅  → https://ojfbot.github.io/cv-builder/
+Commit updated draw.io canvas           ✅  (skipped on PR, runs on main push)
 ```
 
-The committed `cvBuilder.drawio.xml` will shrink from ~6MB (base64) to ~5KB (S3 URLs).
+The committed `cvBuilder.drawio.xml` will shrink from ~6 MB (base64) to ~5 KB (S3 URLs).
 Open it in draw.io — all 14 screenshot slots should render live screenshots.
+
+The GitHub Pages viewer at `https://ojfbot.github.io/cv-builder/` opens the same canvas in
+`viewer.diagrams.net` directly in the browser — no draw.io installation required.
 
 ---
 
