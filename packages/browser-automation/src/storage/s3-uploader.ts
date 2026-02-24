@@ -87,17 +87,15 @@ export class S3Uploader {
       .readdirSync(dirPath)
       .filter((f) => extensions.includes(path.extname(f).toLowerCase()));
 
-    const results: UploadResult[] = [];
-
-    for (const filename of files) {
-      const filePath = path.join(dirPath, filename);
-      const s3Key = `${this.config.prefix}/${filename}`;
-      console.log(`  Uploading ${filename} → s3://${this.config.bucket}/${s3Key}`);
-      const url = await this.uploadFile(filePath, s3Key);
-      results.push({ filename, s3Key, url });
-    }
-
-    return results;
+    return Promise.all(
+      files.map(async (filename) => {
+        const filePath = path.join(dirPath, filename);
+        const s3Key = `${this.config.prefix}/${filename}`;
+        console.log(`  Uploading ${filename} → s3://${this.config.bucket}/${s3Key}`);
+        const url = await this.uploadFile(filePath, s3Key);
+        return { filename, s3Key, url };
+      })
+    );
   }
 
   publicUrl(key: string): string {

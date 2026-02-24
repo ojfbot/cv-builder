@@ -5,10 +5,10 @@ auto-update workflow. Uses OIDC federation — **no static access keys** stored 
 
 ## Account context
 
-- **AWS account**: `714509060677`
+- **AWS account**: `<YOUR_ACCOUNT_ID>`
 - **Region**: `us-east-1`
 - **GitHub repo**: `ojfbot/cv-builder`
-- **Bucket name**: `ojfbot-cv-builder-714509060677-us-east-1`
+- **Bucket name**: `ojfbot-cv-builder-<YOUR_ACCOUNT_ID>-us-east-1`
 
 ---
 
@@ -18,7 +18,7 @@ In **AWS Console → S3 → Create bucket**:
 
 | Setting | Value |
 |---------|-------|
-| Bucket name | `ojfbot-cv-builder-714509060677-us-east-1` |
+| Bucket name | `ojfbot-cv-builder-<YOUR_ACCOUNT_ID>-us-east-1` |
 | Region | `us-east-1` |
 | Block Public Access | See note below |
 | Default encryption | SSE-S3 (default) |
@@ -85,7 +85,7 @@ Replace the generated one with this (note `StringLike` on `sub` — covers both
     {
       "Effect": "Allow",
       "Principal": {
-        "Federated": "arn:aws:iam::714509060677:oidc-provider/token.actions.githubusercontent.com"
+        "Federated": "arn:aws:iam::<YOUR_ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
@@ -126,8 +126,8 @@ Create a new inline policy named `GithubActionsS3ImagesPolicy`:
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::ojfbot-cv-builder-714509060677-us-east-1",
-        "arn:aws:s3:::ojfbot-cv-builder-714509060677-us-east-1/*"
+        "arn:aws:s3:::ojfbot-cv-builder-<YOUR_ACCOUNT_ID>-us-east-1",
+        "arn:aws:s3:::ojfbot-cv-builder-<YOUR_ACCOUNT_ID>-us-east-1/*"
       ]
     }
   ]
@@ -136,7 +136,7 @@ Create a new inline policy named `GithubActionsS3ImagesPolicy`:
 
 After creating the role, note the full ARN:
 ```
-arn:aws:iam::714509060677:role/GithubActionsS3ImagesRole
+arn:aws:iam::<YOUR_ACCOUNT_ID>:role/GithubActionsS3ImagesRole
 ```
 
 ---
@@ -153,7 +153,7 @@ In **S3 → bucket → Permissions → Bucket policy**, paste:
       "Sid": "AllowGithubRoleFullAccess",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::714509060677:role/GithubActionsS3ImagesRole"
+        "AWS": "arn:aws:iam::<YOUR_ACCOUNT_ID>:role/GithubActionsS3ImagesRole"
       },
       "Action": [
         "s3:GetObject",
@@ -162,8 +162,8 @@ In **S3 → bucket → Permissions → Bucket policy**, paste:
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::ojfbot-cv-builder-714509060677-us-east-1",
-        "arn:aws:s3:::ojfbot-cv-builder-714509060677-us-east-1/*"
+        "arn:aws:s3:::ojfbot-cv-builder-<YOUR_ACCOUNT_ID>-us-east-1",
+        "arn:aws:s3:::ojfbot-cv-builder-<YOUR_ACCOUNT_ID>-us-east-1/*"
       ]
     },
     {
@@ -171,7 +171,7 @@ In **S3 → bucket → Permissions → Bucket policy**, paste:
       "Effect": "Allow",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::ojfbot-cv-builder-714509060677-us-east-1/*"
+      "Resource": "arn:aws:s3:::ojfbot-cv-builder-<YOUR_ACCOUNT_ID>-us-east-1/*"
     }
   ]
 }
@@ -188,9 +188,9 @@ In **GitHub → repo → Settings → Secrets and variables → Actions → Vari
 
 | Name | Value |
 |------|-------|
-| `S3_BUCKET` | `ojfbot-cv-builder-714509060677-us-east-1` |
+| `S3_BUCKET` | `ojfbot-cv-builder-<YOUR_ACCOUNT_ID>-us-east-1` |
 | `AWS_REGION` | `us-east-1` |
-| `AWS_ROLE_ARN` | `arn:aws:iam::714509060677:role/GithubActionsS3ImagesRole` |
+| `AWS_ROLE_ARN` | `arn:aws:iam::<YOUR_ACCOUNT_ID>:role/GithubActionsS3ImagesRole` |
 
 No secrets needed — OIDC uses the role ARN directly.
 
@@ -225,7 +225,7 @@ When you're ready to mature the setup:
 2. **Lifecycle rule on the bucket** — expire `*/run-*/` prefixes older than 90 days to
    control storage costs as run numbers accumulate.
 
-3. **AWS Organizations** — move account `714509060677` under an org with SCPs.
+3. **AWS Organizations** — move account `<YOUR_ACCOUNT_ID>` under an org with SCPs.
    Replicate the IAM role in separate `dev`/`prod` accounts as you add workloads.
 
 4. **Infrastructure as Code** — template the bucket + IAM role in CDK or CloudFormation

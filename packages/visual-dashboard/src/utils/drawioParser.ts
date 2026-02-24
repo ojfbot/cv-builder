@@ -154,10 +154,10 @@ function calculateViewBox(
   pageWidth: number,
   pageHeight: number
 ): { x: number; y: number; width: number; height: number } {
-  let minX = 0;
-  let minY = 0;
-  let maxX = pageWidth;
-  let maxY = pageHeight;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
 
   cells.forEach((cell) => {
     if (cell.geometry && !cell.geometry.relative) {
@@ -172,6 +172,14 @@ function calculateViewBox(
       maxY = Math.max(maxY, y + height);
     }
   });
+
+  // Fall back to page dimensions if no cells had geometry
+  if (minX === Infinity) {
+    minX = 0;
+    minY = 0;
+    maxX = pageWidth;
+    maxY = pageHeight;
+  }
 
   // Add padding
   const padding = 50;
@@ -195,9 +203,13 @@ export function parseDrawioStyle(style: string): Record<string, string> {
 
   const pairs = style.split(';');
   pairs.forEach((pair) => {
-    const [key, value] = pair.split('=');
-    if (key && value) {
-      styleObj[key.trim()] = value.trim();
+    // Use indexOf so values containing '=' (e.g. base64 or pre-signed URLs) are not truncated
+    const eqIdx = pair.indexOf('=');
+    if (eqIdx === -1) return;
+    const key = pair.substring(0, eqIdx).trim();
+    const value = pair.substring(eqIdx + 1).trim();
+    if (key) {
+      styleObj[key] = value;
     }
   });
 

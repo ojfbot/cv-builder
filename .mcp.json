@@ -1,9 +1,13 @@
 {
   "mcpServers": {
     "aws-documentation": {
-      "command": "npx",
-      "args": ["-y", "@aws/mcp-server-aws-documentation"],
-      "description": "AWS documentation search — lets Claude look up IAM policy syntax, S3 features, SDK guides, and CloudFormation resource specs without web-fetching. Useful when writing policies, troubleshooting permissions, or understanding service limits."
+      "command": "uvx",
+      "args": ["awslabs.aws-documentation-mcp-server@1.1.18"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "AWS_DOCUMENTATION_PARTITION": "aws"
+      },
+      "description": "AWS documentation search — lets Claude look up IAM policy syntax, S3 features, SDK guides, and CloudFormation resource specs without web-fetching. Useful when writing policies, troubleshooting permissions, or understanding service limits. Requires uv (https://docs.astral.sh/uv/getting-started/installation/)."
     }
   }
 }
