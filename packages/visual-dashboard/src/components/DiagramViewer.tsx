@@ -2,7 +2,7 @@
  * DiagramViewer component for displaying Draw.io diagrams
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { DrawioCanvas } from './DrawioCanvas';
 import { parseDrawioXML } from '../utils/drawioParser';
 import type { DrawioDiagram } from '../utils/drawioParser';
@@ -18,33 +18,33 @@ export function DiagramViewer({ diagramUrl, diagramName }: DiagramViewerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadDiagram = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(diagramUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch diagram: ${response.statusText}`);
-      }
-
-      const xmlContent = await response.text();
-      const parsedDiagram = parseDrawioXML(xmlContent);
-      setDiagram(parsedDiagram);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      console.error('Failed to load diagram:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [diagramUrl]);
-
   useEffect(() => {
-    if (isExpanded && !diagram && !loading) {
-      loadDiagram();
-    }
-  }, [isExpanded, diagram, loading, loadDiagram]);
+    if (!isExpanded || diagram) return;
+
+    const controller = new AbortController();
+
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(diagramUrl, { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch diagram: ${response.statusText}`);
+        }
+        const xmlContent = await response.text();
+        setDiagram(parseDrawioXML(xmlContent));
+      } catch (err) {
+        if ((err as Error)?.name === 'AbortError') return;
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        setError(errorMessage);
+        console.error('Failed to load diagram:', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [isExpanded, diagram, diagramUrl]);
 
   return (
     <div className="card">

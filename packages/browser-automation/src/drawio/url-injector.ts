@@ -8,9 +8,18 @@
  * The draw.io template uses <object> elements as cell wrappers with metadata
  * attributes (TabPanel, AppSidebar, ChatWindow, etc.). Each <object> has a
  * stable `id` attribute that we use to locate the right cell.
+ *
+ * Note: This module uses string-based XML manipulation (indexOf / regex) rather
+ * than a DOM parser. This is intentional — the draw.io XML can be ~6 MB and a
+ * DOM round-trip re-serialises the entire file, changing formatting and escaping.
+ * The trade-off is that the patterns could theoretically match inside XML comments
+ * or CDATA sections; in practice the draw.io format doesn't use either, so this
+ * is safe for our controlled internal template.
  */
 
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 export interface CellUrlMapping {
   /** The draw.io <object> element's id attribute */
@@ -23,6 +32,20 @@ export interface InjectionResult {
   objectId: string;
   success: boolean;
   message: string;
+}
+
+/**
+ * XML-escape a string so it is safe to embed inside an XML attribute value.
+ * S3 URLs are plain HTTPS and don't normally contain these characters, but
+ * pre-signed URLs include query params like `?X-Amz-Signature=...&X-Amz-...`
+ * which must be escaped to keep the XML well-formed.
+ */
+function xmlEscape(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 export class DrawioUrlInjector {
@@ -110,7 +133,9 @@ export class DrawioUrlInjector {
 
     // Replace the image= value. It ends at ;" or just " (end of style attribute).
     // Handles: image=data:image/png,<base64>  image=https://...  image=
-    const newStyle = oldStyle.replace(/image=[^;"]*/, `image=${url}`);
+    // XML-escape the URL so characters like & in pre-signed query params don't
+    // produce malformed XML (e.g. ?foo=a&bar=b → ?foo=a&amp;bar=b).
+    const newStyle = oldStyle.replace(/image=[^;"]*/, `image=${xmlEscape(url)}`);
 
     if (newStyle === oldStyle) {
       return {
@@ -148,7 +173,12 @@ export class DrawioUrlInjector {
   ): InjectionResult[] {
     const content = fs.readFileSync(templatePath, 'utf-8');
     const { xml, results } = this.inject(content, mappings);
-    fs.writeFileSync(outputPath, xml, 'utf-8');
+
+    // Write atomically: write to a sibling temp file then rename so a crash
+    // mid-write never leaves the template in a partially-written state.
+    const tmpPath = path.join(os.tmpdir(), `drawio-inject-${process.pid}.tmp`);
+    fs.writeFileSync(tmpPath, xml, 'utf-8');
+    fs.renameSync(tmpPath, outputPath);
 
     const succeeded = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success).length;

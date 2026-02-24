@@ -42,10 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write        # needed to commit updated draw.io back to branch
-      pull-requests: write
-      issues: write
-      id-token: write        # required for OIDC → AWS role assumption (no static keys)
+      contents: write        # needed by: "Commit updated draw.io" + "Update baselines" steps
+                             # (both gated on vars.S3_BUCKET/workflow_dispatch; always granted
+                             # at job level because GitHub Actions doesn't support step-level permissions)
+      pull-requests: write   # needed by: "Comment PR with results" step
+      issues: write          # needed by: GitHub script in PR comment step
+      id-token: write        # needed by: OIDC → AWS role assumption (no static keys)
     # Force sequential execution to avoid Docker resource contention
     concurrency:
       group: browser-automation-tests
@@ -72,11 +74,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
-        run: |
-          echo "✅ Building packages with TypeScript type checking"
-          echo "✅ Visual regression tests will run using tsx (direct TypeScript execution)"
-        continue-on-error: true
+      - name: Type-check packages
+        run: pnpm type-check
+        continue-on-error: true  # don't block Docker tests on type errors
 
       - name: Setup temp directories
         run: |

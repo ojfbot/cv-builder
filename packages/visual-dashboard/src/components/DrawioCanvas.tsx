@@ -2,7 +2,7 @@
  * DrawioCanvas component - Interactive SVG canvas for draw.io diagrams
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import type { DrawioPage, DrawioCell } from '../utils/drawioParser';
 import { parseDrawioStyle, drawioColorToCSS, decodeDrawioValue } from '../utils/drawioParser';
@@ -38,6 +38,12 @@ export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanv
   if (!page) {
     return null;
   }
+
+  // Build a Map for O(1) cell lookups by ID (used when resolving edge source/target)
+  const cellMap = useMemo(
+    () => new Map(page.cells.map((c) => [c.id, c])),
+    [page.cells]
+  );
 
   return (
     <div className="drawio-canvas-container">
@@ -121,7 +127,7 @@ export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanv
                 </defs>
 
                 <g className="drawio-cells">
-                  {page.cells.map((cell) => renderCell(cell, page.cells))}
+                  {page.cells.map((cell) => renderCell(cell, cellMap))}
                 </g>
               </svg>
             </TransformComponent>
@@ -156,7 +162,7 @@ function getUniqueEdgeColors(cells: DrawioCell[]): string[] {
 /**
  * Render a single draw.io cell as SVG
  */
-function renderCell(cell: DrawioCell, allCells: DrawioCell[]): JSX.Element | null {
+function renderCell(cell: DrawioCell, cellMap: Map<string, DrawioCell>): JSX.Element | null {
   // Skip root cells (id 0 and 1)
   if (cell.id === '0' || cell.id === '1') {
     return null;
@@ -200,7 +206,7 @@ function renderCell(cell: DrawioCell, allCells: DrawioCell[]): JSX.Element | nul
             className="drawio-text"
           >
             {value.split('<br>').map((line, i) => (
-              <tspan key={i} x={x + width / 2} dy={i === 0 ? 0 : fontSize * 1.2}>
+              <tspan key={line + i} x={x + width / 2} dy={i === 0 ? 0 : fontSize * 1.2}>
                 {line}
               </tspan>
             ))}
@@ -212,8 +218,8 @@ function renderCell(cell: DrawioCell, allCells: DrawioCell[]): JSX.Element | nul
 
   // Render edge (connector/arrow)
   if (cell.edge && cell.source && cell.target) {
-    const sourceCell = allCells.find((c) => c.id === cell.source);
-    const targetCell = allCells.find((c) => c.id === cell.target);
+    const sourceCell = cellMap.get(cell.source);
+    const targetCell = cellMap.get(cell.target);
 
     if (!sourceCell?.geometry || !targetCell?.geometry) {
       return null;
