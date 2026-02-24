@@ -1,4 +1,4 @@
-import { BaseCheckpointSaver, Checkpoint, CheckpointMetadata, CheckpointTuple } from "@langchain/langgraph-checkpoint";
+import { BaseCheckpointSaver, Checkpoint, CheckpointMetadata, CheckpointTuple } from "@langchain/langgraph";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { Pool } from "pg";
 import { getLogger } from "../utils/logger";
@@ -91,7 +91,8 @@ export class PostgresCheckpointer extends BaseCheckpointSaver {
   async put(
     config: RunnableConfig,
     checkpoint: Checkpoint,
-    metadata: CheckpointMetadata
+    metadata: CheckpointMetadata,
+    _newVersions: Record<string, unknown>
   ): Promise<RunnableConfig> {
     const { thread_id } = config.configurable || {};
 
