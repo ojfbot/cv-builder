@@ -1,0 +1,165 @@
+{
+  "version": "1.0",
+  "description": "Maps draw.io object cell IDs to Playwright test screenshot baseline names. CI uploads baselines to S3 and injects the URLs back into the draw.io canvas.",
+  "screenshotDir": "test-baselines/cv-builder-visual",
+  "cells": [
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-1",
+      "screenshotBaseline": "dashboard-initial-desktop",
+      "description": "Initial app load — Interactive tab, sidebar collapsed, chat hidden",
+      "testStep": "Dashboard - Initial Load",
+      "uiState": {
+        "TabPanel": "Interactive",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Hidden"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-38",
+      "screenshotBaseline": "sidebar-expanded-desktop",
+      "description": "Interactive tab with application sidebar expanded",
+      "testStep": "Sidebar - Expanded State",
+      "uiState": {
+        "TabPanel": "Interactive",
+        "AppSidebar": "Expanded",
+        "ChatWindow": "Hidden"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-39",
+      "screenshotBaseline": "bio-tab-desktop",
+      "description": "Bio tab — summary pane, sidebar collapsed, chat collapsed",
+      "testStep": "Bio Tab - Layout",
+      "uiState": {
+        "TabPanel": "Bio",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Collapsed",
+        "ActivePane": "Bio - Summary"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-40",
+      "screenshotBaseline": "bio-chat-open-desktop",
+      "description": "Bio tab — summary pane with chat window expanded",
+      "testStep": "Bio Tab - Chat Open",
+      "uiState": {
+        "TabPanel": "Bio",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Expanded",
+        "ActivePane": "Bio - Summary"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-41",
+      "screenshotBaseline": "bio-form-empty-desktop",
+      "description": "Bio tab — launch tiles view when no bio entries exist yet",
+      "testStep": "Bio Form - Empty State",
+      "uiState": {
+        "TabPanel": "Bio",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Collapsed",
+        "ActivePane": "Bio - Launch Tiles"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-42",
+      "screenshotBaseline": "bio-file-browser-desktop",
+      "description": "Bio tab — file viewer panel showing stored files",
+      "testStep": "Bio - File Browser",
+      "uiState": {
+        "TabPanel": "Bio",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Collapsed",
+        "ActivePane": "Bio - File Viewer"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-43",
+      "screenshotBaseline": "jobs-tab-desktop",
+      "description": "Jobs tab — sidebar collapsed, chat collapsed",
+      "testStep": "Jobs Tab - Layout",
+      "uiState": {
+        "TabPanel": "Jobs",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Collapsed"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-44",
+      "screenshotBaseline": "jobs-sidebar-chat-desktop",
+      "description": "Jobs tab — application sidebar expanded, chat window open",
+      "testStep": "Jobs - Sidebar and Chat Open",
+      "uiState": {
+        "TabPanel": "Jobs",
+        "AppSidebar": "Expanded",
+        "ChatWindow": "Expanded"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-45",
+      "screenshotBaseline": "outputs-sidebar-desktop",
+      "description": "Outputs tab — application sidebar expanded",
+      "testStep": "Outputs - Sidebar Expanded",
+      "uiState": {
+        "TabPanel": "Output",
+        "AppSidebar": "Expanded",
+        "ChatWindow": "Collapsed"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-46",
+      "screenshotBaseline": "outputs-tab-desktop",
+      "description": "Outputs tab — default view, sidebar collapsed",
+      "testStep": "Outputs Tab - Layout",
+      "uiState": {
+        "TabPanel": "Output",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Collapsed"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-47",
+      "screenshotBaseline": "research-tab-desktop",
+      "description": "Research tab — default view",
+      "testStep": "Research Tab - Layout",
+      "uiState": {
+        "TabPanel": "Research",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Collapsed"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-49",
+      "screenshotBaseline": "pipelines-tab-desktop",
+      "description": "Pipelines tab — default view",
+      "testStep": "Pipelines Tab - Layout",
+      "uiState": {
+        "TabPanel": "Pipelines",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Collapsed"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-50",
+      "screenshotBaseline": "toolbox-tab-desktop",
+      "description": "Toolbox tab — default view",
+      "testStep": "Toolbox Tab - Layout",
+      "uiState": {
+        "TabPanel": "Toolbox",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Collapsed"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-68",
+      "screenshotBaseline": "jobs-chat-open-desktop",
+      "description": "Jobs tab — chat window expanded",
+      "testStep": "Jobs - Chat Open",
+      "uiState": {
+        "TabPanel": "Jobs",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Expanded"
+      }
+    }
+  ]
+}
