@@ -1,4 +1,4 @@
-import { BaseCheckpointSaver, Checkpoint, CheckpointMetadata, CheckpointTuple } from "@langchain/langgraph-checkpoint";
+import { BaseCheckpointSaver, Checkpoint, CheckpointMetadata, CheckpointTuple } from "@langchain/langgraph";
 import { RunnableConfig } from "@langchain/core/runnables";
 import Database from "better-sqlite3";
 import { getLogger } from "../utils/logger";
@@ -141,7 +141,8 @@ export class SQLiteCheckpointer extends BaseCheckpointSaver {
   async put(
     config: RunnableConfig,
     checkpoint: Checkpoint,
-    metadata: CheckpointMetadata
+    metadata: CheckpointMetadata,
+    _newVersions: Record<string, unknown>
   ): Promise<RunnableConfig> {
     const { thread_id } = config.configurable || {};
 
