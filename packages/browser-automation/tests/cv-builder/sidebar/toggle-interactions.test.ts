@@ -21,8 +21,10 @@ async function main() {
   });
 
   suite.test('View initial collapsed sidebar state', async ({ assert }) => {
-    // Verify DOM: Sidebar navigation is not visible (collapsed)
-    await assert.elementHidden('.cds--side-nav__navigation');
+    // Verify DOM: App switcher sidebar is not rendered (collapsed / unmounted)
+    // Use data-element="app-switcher-nav" to target only the left-side app switcher,
+    // not the ThreadSidebar (right side) which is always in the DOM.
+    await assert.elementHidden('[data-element="app-switcher-nav"]');
 
     // Capture collapsed state with semantic path
     const screenshot = await client.screenshot({
@@ -43,11 +45,11 @@ async function main() {
     // Click to expand using data-element
     await client.click('[data-element="sidebar-toggle"]');
 
-    // Wait for sidebar to be visible
-    await client.waitForSelector('.cds--side-nav__navigation', { state: 'visible', timeout: 2000 });
+    // Wait for app switcher sidebar to be visible
+    await client.waitForSelector('[data-element="app-switcher-nav"]', { state: 'visible', timeout: 2000 });
 
-    // Verify DOM: Sidebar navigation is visible
-    await assert.elementVisible('.cds--side-nav__navigation');
+    // Verify DOM: App switcher sidebar navigation is visible
+    await assert.elementVisible('[data-element="app-switcher-nav"]');
 
     // Note: Sidebar state is local to App.tsx, not in Redux store
 
@@ -70,11 +72,11 @@ async function main() {
     // Click to collapse using data-element
     await client.click('[data-element="sidebar-toggle"]');
 
-    // Wait for sidebar to be hidden
-    await client.waitForSelector('.cds--side-nav__navigation', { state: 'hidden', timeout: 2000 });
+    // Wait for app switcher sidebar to be unmounted
+    await client.waitForSelector('[data-element="app-switcher-nav"]', { state: 'hidden', timeout: 2000 });
 
-    // Verify DOM: Sidebar navigation is hidden
-    await assert.elementHidden('.cds--side-nav__navigation');
+    // Verify DOM: App switcher sidebar navigation is hidden (unmounted)
+    await assert.elementHidden('[data-element="app-switcher-nav"]');
 
     // Note: Sidebar state is local to App.tsx, not in Redux store
 

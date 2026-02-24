@@ -100,6 +100,7 @@ function AppContent() {
 
           {sideNavExpanded && (
             <SideNav
+              data-element="app-switcher-nav"
               aria-label="Side navigation"
               expanded={sideNavExpanded}
               onOverlayClick={onClickSideNavExpand}
