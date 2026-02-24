@@ -81,9 +81,10 @@ export function parseDrawioXML(xmlContent: string): DrawioDiagram {
       return;
     }
 
-    // Extract viewBox from mxGraphModel attributes
-    const dx = parseFloat(graphModel.getAttribute('dx') || '0');
-    const dy = parseFloat(graphModel.getAttribute('dy') || '0');
+    // Extract page dimensions from mxGraphModel attributes.
+    // Note: dx/dy represent the editor viewport scroll offset, not a layout
+    // transform — cell x/y coordinates are already in absolute diagram space,
+    // so dx/dy should NOT be added to the viewBox origin.
     const pageWidth = parseFloat(graphModel.getAttribute('pageWidth') || '850');
     const pageHeight = parseFloat(graphModel.getAttribute('pageHeight') || '1100');
 
@@ -128,7 +129,7 @@ export function parseDrawioXML(xmlContent: string): DrawioDiagram {
     });
 
     // Calculate viewBox based on cell positions
-    const viewBox = calculateViewBox(cells, dx, dy, pageWidth, pageHeight);
+    const viewBox = calculateViewBox(cells, pageWidth, pageHeight);
 
     pages.push({
       id: pageId,
@@ -149,8 +150,6 @@ export function parseDrawioXML(xmlContent: string): DrawioDiagram {
  */
 function calculateViewBox(
   cells: DrawioCell[],
-  dx: number,
-  dy: number,
   pageWidth: number,
   pageHeight: number
 ): { x: number; y: number; width: number; height: number } {
@@ -184,8 +183,8 @@ function calculateViewBox(
   // Add padding
   const padding = 50;
   return {
-    x: minX - padding + dx,
-    y: minY - padding + dy,
+    x: minX - padding,
+    y: minY - padding,
     width: maxX - minX + padding * 2,
     height: maxY - minY + padding * 2,
   };

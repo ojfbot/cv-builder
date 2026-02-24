@@ -75,8 +75,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Type-check packages
-        run: pnpm type-check
-        continue-on-error: true  # don't block Docker tests on type errors
+        run: pnpm type-check || echo "::warning::Type-check failed — see step logs for details"
 
       - name: Setup temp directories
         run: |
@@ -238,6 +237,7 @@ jobs:
           git add packages/browser-automation/templates/drawio/cvBuilder.drawio.xml
           git diff --cached --quiet && echo "No draw.io changes to commit" || \
             git commit -m "chore(ci): update draw.io canvas with run #${{ github.run_number }} screenshots [skip ci]"
+          git pull --rebase origin ${{ github.ref_name }} || true
           git push
 
       - name: Upload pipeline summary artifact
@@ -270,6 +270,7 @@ jobs:
           git add packages/browser-automation/test-baselines/
           git diff --cached --quiet && echo "No baseline changes" || \
             git commit -m "chore: update visual regression baselines [skip ci]"
+          git pull --rebase origin ${{ github.ref_name }} || true
           git push
 
       - name: Shutdown services

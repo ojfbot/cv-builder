@@ -102,29 +102,37 @@ async function run(): Promise<void> {
   console.log(`S3 region:  ${s3Config.region}`);
   console.log(`S3 prefix:  ${s3Config.prefix}\n`);
 
-  // 3. Upload screenshots that have a matching baseline file
-  const skipped: string[] = [];
-  const cellMappings: CellUrlMapping[] = [];
-  const uploaded: UploadResult[] = [];
-
+  // 3. Upload screenshots that have a matching baseline file.
+  //    Categorise synchronously first (fs.existsSync is fast), then upload in parallel.
   console.log('─── Uploading screenshots ──────────────────────────────');
+  const skipped: string[] = [];
+  const toUpload: Array<{ cell: ManifestCell; pngName: string; pngPath: string }> = [];
+
   for (const cell of manifest.cells) {
     const pngName = `${cell.screenshotBaseline}.png`;
     const pngPath = path.join(BASELINES_DIR, pngName);
-
-    if (!fs.existsSync(pngPath)) {
+    if (fs.existsSync(pngPath)) {
+      toUpload.push({ cell, pngName, pngPath });
+    } else {
       console.log(`  ⏭  ${cell.screenshotBaseline} — no baseline, skipping`);
       skipped.push(cell.screenshotBaseline);
-      continue;
     }
-
-    const s3Key = `${s3Config.prefix}/${pngName}`;
-    const url = await uploader.uploadFile(pngPath, s3Key);
-    uploaded.push({ filename: pngName, s3Key, url });
-    cellMappings.push({ objectId: cell.objectId, url });
-    console.log(`  ✓  ${cell.screenshotBaseline}`);
-    console.log(`     → ${url}`);
   }
+
+  const uploadResults = await Promise.all(
+    toUpload.map(async ({ cell, pngName, pngPath }) => {
+      const s3Key = `${s3Config.prefix}/${pngName}`;
+      const url = await uploader.uploadFile(pngPath, s3Key);
+      console.log(`  ✓  ${cell.screenshotBaseline}\n     → ${url}`);
+      return {
+        uploaded: { filename: pngName, s3Key, url } as UploadResult,
+        mapping: { objectId: cell.objectId, url } as CellUrlMapping,
+      };
+    })
+  );
+
+  const uploaded = uploadResults.map((r) => r.uploaded);
+  const cellMappings = uploadResults.map((r) => r.mapping);
 
   console.log(`\nUploaded ${uploaded.length}/${manifest.cells.length} screenshots`);
   if (skipped.length > 0) {

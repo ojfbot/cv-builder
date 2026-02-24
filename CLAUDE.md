@@ -21,6 +21,7 @@ This project uses **pnpm** as its package manager. The Node version is pinned to
 ### Prerequisites
 - Node.js 24.11.1+ (use `fnm use` to switch to the correct version)
 - pnpm 9.0.0+ (install via `corepack enable && corepack prepare pnpm@9.15.4 --activate`)
+- **Optional**: `uv` (Python package manager) — required to use the AWS Documentation MCP server in Claude Code. Install from https://docs.astral.sh/uv/. Copy `.mcp.json.example` (when available) or create `.mcp.json` locally with `{"mcpServers":{"aws-documentation":{"command":"uvx","args":["awslabs.aws-documentation-mcp-server@1.1.18"]}}}`. The `.mcp.json` file is gitignored (personal dev config).
 
 ## Development Commands
 
