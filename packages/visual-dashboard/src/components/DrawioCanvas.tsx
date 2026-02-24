@@ -51,6 +51,9 @@ export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanv
     return null;
   }
 
+  // NOTE: All SVG cells are rendered at once. For the current use case
+  // (test-flow diagrams with ~50–200 cells) this is fine. If you add a diagram
+  // with hundreds of cells, consider virtualising with react-window or similar.
   return (
     <div className="drawio-canvas-container">
       {/* Page tabs for multi-page diagrams */}
@@ -243,7 +246,10 @@ function renderCell(cell: DrawioCell, cellMap: Map<string, DrawioCell>): JSX.Ele
     const strokeColor = drawioColorToCSS(style.strokeColor);
     const strokeWidth = parseFloat(style.strokeWidth || '1');
 
-    // Calculate connector line (simplified - straight line between centers)
+    // Draw a straight line between cell centers. Draw.io stores optional waypoints
+    // in mxGeometry Array children and connection-point offsets via mxPoint — these
+    // are intentionally ignored here. Diagrams with explicit waypoints or non-center
+    // entry/exit points will look slightly different from draw.io's own renderer.
     const x1 = sourceCell.geometry.x + sourceCell.geometry.width / 2;
     const y1 = sourceCell.geometry.y + sourceCell.geometry.height / 2;
     const x2 = targetCell.geometry.x + targetCell.geometry.width / 2;

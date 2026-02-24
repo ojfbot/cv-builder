@@ -22,7 +22,7 @@
         </mxCell>
 
         <!-- Test 4: Wait for sidebar animation -->
-        <mxCell id="wait-sidebar" value="wait|.app-switcher.expanded|1000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+        <mxCell id="wait-sidebar" value="wait|[data-element='app-switcher-nav']|1000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
           <mxGeometry x="420" y="220" width="240" height="80" as="geometry"/>
         </mxCell>
 

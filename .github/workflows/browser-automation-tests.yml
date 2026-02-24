@@ -48,6 +48,8 @@ jobs:
       pull-requests: write   # needed by: "Comment PR with results" step
       issues: write          # needed by: GitHub script in PR comment step
       id-token: write        # needed by: OIDC → AWS role assumption (no static keys)
+      packages: none
+      statuses: none
     # Force sequential execution to avoid Docker resource contention
     concurrency:
       group: browser-automation-tests
