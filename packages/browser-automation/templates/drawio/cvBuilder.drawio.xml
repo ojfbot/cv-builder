@@ -201,6 +201,36 @@
         <mxCell id="S5uJ_xuYP76xC840Y5-A-73" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.002;entryY=0.517;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="S5uJ_xuYP76xC840Y5-A-37" source="S5uJ_xuYP76xC840Y5-A-66" target="S5uJ_xuYP76xC840Y5-A-44">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" ActivePane="" Description="Sidebar in collapsed state after user toggles it" Notes="" id="S5uJ_xuYP76xC840Y5-A-70">
+          <mxCell style="shape=image;aspect=fixed;image=data:image/png,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+            <mxGeometry x="1940" y="3073" width="1200" height="700" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Visible" ActivePane="" Description="Interactive tab with chat component fully visible" Notes="" id="S5uJ_xuYP76xC840Y5-A-71">
+          <mxCell style="shape=image;aspect=fixed;image=data:image/png,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+            <mxGeometry x="3810" y="3073" width="1200" height="700" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" ActivePane="" Description="Light theme variant — app in light mode" Notes="" id="S5uJ_xuYP76xC840Y5-A-72">
+          <mxCell style="shape=image;aspect=fixed;image=data:image/png,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+            <mxGeometry x="1940" y="3817" width="1200" height="700" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" ActivePane="Settings Modal" Description="Settings modal open over dashboard" Notes="" id="S5uJ_xuYP76xC840Y5-A-73">
+          <mxCell style="shape=image;aspect=fixed;image=data:image/png,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+            <mxGeometry x="3810" y="3817" width="1200" height="700" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Visible" ActivePane="Chat Input Focused" Description="Chat input field in focused state" Notes="" id="S5uJ_xuYP76xC840Y5-A-74">
+          <mxCell style="shape=image;aspect=fixed;image=data:image/png,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+            <mxGeometry x="1940" y="4560" width="1200" height="700" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Visible" ActivePane="Chat Help Badge" Description="Chat interface with help badge visible" Notes="" id="S5uJ_xuYP76xC840Y5-A-75">
+          <mxCell style="shape=image;aspect=fixed;image=data:image/png,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+            <mxGeometry x="3810" y="4560" width="1200" height="700" as="geometry" />
+          </mxCell>
+        </object>
       </root>
     </mxGraphModel>
   </diagram>

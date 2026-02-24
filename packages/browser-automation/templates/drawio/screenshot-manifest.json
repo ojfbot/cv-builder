@@ -160,6 +160,74 @@
         "AppSidebar": "Collapsed",
         "ChatWindow": "Expanded"
       }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-70",
+      "screenshotBaseline": "sidebar-collapsed-desktop",
+      "description": "Interactive tab — sidebar toggled to collapsed state",
+      "testStep": "Sidebar - Collapsed State",
+      "uiState": {
+        "TabPanel": "Interactive",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Hidden"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-71",
+      "screenshotBaseline": "chat-component-desktop",
+      "description": "Interactive tab — chat component fully visible",
+      "testStep": "Chat Component - Initial State",
+      "uiState": {
+        "TabPanel": "Interactive",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Visible"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-72",
+      "screenshotBaseline": "theme-light-desktop",
+      "description": "Interactive tab — light theme variant",
+      "testStep": "Theme - Light Mode",
+      "uiState": {
+        "TabPanel": "Interactive",
+        "AppSidebar": "Collapsed",
+        "Theme": "Light"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-73",
+      "screenshotBaseline": "settings-modal-open-desktop",
+      "description": "Settings modal open over the dashboard",
+      "testStep": "Settings Modal - Open",
+      "uiState": {
+        "TabPanel": "Interactive",
+        "AppSidebar": "Collapsed",
+        "Modal": "Settings"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-74",
+      "screenshotBaseline": "chat-input-focused-desktop",
+      "description": "Interactive tab — chat input field in focused state",
+      "testStep": "Chat Input - Focus State",
+      "uiState": {
+        "TabPanel": "Interactive",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Visible",
+        "FocusedElement": "ChatInput"
+      }
+    },
+    {
+      "objectId": "S5uJ_xuYP76xC840Y5-A-75",
+      "screenshotBaseline": "chat-help-badge-desktop",
+      "description": "Interactive tab — chat with help badge visible",
+      "testStep": "Chat - Help Badge Interaction",
+      "uiState": {
+        "TabPanel": "Interactive",
+        "AppSidebar": "Collapsed",
+        "ChatWindow": "Visible",
+        "HelpBadge": "Visible"
+      }
     }
   ]
 }
