@@ -1,8 +1,10 @@
-# Environment variables
+# Environment variables and local dev config
 .env
 .env.local
 .env.*.local
 env.json
+# MCP server config — personal dev tool, requires uv (https://docs.astral.sh/uv/)
+.mcp.json
 
 # Private data directories
 /bio/

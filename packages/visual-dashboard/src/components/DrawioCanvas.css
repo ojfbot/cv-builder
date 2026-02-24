@@ -5,7 +5,8 @@
 .drawio-canvas-container {
   position: relative;
   width: 100%;
-  height: 600px;
+  min-height: 400px;
+  height: 60vh;
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
   background-color: #1a1a1a;
@@ -149,7 +150,7 @@
 }
 
 .drawio-edge:hover line {
-  stroke-width: 3 !important;
+  stroke-width: 3;
   cursor: pointer;
 }
 
@@ -164,10 +165,6 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .drawio-canvas-container {
-    height: 400px;
-  }
-
   .drawio-zoom-controls {
     bottom: 0.5rem;
     right: 0.5rem;

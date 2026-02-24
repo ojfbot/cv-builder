@@ -26,6 +26,19 @@ export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanv
     onPageChange?.(pageIndex);
   };
 
+  const page = pages[currentPage];
+
+  // All hooks must be called unconditionally before any early returns (Rules of Hooks).
+  // Use optional chaining so these are safe when page is undefined.
+  const cellMap = useMemo(
+    () => new Map((page?.cells ?? []).map((c) => [c.id, c])),
+    [page]
+  );
+  const edgeColors = useMemo(
+    () => (page ? getUniqueEdgeColors(page.cells) : []),
+    [page]
+  );
+
   if (pages.length === 0) {
     return (
       <div className="drawio-canvas-empty">
@@ -34,25 +47,20 @@ export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanv
     );
   }
 
-  const page = pages[currentPage];
   if (!page) {
     return null;
   }
-
-  // Build a Map for O(1) cell lookups by ID (used when resolving edge source/target)
-  const cellMap = useMemo(
-    () => new Map(page.cells.map((c) => [c.id, c])),
-    [page.cells]
-  );
 
   return (
     <div className="drawio-canvas-container">
       {/* Page tabs for multi-page diagrams */}
       {pages.length > 1 && (
-        <div className="drawio-page-tabs">
+        <div className="drawio-page-tabs" role="tablist">
           {pages.map((p, index) => (
             <button
               key={p.id}
+              role="tab"
+              aria-selected={index === currentPage}
               className={`drawio-page-tab ${index === currentPage ? 'active' : ''}`}
               onClick={() => handlePageChange(index)}
               aria-label={`View page ${p.name}`}
@@ -109,9 +117,9 @@ export function DrawioCanvas({ pages, activePage = 0, onPageChange }: DrawioCanv
                 viewBox={`${page.viewBox.x} ${page.viewBox.y} ${page.viewBox.width} ${page.viewBox.height}`}
                 xmlns="http://www.w3.org/2000/svg"
               >
-                {/* Arrow marker definitions - define once per unique color */}
+                {/* Arrow marker definitions - one per unique edge color */}
                 <defs>
-                  {getUniqueEdgeColors(page.cells).map((color) => (
+                  {edgeColors.map((color) => (
                     <marker
                       key={`arrowhead-${color}`}
                       id={`arrowhead-${color}`}
@@ -184,6 +192,13 @@ function renderCell(cell: DrawioCell, cellMap: Map<string, DrawioCell>): JSX.Ele
     const fontColor = drawioColorToCSS(style.fontColor);
     const rounded = style.rounded === '1';
 
+    // Split on <br> in the raw cell value before HTML-decoding, so the tag is
+    // still present as a literal string. decodeDrawioValue runs the value through
+    // DOMParser/textContent which strips tags — splitting after that is a no-op.
+    const labelLines = cell.value
+      ? cell.value.split(/<br\s*\/?>/i).map(decodeDrawioValue)
+      : [];
+
     return (
       <g key={cell.id} className="drawio-vertex">
         {/* Shape background */}
@@ -195,7 +210,7 @@ function renderCell(cell: DrawioCell, cellMap: Map<string, DrawioCell>): JSX.Ele
         })}
 
         {/* Text label */}
-        {value && (
+        {labelLines.length > 0 && (
           <text
             x={x + width / 2}
             y={y + height / 2}
@@ -205,8 +220,8 @@ function renderCell(cell: DrawioCell, cellMap: Map<string, DrawioCell>): JSX.Ele
             fill={fontColor}
             className="drawio-text"
           >
-            {value.split('<br>').map((line, i) => (
-              <tspan key={line + i} x={x + width / 2} dy={i === 0 ? 0 : fontSize * 1.2}>
+            {labelLines.map((line, i) => (
+              <tspan key={i} x={x + width / 2} dy={i === 0 ? 0 : fontSize * 1.2}>
                 {line}
               </tspan>
             ))}
