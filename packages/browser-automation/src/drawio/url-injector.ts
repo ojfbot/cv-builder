@@ -9,17 +9,16 @@
  * attributes (TabPanel, AppSidebar, ChatWindow, etc.). Each <object> has a
  * stable `id` attribute that we use to locate the right cell.
  *
- * Note: This module uses string-based XML manipulation (indexOf / regex) rather
- * than a DOM parser. This is intentional — the draw.io XML can be ~6 MB and a
- * DOM round-trip re-serialises the entire file, changing formatting and escaping.
- * The trade-off is that the patterns could theoretically match inside XML comments
- * or CDATA sections; in practice the draw.io format doesn't use either, so this
- * is safe for our controlled internal template.
+ * Uses @xmldom/xmldom for DOM-based XML parsing so node lookup is robust
+ * against attribute-order variations and can never accidentally match an ID
+ * that appears inside another attribute's value or in a neighbouring element.
+ * The DOM serialiser handles XML attribute escaping automatically.
  */
 
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
 
 export interface CellUrlMapping {
   /** The draw.io <object> element's id attribute */
@@ -34,132 +33,98 @@ export interface InjectionResult {
   message: string;
 }
 
-/**
- * XML-escape a string so it is safe to embed inside an XML attribute value.
- * S3 URLs are plain HTTPS and don't normally contain these characters, but
- * pre-signed URLs include query params like `?X-Amz-Signature=...&X-Amz-...`
- * which must be escaped to keep the XML well-formed.
- */
-function xmlEscape(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 export class DrawioUrlInjector {
   /**
    * Inject S3 URLs into draw.io XML content.
-   * Returns the modified XML string and a report of what was updated.
+   * Parses the XML once, mutates the DOM in place for all mappings, then
+   * serialises once. Returns the modified XML string and a per-cell report.
    */
   inject(
     xmlContent: string,
     mappings: CellUrlMapping[]
   ): { xml: string; results: InjectionResult[] } {
-    let xml = xmlContent;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlContent, 'application/xml');
     const results: InjectionResult[] = [];
 
     for (const { objectId, url } of mappings) {
-      const { xml: updated, result } = this.injectOneCell(xml, objectId, url);
-      xml = updated;
+      const result = this.injectOneCell(doc, objectId, url);
       results.push(result);
     }
 
+    const serializer = new XMLSerializer();
+    const xml = serializer.serializeToString(doc);
     return { xml, results };
   }
 
   /**
-   * Inject a single cell's URL.
-   * Locates the <object id="objectId"> element, finds its nested
-   * <mxCell style="...shape=image...image=<old>..."> and replaces
-   * the image= value with the new URL.
+   * Locate one <object id="objectId"> element in the DOM, find its nested
+   * <mxCell style="...shape=image..."> child, and update the image= value.
+   * The DOM serialiser automatically XML-escapes the new attribute value.
    */
   private injectOneCell(
-    xml: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    doc: any,
     objectId: string,
     url: string
-  ): { xml: string; result: InjectionResult } {
-    const objectIdToken = `id="${objectId}"`;
-    const objectStart = xml.indexOf(objectIdToken);
+  ): InjectionResult {
+    // Find the <object> element whose id attribute exactly matches objectId
+    const objects = doc.getElementsByTagName('object');
+    let targetObject = null;
+    for (let i = 0; i < objects.length; i++) {
+      if (objects[i].getAttribute('id') === objectId) {
+        targetObject = objects[i];
+        break;
+      }
+    }
 
-    if (objectStart === -1) {
+    if (!targetObject) {
       return {
-        xml,
-        result: {
-          objectId,
-          success: false,
-          message: `<object id="${objectId}"> not found in XML`,
-        },
+        objectId,
+        success: false,
+        message: `<object id="${objectId}"> not found in XML`,
       };
     }
 
-    // Find the enclosing </object> after this id attribute
-    const objectClose = xml.indexOf('</object>', objectStart);
-    if (objectClose === -1) {
+    // Find the nested <mxCell> whose style includes 'shape=image'
+    const cells = targetObject.getElementsByTagName('mxCell');
+    let imageCell = null;
+    for (let i = 0; i < cells.length; i++) {
+      const style = cells[i].getAttribute('style') || '';
+      if (style.includes('shape=image')) {
+        imageCell = cells[i];
+        break;
+      }
+    }
+
+    if (!imageCell) {
       return {
-        xml,
-        result: {
-          objectId,
-          success: false,
-          message: `Could not find closing </object> for id="${objectId}"`,
-        },
+        objectId,
+        success: false,
+        message: `No shape=image style found in object id="${objectId}"`,
       };
     }
 
-    const closeTagLen = '</object>'.length;
-    const before = xml.substring(0, objectStart);
-    const objectSection = xml.substring(objectStart, objectClose + closeTagLen);
-    const after = xml.substring(objectClose + closeTagLen);
+    const oldStyle = imageCell.getAttribute('style') || '';
 
-    // Find the mxCell style attribute containing shape=image
-    // The style looks like: style="shape=image;aspect=fixed;image=data:image/png,<base64>"
-    // or after a previous injection: style="shape=image;aspect=fixed;image=https://..."
-    const styleRegex = /style="([^"]*shape=image[^"]*)"/;
-    const styleMatch = objectSection.match(styleRegex);
-
-    if (!styleMatch) {
-      return {
-        xml,
-        result: {
-          objectId,
-          success: false,
-          message: `No shape=image style found in object id="${objectId}"`,
-        },
-      };
-    }
-
-    const oldStyle = styleMatch[1];
-
-    // Replace the image= value. It ends at ;" or just " (end of style attribute).
-    // Handles: image=data:image/png,<base64>  image=https://...  image=
-    // XML-escape the URL so characters like & in pre-signed query params don't
-    // produce malformed XML (e.g. ?foo=a&bar=b → ?foo=a&amp;bar=b).
-    const newStyle = oldStyle.replace(/image=[^;"]*/, `image=${xmlEscape(url)}`);
+    // Replace image=<value> (ends at ;" or "). Handles base64, https://, and
+    // empty image= values. setAttribute takes the raw (unescaped) URL value;
+    // the serialiser will escape & and other special chars in the output XML.
+    const newStyle = oldStyle.replace(/image=[^;"]*/, `image=${url}`);
 
     if (newStyle === oldStyle) {
       return {
-        xml,
-        result: {
-          objectId,
-          success: false,
-          message: `image= pattern not found in style for id="${objectId}"`,
-        },
+        objectId,
+        success: false,
+        message: `image= pattern not found in style for id="${objectId}"`,
       };
     }
 
-    const newObjectSection = objectSection.replace(
-      styleMatch[0],
-      `style="${newStyle}"`
-    );
-
+    imageCell.setAttribute('style', newStyle);
     return {
-      xml: before + newObjectSection + after,
-      result: {
-        objectId,
-        success: true,
-        message: `Injected URL for id="${objectId}"`,
-      },
+      objectId,
+      success: true,
+      message: `Injected URL for id="${objectId}"`,
     };
   }
 
