@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "aws-documentation": {
+      "command": "npx",
+      "args": ["-y", "@aws/mcp-server-aws-documentation"],
+      "description": "AWS documentation search — lets Claude look up IAM policy syntax, S3 features, SDK guides, and CloudFormation resource specs without web-fetching. Useful when writing policies, troubleshooting permissions, or understanding service limits."
+    }
+  }
+}

@@ -42,9 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: read
+      contents: write        # needed to commit updated draw.io back to branch
       pull-requests: write
       issues: write
+      id-token: write        # required for OIDC → AWS role assumption (no static keys)
     # Force sequential execution to avoid Docker resource contention
     concurrency:
       group: browser-automation-tests
@@ -210,6 +211,43 @@ jobs:
               repo: context.repo.repo,
               body: comment
             });
+
+      - name: Configure AWS credentials (OIDC)
+        if: always() && vars.S3_BUCKET != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Run screenshot pipeline (upload to S3 + update draw.io)
+        if: always() && vars.S3_BUCKET != ''
+        env:
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          echo "📸 Uploading screenshots to S3 and updating draw.io canvas..."
+          pnpm --filter @cv-builder/browser-automation pipeline:screenshots
+
+      - name: Commit updated draw.io canvas
+        if: always() && vars.S3_BUCKET != '' && github.event_name != 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/browser-automation/templates/drawio/cvBuilder.drawio.xml
+          git diff --cached --quiet && echo "No draw.io changes to commit" || \
+            git commit -m "chore(ci): update draw.io canvas with run #${{ github.run_number }} screenshots [skip ci]"
+          git push
+
+      - name: Upload pipeline summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-result-${{ github.run_number }}
+          path: packages/browser-automation/temp/pipeline-result.json
+          retention-days: 30
+          if-no-files-found: ignore
 
       - name: Update baselines (if requested)
         if: |

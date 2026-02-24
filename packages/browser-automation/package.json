@@ -37,7 +37,8 @@
     "test:visual": "tsx tests/visual/cv-builder-visual.test.ts",
     "test:visual:update": "UPDATE_BASELINES=true tsx tests/visual/cv-builder-visual.test.ts",
     "test:visual:update:all": "UPDATE_BASELINES=true npm run test:visual",
-    "baselines:init": "tsx -e \"import { getBaselineManager } from './src/visual/baseline-manager.js'; (async () => { await getBaselineManager().initialize(); console.log('Baselines initialized'); })();\""
+    "baselines:init": "tsx -e \"import { getBaselineManager } from './src/visual/baseline-manager.js'; (async () => { await getBaselineManager().initialize(); console.log('Baselines initialized'); })();\"",
+    "pipeline:screenshots": "tsx scripts/ci-screenshot-pipeline.ts"
   },
   "keywords": [
     "playwright",
@@ -49,6 +50,7 @@
   "author": "CV Builder Team",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.996.0",
     "@octokit/plugin-throttling": "^11.0.3",
     "@octokit/request-error": "^7.1.0",
     "@octokit/rest": "^22.0.1",

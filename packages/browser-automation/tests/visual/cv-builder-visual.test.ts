@@ -203,7 +203,7 @@ async function main() {
     await client.waitForSelector('.app-container');
 
     // Toggle sidebar
-    const toggleButton = '[data-testid="sidebar-toggle"]';
+    const toggleButton = '[data-element="sidebar-toggle"]';
     const exists = await client.elementExists(toggleButton);
 
     if (exists) {
@@ -450,9 +450,16 @@ async function main() {
   suite.test('Sidebar - Expanded State', async ({ assert }) => {
     await client.navigate(APP_URL);
     await client.waitForSelector('.app-container');
-
-    // Ensure sidebar is expanded
     await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Expand the application sidebar
+    const toggleButton = '[data-element="sidebar-toggle"]';
+    const exists = await client.elementExists(toggleButton);
+
+    if (exists) {
+      await client.click(toggleButton);
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
 
     // Capture expanded state
     const result = await client.screenshot({
@@ -468,6 +475,12 @@ async function main() {
       threshold: VISUAL_THRESHOLDS.STANDARD,
       updateBaseline: UPDATE_BASELINES,
     });
+
+    // Collapse sidebar for subsequent tests
+    if (exists) {
+      await client.click(toggleButton);
+      await new Promise(resolve => setTimeout(resolve, 400));
+    }
   });
 
   // Test: Chat Input - Focus State
@@ -580,6 +593,290 @@ async function main() {
       updateBaseline: UPDATE_BASELINES,
     });
   });
+
+  // ── New tests: remaining draw.io canvas cells ─────────────────────────────
+
+  // Test: Research Tab
+  suite.test('Research Tab - Layout', async ({ assert }) => {
+    await client.navigate(APP_URL);
+    await client.waitForSelector('.app-container');
+
+    const tab = '[data-element="research-tab"]';
+    const exists = await client.elementExists(tab);
+
+    if (exists) {
+      await client.click(tab);
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const result = await client.screenshot({
+        name: 'research-tab-layout',
+        viewport: 'desktop',
+        fullPage: true,
+        path: 'temp/screenshots/visual-test',
+      });
+
+      assert.screenshotCaptured(result);
+
+      await visual.matchesBaseline(result.path, 'research-tab-desktop', {
+        threshold: VISUAL_THRESHOLDS.STANDARD,
+        updateBaseline: UPDATE_BASELINES,
+      });
+    } else {
+      console.log('⏭️  Research tab not found, skipping');
+    }
+  });
+
+  // Test: Pipelines Tab
+  suite.test('Pipelines Tab - Layout', async ({ assert }) => {
+    await client.navigate(APP_URL);
+    await client.waitForSelector('.app-container');
+
+    const tab = '[data-element="pipelines-tab"]';
+    const exists = await client.elementExists(tab);
+
+    if (exists) {
+      await client.click(tab);
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const result = await client.screenshot({
+        name: 'pipelines-tab-layout',
+        viewport: 'desktop',
+        fullPage: true,
+        path: 'temp/screenshots/visual-test',
+      });
+
+      assert.screenshotCaptured(result);
+
+      await visual.matchesBaseline(result.path, 'pipelines-tab-desktop', {
+        threshold: VISUAL_THRESHOLDS.STANDARD,
+        updateBaseline: UPDATE_BASELINES,
+      });
+    } else {
+      console.log('⏭️  Pipelines tab not found, skipping');
+    }
+  });
+
+  // Test: Toolbox Tab
+  suite.test('Toolbox Tab - Layout', async ({ assert }) => {
+    await client.navigate(APP_URL);
+    await client.waitForSelector('.app-container');
+
+    const tab = '[data-element="toolbox-tab"]';
+    const exists = await client.elementExists(tab);
+
+    if (exists) {
+      await client.click(tab);
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const result = await client.screenshot({
+        name: 'toolbox-tab-layout',
+        viewport: 'desktop',
+        fullPage: true,
+        path: 'temp/screenshots/visual-test',
+      });
+
+      assert.screenshotCaptured(result);
+
+      await visual.matchesBaseline(result.path, 'toolbox-tab-desktop', {
+        threshold: VISUAL_THRESHOLDS.STANDARD,
+        updateBaseline: UPDATE_BASELINES,
+      });
+    } else {
+      console.log('⏭️  Toolbox tab not found, skipping');
+    }
+  });
+
+  // Test: Bio Tab - Chat Window Open
+  suite.test('Bio Tab - Chat Open', async ({ assert }) => {
+    await client.navigate(APP_URL);
+    await client.waitForSelector('.app-container');
+
+    // Navigate to Bio tab (CondensedChat appears on non-Interactive tabs)
+    await client.click('[data-element="bio-tab"]');
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Expand the chat window by clicking its header
+    const chatWindow = '[data-element="chat-window"]';
+    const chatExists = await client.elementExists(chatWindow);
+
+    if (chatExists) {
+      await client.click(chatWindow);
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      const result = await client.screenshot({
+        name: 'bio-chat-open',
+        viewport: 'desktop',
+        fullPage: true,
+        path: 'temp/screenshots/visual-test',
+      });
+
+      assert.screenshotCaptured(result);
+
+      await visual.matchesBaseline(result.path, 'bio-chat-open-desktop', {
+        threshold: VISUAL_THRESHOLDS.STANDARD,
+        updateBaseline: UPDATE_BASELINES,
+      });
+    } else {
+      console.log('⏭️  Chat window not found on Bio tab, skipping');
+    }
+  });
+
+  // Test: Bio Tab - File Browser View
+  suite.test('Bio - File Browser', async ({ assert }) => {
+    await client.navigate(APP_URL);
+    await client.waitForSelector('.app-container');
+
+    await client.click('[data-element="bio-tab"]');
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Click the Files button to switch to file browser view
+    const filesButton = '[data-element="bio-files-button"]';
+    const exists = await client.elementExists(filesButton);
+
+    if (exists) {
+      await client.click(filesButton);
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      const result = await client.screenshot({
+        name: 'bio-file-browser',
+        viewport: 'desktop',
+        fullPage: true,
+        path: 'temp/screenshots/visual-test',
+      });
+
+      assert.screenshotCaptured(result);
+
+      await visual.matchesBaseline(result.path, 'bio-file-browser-desktop', {
+        threshold: VISUAL_THRESHOLDS.STANDARD,
+        updateBaseline: UPDATE_BASELINES,
+      });
+    } else {
+      console.log('⏭️  Bio files button not found, skipping');
+    }
+  });
+
+  // Test: Jobs Tab - Chat Window Open
+  suite.test('Jobs - Chat Open', async ({ assert }) => {
+    await client.navigate(APP_URL);
+    await client.waitForSelector('.app-container');
+
+    await client.click('[data-element="jobs-tab"]');
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const chatWindow = '[data-element="chat-window"]';
+    const chatExists = await client.elementExists(chatWindow);
+
+    if (chatExists) {
+      await client.click(chatWindow);
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      const result = await client.screenshot({
+        name: 'jobs-chat-open',
+        viewport: 'desktop',
+        fullPage: true,
+        path: 'temp/screenshots/visual-test',
+      });
+
+      assert.screenshotCaptured(result);
+
+      await visual.matchesBaseline(result.path, 'jobs-chat-open-desktop', {
+        threshold: VISUAL_THRESHOLDS.STANDARD,
+        updateBaseline: UPDATE_BASELINES,
+      });
+    } else {
+      console.log('⏭️  Chat window not found on Jobs tab, skipping');
+    }
+  });
+
+  // Test: Jobs Tab - Sidebar Expanded + Chat Open
+  suite.test('Jobs - Sidebar and Chat Open', async ({ assert }) => {
+    await client.navigate(APP_URL);
+    await client.waitForSelector('.app-container');
+
+    await client.click('[data-element="jobs-tab"]');
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const sidebarToggle = '[data-element="sidebar-toggle"]';
+    const chatWindow = '[data-element="chat-window"]';
+    const sidebarExists = await client.elementExists(sidebarToggle);
+    const chatExists = await client.elementExists(chatWindow);
+
+    if (sidebarExists) {
+      await client.click(sidebarToggle);
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    if (chatExists) {
+      await client.click(chatWindow);
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
+
+    const result = await client.screenshot({
+      name: 'jobs-sidebar-chat',
+      viewport: 'desktop',
+      fullPage: true,
+      path: 'temp/screenshots/visual-test',
+    });
+
+    assert.screenshotCaptured(result);
+
+    await visual.matchesBaseline(result.path, 'jobs-sidebar-chat-desktop', {
+      threshold: VISUAL_THRESHOLDS.STANDARD,
+      updateBaseline: UPDATE_BASELINES,
+    });
+
+    // Restore state
+    if (sidebarExists) {
+      await client.click(sidebarToggle);
+      await new Promise(resolve => setTimeout(resolve, 400));
+    }
+  });
+
+  // Test: Outputs Tab - Sidebar Expanded
+  suite.test('Outputs - Sidebar Expanded', async ({ assert }) => {
+    await client.navigate(APP_URL);
+    await client.waitForSelector('.app-container');
+
+    const outputsTab = '[data-element="outputs-tab"]';
+    const tabExists = await client.elementExists(outputsTab);
+
+    if (tabExists) {
+      await client.click(outputsTab);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const sidebarToggle = '[data-element="sidebar-toggle"]';
+      const sidebarExists = await client.elementExists(sidebarToggle);
+
+      if (sidebarExists) {
+        await client.click(sidebarToggle);
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+
+      const result = await client.screenshot({
+        name: 'outputs-sidebar',
+        viewport: 'desktop',
+        fullPage: true,
+        path: 'temp/screenshots/visual-test',
+      });
+
+      assert.screenshotCaptured(result);
+
+      await visual.matchesBaseline(result.path, 'outputs-sidebar-desktop', {
+        threshold: VISUAL_THRESHOLDS.STANDARD,
+        updateBaseline: UPDATE_BASELINES,
+      });
+
+      // Collapse sidebar
+      if (sidebarExists) {
+        await client.click(sidebarToggle);
+        await new Promise(resolve => setTimeout(resolve, 400));
+      }
+    } else {
+      console.log('⏭️  Outputs tab not found, skipping');
+    }
+  });
+
+  // ── End of draw.io baseline tests ─────────────────────────────────────────
 
   // Run tests
   const reporters: any[] = ['console', visualReporter];
