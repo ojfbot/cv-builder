@@ -8,6 +8,10 @@ import { parseDrawioXML } from '../utils/drawioParser';
 import type { DrawioDiagram } from '../utils/drawioParser';
 
 interface DiagramViewerProps {
+  // NOTE: diagramUrl is expected to originate from server-side config (e.g. an S3
+  // URL embedded in the draw.io template), never from raw user input. If the URL
+  // source ever changes, validate it against an allowlist before fetching to prevent
+  // SSRF-style misuse.
   diagramUrl: string;
   diagramName: string;
 }
@@ -44,7 +48,11 @@ export function DiagramViewer({ diagramUrl, diagramName }: DiagramViewerProps) {
     })();
 
     return () => controller.abort();
-  }, [isExpanded, diagram, diagramUrl]);
+  // `diagram` is intentionally omitted from deps: the guard `if (!isExpanded || diagram) return`
+  // already prevents re-fetching once loaded, and adding it would cause a spurious no-op
+  // re-run every time the diagram state transitions from null → object.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isExpanded, diagramUrl]);
 
   return (
     <div className="card">

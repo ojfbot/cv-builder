@@ -216,24 +216,31 @@ export function parseDrawioStyle(style: string): Record<string, string> {
 }
 
 /**
- * Convert draw.io color format to CSS color
+ * Allowlist regex for safe CSS color values.
+ * Accepts: #rgb/#rrggbb/#rrggbbaa, rgb(...), rgba(...), named colors (letters only),
+ * "none", and "transparent". Rejects url(...), expression(...), javascript:..., etc.
+ */
+const SAFE_COLOR_RE =
+  /^(#[0-9a-fA-F]{3,8}|rgb\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*\)|rgba\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*\)|none|transparent|[a-zA-Z]+)$/;
+
+/**
+ * Convert draw.io color format to a safe CSS color string.
+ * Values that don't match the allowlist (e.g. url(javascript:...)) fall back to
+ * "transparent" so a malicious or corrupted .drawio file cannot inject executable
+ * payloads into SVG fill/stroke attribute values.
  */
 export function drawioColorToCSS(color: string | undefined): string {
   if (!color) {
     return 'transparent';
   }
 
-  // Draw.io uses formats like: #RRGGBB, rgb(r,g,b), or color names
-  if (color.startsWith('#')) {
-    return color;
+  const trimmed = color.trim();
+
+  if (!SAFE_COLOR_RE.test(trimmed)) {
+    return 'transparent';
   }
 
-  if (color.startsWith('rgb')) {
-    return color;
-  }
-
-  // Handle named colors
-  return color;
+  return trimmed;
 }
 
 /**

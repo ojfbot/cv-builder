@@ -7,8 +7,8 @@
   width: 100%;
   min-height: 400px;
   height: 60vh;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border, #393939);
+  border-radius: var(--border-radius, 4px);
   background-color: #1a1a1a;
   overflow: hidden;
 }
@@ -18,10 +18,10 @@
   align-items: center;
   justify-content: center;
   height: 400px;
-  color: var(--color-text-secondary);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
+  color: var(--color-text-secondary, #8d8d8d);
+  background-color: var(--color-surface, #262626);
+  border: 1px solid var(--color-border, #393939);
+  border-radius: var(--border-radius, 4px);
 }
 
 /* Page tabs */
@@ -29,17 +29,17 @@
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem;
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface, #262626);
+  border-bottom: 1px solid var(--color-border, #393939);
   overflow-x: auto;
 }
 
 .drawio-page-tab {
   padding: 0.5rem 1rem;
   background-color: transparent;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
+  color: var(--color-text, #f4f4f4);
+  border: 1px solid var(--color-border, #393939);
+  border-radius: var(--border-radius, 4px);
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
@@ -48,14 +48,14 @@
 }
 
 .drawio-page-tab:hover {
-  background-color: var(--color-hover);
-  border-color: var(--color-primary);
+  background-color: var(--color-hover, #353535);
+  border-color: var(--color-primary, #0f62fe);
 }
 
 .drawio-page-tab.active {
-  background-color: var(--color-primary);
-  color: var(--color-bg);
-  border-color: var(--color-primary);
+  background-color: var(--color-primary, #0f62fe);
+  color: var(--color-bg, #161616);
+  border-color: var(--color-primary, #0f62fe);
 }
 
 /* Zoom controls */
@@ -66,9 +66,9 @@
   display: flex;
   gap: 0.5rem;
   z-index: 10;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
+  background-color: var(--color-surface, #262626);
+  border: 1px solid var(--color-border, #393939);
+  border-radius: var(--border-radius, 4px);
   padding: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -79,9 +79,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
+  background-color: var(--color-bg, #161616);
+  color: var(--color-text, #f4f4f4);
+  border: 1px solid var(--color-border, #393939);
   border-radius: 4px;
   cursor: pointer;
   font-size: 1.25rem;
@@ -90,9 +90,9 @@
 }
 
 .drawio-zoom-controls button:hover {
-  background-color: var(--color-primary);
-  color: var(--color-bg);
-  border-color: var(--color-primary);
+  background-color: var(--color-primary, #0f62fe);
+  color: var(--color-bg, #161616);
+  border-color: var(--color-primary, #0f62fe);
 }
 
 .drawio-zoom-controls button:active {
