@@ -28,13 +28,14 @@ collisions).
 
 | Permission | Reason |
 |------------|--------|
-| `contents: write` | Commit updated draw.io canvas on main push; commit updated baselines on `workflow_dispatch` |
-| `pull-requests: write` | Post PR comment |
+| `contents: read` | Checkout source code (`actions/checkout@v4`) |
+| `pull-requests: write` | Post / update PR comment |
 | `issues: write` | Required by `actions/github-script` when posting comments |
 | `id-token: write` | OIDC → AWS role assumption (no static keys stored) |
-| `pages: write` | Deploy draw.io viewer to GitHub Pages |
 | `packages: none` | Principle of least privilege |
 | `statuses: none` | Principle of least privilege |
+
+> **Note:** `contents: write` and `pages: write` are granted only to the `deploy` job, not to `browser-tests`. Separating write access is a key security property of this workflow.
 
 ---
 

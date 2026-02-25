@@ -14,7 +14,7 @@ overrides:
   '@langchain/core': '>=1.1.8 <1.2.0'
   langchain: ^1.2.3
   '@langchain/langgraph-sdk': '>=0.0.112 <2.0.0'
-  qs: '>=6.14.1'
+  qs: '>=6.14.1 <7.0.0'
   fast-xml-parser: '>=5.3.6'
 
 importers:
