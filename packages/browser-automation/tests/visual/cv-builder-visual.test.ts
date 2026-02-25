@@ -17,6 +17,13 @@ const GITHUB_RUN_ID = process.env.GITHUB_RUN_ID;
 const GITHUB_RUN_NUMBER = process.env.GITHUB_RUN_NUMBER;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
 
+// Use SCREENSHOTS_DIR env var so actuals land on the Docker volume-mounted path
+// (/app/temp/screenshots → ./temp/screenshots on host → readable by S3 pipeline).
+// Falls back to a relative path for local dev runs outside Docker.
+const SCREENSHOTS_DIR = process.env.SCREENSHOTS_DIR
+  ? `${process.env.SCREENSHOTS_DIR}/visual-test`
+  : 'temp/screenshots/visual-test';
+
 // Display startup warning if UPDATE_BASELINES is enabled
 if (UPDATE_BASELINES) {
   console.log('');
@@ -216,7 +223,7 @@ async function main() {
         name: 'sidebar-collapsed',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -274,7 +281,7 @@ async function main() {
         name: 'theme-light',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -315,7 +322,7 @@ async function main() {
         name: 'settings-modal-open',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -355,7 +362,7 @@ async function main() {
         name: 'outputs-tab-layout',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -378,28 +385,20 @@ async function main() {
     await client.click('[data-element="interactive-tab"]');
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Check if help badge exists
-    const helpBadge = '[data-element="help-badge"]';
-    const exists = await client.elementExists(helpBadge);
+    // Capture the interactive tab chat state (help badge is part of the chat component)
+    const result = await client.screenshot({
+      name: 'chat-help-badge',
+      viewport: 'desktop',
+      fullPage: true,
+      path: SCREENSHOTS_DIR,
+    });
 
-    if (exists) {
-      // Capture with help badge visible
-      const result = await client.screenshot({
-        name: 'chat-help-badge',
-        viewport: 'desktop',
-        fullPage: true,
-        path: 'temp/screenshots/visual-test',
-      });
+    assert.screenshotCaptured(result);
 
-      assert.screenshotCaptured(result);
-
-      await visual.matchesBaseline(result.path, 'chat-help-badge-desktop', {
-        threshold: VISUAL_THRESHOLDS.STANDARD,
-        updateBaseline: UPDATE_BASELINES,
-      });
-    } else {
-      console.log('⏭️  Help badge not found, skipping test');
-    }
+    await visual.matchesBaseline(result.path, 'chat-help-badge-desktop', {
+      threshold: VISUAL_THRESHOLDS.STANDARD,
+      updateBaseline: UPDATE_BASELINES,
+    });
   });
 
   // Test: Bio Form - Empty State
@@ -412,7 +411,7 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Check if add bio button exists
-    const addBioButton = '[data-element="add-bio-button"]';
+    const addBioButton = '[data-element="bio-create-button"]';
     const exists = await client.elementExists(addBioButton);
 
     if (exists) {
@@ -424,7 +423,7 @@ async function main() {
         name: 'bio-form-empty',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -505,7 +504,7 @@ async function main() {
         name: 'chat-input-focused',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -612,7 +611,7 @@ async function main() {
         name: 'research-tab-layout',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -642,7 +641,7 @@ async function main() {
         name: 'pipelines-tab-layout',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -672,7 +671,7 @@ async function main() {
         name: 'toolbox-tab-layout',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -707,7 +706,7 @@ async function main() {
         name: 'bio-chat-open',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -741,7 +740,7 @@ async function main() {
         name: 'bio-file-browser',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -774,7 +773,7 @@ async function main() {
         name: 'jobs-chat-open',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
@@ -856,7 +855,7 @@ async function main() {
         name: 'outputs-sidebar',
         viewport: 'desktop',
         fullPage: true,
-        path: 'temp/screenshots/visual-test',
+        path: SCREENSHOTS_DIR,
       });
 
       assert.screenshotCaptured(result);
