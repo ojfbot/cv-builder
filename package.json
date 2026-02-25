@@ -60,7 +60,7 @@
       "@langchain/core": ">=1.1.8 <1.2.0",
       "langchain": "^1.2.3",
       "@langchain/langgraph-sdk": ">=0.0.112 <2.0.0",
-      "qs": ">=6.14.1",
+      "qs": ">=6.14.1 <7.0.0",
       "fast-xml-parser": ">=5.3.6"
     },
     "comment": "Override @langchain/core to >=1.1.8 <1.2.0 to resolve peer dependency conflicts (see PR #56) while requiring the minimum version that fixes GHSA-r399-636x-v7f6 (serialization injection). langchain >=1.2.3 and fast-xml-parser >=5.3.6 fix additional LangChain serialization and XML entity CVEs. qs >=6.14.1 fixes GHSA-6rw7-vpxm-498p (DoS via memory exhaustion) in express. @langchain/langgraph-sdk <2.0.0 avoids the deprecated 2.0.0 release (upstream deprecation message: use 1.x instead)."

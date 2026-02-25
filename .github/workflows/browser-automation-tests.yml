@@ -299,12 +299,30 @@ jobs:
             comment += `- [Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
             comment += `\n**[View Full CI Run →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
 
-            github.rest.issues.createComment({
+            // Find-or-update: avoids flooding the PR timeline on every push.
+            const BOT_MARKER = '<!-- browser-automation-results -->';
+            const fullBody = BOT_MARKER + '\n' + comment;
+            const existing = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: comment
             });
+            const botComment = existing.data.find(c => c.body && c.body.includes(BOT_MARKER));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: fullBody,
+              });
+            }
 
       - name: Shutdown services
         if: always()
@@ -426,6 +444,10 @@ jobs:
           # e.g. https://ojfbot-cv-builder-<ACCOUNT_ID>-us-east-1.s3.us-east-1.amazonaws.com
           VITE_S3_BASE_URL: ${{ vars.VITE_S3_BASE_URL }}
         run: pnpm --filter @cv-builder/visual-dashboard build
+
+      - name: Configure GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v4
 
       - name: Upload visual dashboard to GitHub Pages
         if: github.ref == 'refs/heads/main'
