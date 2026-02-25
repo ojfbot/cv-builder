@@ -78,7 +78,7 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" Description="" Notes="" ActivePane="" id="S5uJ_xuYP76xC840Y5-A-1">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-115/dashboard-initial-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-116/dashboard-initial-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="77" y="104.66557046979864" width="1200" height="698" as="geometry"/>
           </mxCell>
         </object>
@@ -91,7 +91,7 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Bio" ChatWindow="Collapsed" ActivePane="Bio - Summary" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-39">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-115/bio-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-116/bio-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="75" y="847" width="1204" height="701" as="geometry"/>
           </mxCell>
         </object>
@@ -110,7 +110,7 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Jobs" ChatWindow="Collapsed" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-43">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-115/jobs-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-116/jobs-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="71" y="1591.5" width="1212" height="701" as="geometry"/>
           </mxCell>
         </object>
@@ -207,7 +207,7 @@
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Visible" ActivePane="" Description="Interactive tab with chat component fully visible" Notes="" id="S5uJ_xuYP76xC840Y5-A-71">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-115/chat-component-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-116/chat-component-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="3810" y="3073" width="1200" height="700" as="geometry"/>
           </mxCell>
         </object>
