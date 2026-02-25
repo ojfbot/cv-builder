@@ -4,8 +4,9 @@
  * Architecture: the CI pipeline uploads Playwright screenshots (baseline + actual
  * capture from this run) to S3 alongside a runs-index.json manifest. This component
  * loads that manifest and renders a side-by-side comparison grid:
- *   LEFT  — baseline (last approved state)
- *   RIGHT — actual capture from the latest CI run
+ *   LEFT   — baseline (last approved state)
+ *   MIDDLE — actual capture from the latest CI run
+ *   RIGHT  — pixel diff (shown on failure only, toggleable)
  *
  * Each card has a GREEN border when the visual diff passed (≤10% delta) or a RED
  * border when it failed. Cards with no actual capture (baseline-only runs) use a
@@ -20,31 +21,47 @@
  */
 
 import { useState, useEffect } from 'react';
+import { z } from 'zod';
 
 const S3_BASE = import.meta.env.VITE_S3_BASE_URL;
 const S3_PREFIX = import.meta.env.VITE_S3_PREFIX ?? 'ojfbot-cv-builder';
 
-interface RunScreenshot {
-  name: string;
-  /** Baseline URL — backward-compatible primary URL */
-  url: string;
-  baselineUrl?: string;
-  actualUrl?: string;
-  diffUrl?: string;
-  passed?: boolean;
-  diffPercent?: number;
-}
+// ---------------------------------------------------------------------------
+// Runtime schema — Zod validates the untrusted S3 JSON so TypeScript type
+// errors surface as caught ZodErrors rather than cryptic runtime crashes.
+// ---------------------------------------------------------------------------
 
-interface RunEntry {
-  runNumber: number;
-  timestamp: string;
-  drawioUrl: string | null;
-  screenshots: RunScreenshot[];
-}
+const RunScreenshotSchema = z.object({
+  name: z.string(),
+  url: z.string(),
+  baselineUrl: z.string().optional(),
+  actualUrl: z.string().optional(),
+  diffUrl: z.string().optional(),
+  passed: z.boolean().optional(),
+  diffPercent: z.number().optional(),
+});
 
-interface RunsIndex {
-  runs: RunEntry[];
-  lastUpdated: string;
+const RunEntrySchema = z.object({
+  runNumber: z.number(),
+  timestamp: z.string(),
+  drawioUrl: z.string().nullable(),
+  screenshots: z.array(RunScreenshotSchema),
+});
+
+const RunsIndexSchema = z.object({
+  runs: z.array(RunEntrySchema),
+  lastUpdated: z.string(),
+});
+
+type RunEntry = z.infer<typeof RunEntrySchema>;
+type RunScreenshot = z.infer<typeof RunScreenshotSchema>;
+
+/** Returns url if it passes the S3 origin check, otherwise fallback. */
+function safeS3Url(url: string | undefined, fallback: string): string;
+function safeS3Url(url: string | undefined, fallback?: undefined): string | undefined;
+function safeS3Url(url: string | undefined, fallback?: string): string | undefined {
+  if (url && S3_BASE && url.startsWith(S3_BASE)) return url;
+  return fallback;
 }
 
 export function CanvasRunNavigator() {
@@ -66,7 +83,9 @@ export function CanvasRunNavigator() {
       try {
         const res = await fetch(indexUrl, { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status} fetching runs index`);
-        const data: RunsIndex = await res.json();
+        // Validate with Zod so malformed/missing fields surface as a clear error
+        // rather than a cryptic TypeError inside the render path.
+        const data = RunsIndexSchema.parse(await res.json());
         // Sort descending so index [0] is always the highest run number
         const sorted = [...data.runs].sort((a, b) => b.runNumber - a.runNumber);
         setLatestRun(sorted[0] ?? null);
@@ -172,129 +191,184 @@ export function CanvasRunNavigator() {
             gap: '0.75rem',
           }}
         >
-          {safeScreenshots.map((shot) => {
-            const borderColor =
-              shot.passed === true
-                ? '#00A550'
-                : shot.passed === false
-                  ? '#FF3B30'
-                  : 'var(--color-border)';
-
-            const imgStyle: React.CSSProperties = {
-              width: '100%',
-              height: '120px',
-              objectFit: 'cover',
-              display: 'block',
-            };
-
-            const hideOnError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-              (e.currentTarget as HTMLImageElement).style.display = 'none';
-            };
-
-            const safeActualUrl =
-              shot.actualUrl && S3_BASE && shot.actualUrl.startsWith(S3_BASE)
-                ? shot.actualUrl
-                : undefined;
-
-            return (
-              <div
-                key={shot.name}
-                style={{
-                  border: `3px solid ${borderColor}`,
-                  borderRadius: 'var(--border-radius)',
-                  overflow: 'hidden',
-                  backgroundColor: 'var(--color-bg)',
-                }}
-              >
-                {/* Side-by-side image panels */}
-                <div style={{ display: 'flex' }}>
-                  {/* LEFT: baseline */}
-                  <div
-                    style={{
-                      flex: 1,
-                      borderRight: safeActualUrl ? '1px solid var(--color-border)' : undefined,
-                    }}
-                  >
-                    <img
-                      src={shot.baselineUrl ?? shot.url}
-                      alt={`${shot.name} baseline`}
-                      loading="lazy"
-                      style={imgStyle}
-                      onError={hideOnError}
-                    />
-                    <div
-                      style={{
-                        fontSize: '0.65rem',
-                        color: 'var(--color-text-secondary)',
-                        textAlign: 'center',
-                        padding: '2px 0',
-                      }}
-                    >
-                      baseline
-                    </div>
-                  </div>
-
-                  {/* RIGHT: actual capture from this run */}
-                  {safeActualUrl && (
-                    <div style={{ flex: 1 }}>
-                      <img
-                        src={safeActualUrl}
-                        alt={`${shot.name} actual`}
-                        loading="lazy"
-                        style={imgStyle}
-                        onError={hideOnError}
-                      />
-                      <div
-                        style={{
-                          fontSize: '0.65rem',
-                          color: 'var(--color-text-secondary)',
-                          textAlign: 'center',
-                          padding: '2px 0',
-                        }}
-                      >
-                        actual
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer: name + pass/fail badge */}
-                <div
-                  style={{
-                    padding: '0.4rem 0.5rem',
-                    fontSize: '0.75rem',
-                    color: 'var(--color-text-secondary)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                  }}
-                >
-                  <span
-                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    title={shot.name}
-                  >
-                    {shot.name}
-                  </span>
-                  {shot.passed !== undefined && (
-                    <span
-                      style={{
-                        color: shot.passed ? '#00A550' : '#FF3B30',
-                        whiteSpace: 'nowrap',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {shot.passed
-                        ? '✅'
-                        : `❌ ${shot.diffPercent !== undefined ? shot.diffPercent.toFixed(1) + '%' : '?'}`}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {safeScreenshots.map((shot) => (
+            <ScreenshotCard key={shot.name} shot={shot} />
+          ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
+  const [showDiff, setShowDiff] = useState(false);
+
+  const borderColor =
+    shot.passed === true
+      ? '#00A550'
+      : shot.passed === false
+        ? '#FF3B30'
+        : 'var(--color-border)';
+
+  const imgStyle: React.CSSProperties = {
+    width: '100%',
+    height: '120px',
+    objectFit: 'cover',
+    display: 'block',
+  };
+
+  const hideOnError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    (e.currentTarget as HTMLImageElement).style.display = 'none';
+  };
+
+  // All URLs validated against S3 origin before use.
+  // safeBaselineUrl falls back to shot.url (which is already origin-checked by
+  // the parent's safeScreenshots filter) when baselineUrl fails the check.
+  const safeBaselineUrl = safeS3Url(shot.baselineUrl, shot.url);
+  const safeActualUrl = safeS3Url(shot.actualUrl);
+  const safeDiffUrl = safeS3Url(shot.diffUrl);
+
+  const hasDiff = shot.passed === false && safeDiffUrl;
+
+  return (
+    <div
+      style={{
+        border: `3px solid ${borderColor}`,
+        borderRadius: 'var(--border-radius)',
+        overflow: 'hidden',
+        backgroundColor: 'var(--color-bg)',
+      }}
+    >
+      {/* Side-by-side image panels */}
+      <div style={{ display: 'flex' }}>
+        {/* LEFT: baseline */}
+        <div
+          style={{
+            flex: 1,
+            borderRight: safeActualUrl ? '1px solid var(--color-border)' : undefined,
+          }}
+        >
+          <img
+            src={safeBaselineUrl}
+            alt={`${shot.name} baseline`}
+            loading="lazy"
+            style={imgStyle}
+            onError={hideOnError}
+          />
+          <div
+            style={{
+              fontSize: '0.65rem',
+              color: 'var(--color-text-secondary)',
+              textAlign: 'center',
+              padding: '2px 0',
+            }}
+          >
+            baseline
+          </div>
+        </div>
+
+        {/* MIDDLE: actual capture from this run */}
+        {safeActualUrl && (
+          <div
+            style={{
+              flex: 1,
+              borderRight: hasDiff ? '1px solid var(--color-border)' : undefined,
+            }}
+          >
+            <img
+              src={safeActualUrl}
+              alt={`${shot.name} actual`}
+              loading="lazy"
+              style={imgStyle}
+              onError={hideOnError}
+            />
+            <div
+              style={{
+                fontSize: '0.65rem',
+                color: 'var(--color-text-secondary)',
+                textAlign: 'center',
+                padding: '2px 0',
+              }}
+            >
+              actual
+            </div>
+          </div>
+        )}
+
+        {/* RIGHT: pixel diff — shown on failure when toggled on */}
+        {hasDiff && showDiff && (
+          <div style={{ flex: 1 }}>
+            <img
+              src={safeDiffUrl}
+              alt={`${shot.name} diff`}
+              loading="lazy"
+              style={imgStyle}
+              onError={hideOnError}
+            />
+            <div
+              style={{
+                fontSize: '0.65rem',
+                color: 'var(--color-text-secondary)',
+                textAlign: 'center',
+                padding: '2px 0',
+              }}
+            >
+              diff
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer: name + pass/fail badge + diff toggle */}
+      <div
+        style={{
+          padding: '0.4rem 0.5rem',
+          fontSize: '0.75rem',
+          color: 'var(--color-text-secondary)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '0.25rem',
+        }}
+      >
+        <span
+          style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          title={shot.name}
+        >
+          {shot.name}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+          {shot.passed !== undefined && (
+            <span
+              style={{
+                color: shot.passed ? '#00A550' : '#FF3B30',
+                whiteSpace: 'nowrap',
+                fontWeight: 500,
+              }}
+            >
+              {shot.passed
+                ? '✅'
+                : `❌ ${shot.diffPercent !== undefined ? shot.diffPercent.toFixed(1) + '%' : '?'}`}
+            </span>
+          )}
+          {hasDiff && (
+            <button
+              onClick={() => setShowDiff((v) => !v)}
+              style={{
+                fontSize: '0.65rem',
+                padding: '1px 5px',
+                border: '1px solid var(--color-border)',
+                borderRadius: '3px',
+                background: showDiff ? 'var(--color-primary)' : 'transparent',
+                color: showDiff ? 'var(--color-bg)' : 'var(--color-text-secondary)',
+                cursor: 'pointer',
+              }}
+            >
+              diff
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

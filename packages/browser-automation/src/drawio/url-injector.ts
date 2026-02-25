@@ -129,7 +129,9 @@ export class DrawioUrlInjector {
     // S3 run-scoped URLs are path-only (no query string), so stopping at `;` is
     // correct. Pre-signed URLs with & query params would need a different approach
     // but are not used here.
-    let newStyle = oldStyle.replace(/image=[^;"]*/, `image=${url}`);
+    // Use function-form replacements throughout to avoid String.replace's
+    // special `$&`, `$1`, `$'` substitutions corrupting URLs that contain `$`.
+    let newStyle = oldStyle.replace(/image=[^;"]*/, () => `image=${url}`);
 
     if (newStyle === oldStyle) {
       return {
@@ -143,12 +145,12 @@ export class DrawioUrlInjector {
     if (passed !== undefined) {
       const strokeColor = passed ? '#00A550' : '#FF3B30';
       if (newStyle.includes('strokeColor=')) {
-        newStyle = newStyle.replace(/strokeColor=[^;]*/, `strokeColor=${strokeColor}`);
+        newStyle = newStyle.replace(/strokeColor=[^;]*/, () => `strokeColor=${strokeColor}`);
       } else {
         newStyle += `;strokeColor=${strokeColor}`;
       }
       if (newStyle.includes('strokeWidth=')) {
-        newStyle = newStyle.replace(/strokeWidth=[^;]*/, 'strokeWidth=4');
+        newStyle = newStyle.replace(/strokeWidth=[^;]*/, () => 'strokeWidth=4');
       } else {
         newStyle += ';strokeWidth=4';
       }

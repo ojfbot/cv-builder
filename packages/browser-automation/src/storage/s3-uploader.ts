@@ -53,6 +53,9 @@ export class S3Uploader {
         Key: key,
         Body: buffer,
         ContentType: contentType,
+        // runs-index.json is mutable (updated on every CI run) so must not be
+        // cached. Contrast with uploadFile which uses long-lived cache for
+        // run-scoped immutable assets (screenshots, draw.io XML).
         CacheControl: 'no-cache, no-store',
       })
     );
