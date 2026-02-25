@@ -78,12 +78,12 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" Description="" Notes="" ActivePane="" id="S5uJ_xuYP76xC840Y5-A-1">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/dashboard-initial-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/dashboard-initial-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="77" y="104.66557046979864" width="1200" height="698" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Expanded" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" Notes="" Description="" ActivePane="" id="S5uJ_xuYP76xC840Y5-A-38">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/sidebar-expanded-desktop.png;clipPath=inset(3.85% 0.67% 0.55% 0%);" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/sidebar-expanded-desktop.png;clipPath=inset(3.85% 0.67% 0.55% 0%);;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="1940" y="103.32999999999998" width="1200" height="700.6711409395973" as="geometry"/>
           </mxCell>
         </object>
@@ -91,7 +91,7 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Bio" ChatWindow="Collapsed" ActivePane="Bio - Summary" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-39">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/bio-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/bio-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="75" y="847" width="1204" height="701" as="geometry"/>
           </mxCell>
         </object>
@@ -102,7 +102,7 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Bio" ChatWindow="Expanded" ActivePane="Bio - Summary" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-40">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/bio-chat-open-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/bio-chat-open-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="1932.5" y="847" width="1215" height="701" as="geometry"/>
           </mxCell>
         </object>
@@ -110,37 +110,37 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Jobs" ChatWindow="Collapsed" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-43">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/jobs-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/jobs-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="71" y="1591.5" width="1212" height="701" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Expanded" Dashboard="CV Builder" TabPanel="Jobs" ChatWindow="Expanded" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-44">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/jobs-sidebar-chat-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/jobs-sidebar-chat-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="3804" y="1580" width="1212" height="702" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Expanded" Dashboard="CV Builder" TabPanel="Output" ChatWindow="Collapsed" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-45">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/outputs-sidebar-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/outputs-sidebar-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="70" y="2333" width="1214" height="701" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Output" ChatWindow="Collapsed" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-46">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/outputs-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/outputs-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="1940" y="2331" width="1214" height="705" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Research" ChatWindow="Collapsed" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-47">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/research-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/research-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="70" y="3073" width="1214" height="708" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Pipelines" ChatWindow="Collapsed" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-49">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/pipelines-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/pipelines-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="63.5" y="3817" width="1227" height="708" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Toolbox" ChatWindow="Collapsed" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-50">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/toolbox-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/toolbox-tab-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="66" y="4560" width="1222" height="708" as="geometry"/>
           </mxCell>
         </object>
@@ -160,12 +160,12 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Bio" ChatWindow="Collapsed" ActivePane="Bio - Launch Tiles" Description="Shows edit bio panel with placeholder / launcher tiles when user has no bio entries yet" Notes="" id="S5uJ_xuYP76xC840Y5-A-41">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/bio-form-empty-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/bio-form-empty-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="3810" y="846" width="1215" height="703" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Bio" ChatWindow="Collapsed" ActivePane="Bio - File Viewer" Description="Shows File panel with one file stored" Notes="Does not yet show all needed action buttons on file, only download and delete. We still need to add a quick viewer and a button to launch robot chat with document" id="S5uJ_xuYP76xC840Y5-A-42">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/bio-file-browser-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/bio-file-browser-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="5370" y="845.5" width="1215" height="704" as="geometry"/>
           </mxCell>
         </object>
@@ -188,7 +188,7 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Jobs" ChatWindow="Expanded" ActivePane="" Description="" Notes="" id="S5uJ_xuYP76xC840Y5-A-68">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/jobs-chat-open-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/jobs-chat-open-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="1928" y="1589.5" width="1212" height="705" as="geometry"/>
           </mxCell>
         </object>
@@ -202,32 +202,32 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" ActivePane="" Description="Sidebar in collapsed state after user toggles it" Notes="" id="S5uJ_xuYP76xC840Y5-A-70">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/sidebar-collapsed-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/sidebar-collapsed-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="1940" y="3073" width="1200" height="700" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Visible" ActivePane="" Description="Interactive tab with chat component fully visible" Notes="" id="S5uJ_xuYP76xC840Y5-A-71">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/chat-component-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/chat-component-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="3810" y="3073" width="1200" height="700" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" ActivePane="" Description="Light theme variant — app in light mode" Notes="" id="S5uJ_xuYP76xC840Y5-A-72">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/theme-light-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/theme-light-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="1940" y="3817" width="1200" height="700" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Hidden" ActivePane="Settings Modal" Description="Settings modal open over dashboard" Notes="" id="S5uJ_xuYP76xC840Y5-A-73">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/settings-modal-open-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/settings-modal-open-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="3810" y="3817" width="1200" height="700" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Visible" ActivePane="Chat Input Focused" Description="Chat input field in focused state" Notes="" id="S5uJ_xuYP76xC840Y5-A-74">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/chat-input-focused-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/chat-input-focused-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="1940" y="4560" width="1200" height="700" as="geometry"/>
           </mxCell>
         </object>
         <object label="" AppSidebar="Collapsed" Dashboard="CV Builder" TabPanel="Interactive" ChatWindow="Visible" ActivePane="Chat Help Badge" Description="Chat interface with help badge visible" Notes="" id="S5uJ_xuYP76xC840Y5-A-75">
-          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-120/chat-help-badge-desktop.png;" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
+          <mxCell style="shape=image;aspect=fixed;image=https://ojfbot-cv-builder-714509060677-us-east-1.s3.us-east-1.amazonaws.com/ojfbot-cv-builder/run-121/chat-help-badge-desktop.png;;strokeColor=#00A550;strokeWidth=4" vertex="1" parent="S5uJ_xuYP76xC840Y5-A-37">
             <mxGeometry x="3810" y="4560" width="1200" height="700" as="geometry"/>
           </mxCell>
         </object>
