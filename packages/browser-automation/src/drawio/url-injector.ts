@@ -15,6 +15,7 @@
  * The DOM serialiser handles XML attribute escaping automatically.
  */
 
+import { randomUUID } from 'crypto';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -63,11 +64,19 @@ export class DrawioUrlInjector {
    * The DOM serialiser automatically XML-escapes the new attribute value.
    */
   private injectOneCell(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    doc: any,
+    doc: ReturnType<DOMParser['parseFromString']>,
     objectId: string,
     url: string
   ): InjectionResult {
+    // Only accept HTTPS URLs — reject data URIs, http://, and other schemes.
+    if (!url.startsWith('https://')) {
+      return {
+        objectId,
+        success: false,
+        message: `Rejected non-HTTPS url for id="${objectId}"`,
+      };
+    }
+
     // Find the <object> element whose id attribute exactly matches objectId
     const objects = doc.getElementsByTagName('object');
     let targetObject = null;
@@ -141,7 +150,7 @@ export class DrawioUrlInjector {
 
     // Write atomically: write to a sibling temp file then rename so a crash
     // mid-write never leaves the template in a partially-written state.
-    const tmpPath = path.join(os.tmpdir(), `drawio-inject-${process.pid}.tmp`);
+    const tmpPath = path.join(os.tmpdir(), `drawio-inject-${randomUUID()}.tmp`);
     fs.writeFileSync(tmpPath, xml, 'utf-8');
     fs.renameSync(tmpPath, outputPath);
 
