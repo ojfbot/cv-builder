@@ -26,6 +26,12 @@ export interface CellUrlMapping {
   objectId: string;
   /** S3 URL (or any public HTTPS URL) to inject as the image source */
   url: string;
+  /**
+   * If defined, the cell border is updated to reflect pass/fail:
+   *   true  → green  (#00A550)
+   *   false → red    (#FF3B30)
+   */
+  passed?: boolean;
 }
 
 export interface InjectionResult {
@@ -48,8 +54,8 @@ export class DrawioUrlInjector {
     const doc = parser.parseFromString(xmlContent, 'application/xml');
     const results: InjectionResult[] = [];
 
-    for (const { objectId, url } of mappings) {
-      const result = this.injectOneCell(doc, objectId, url);
+    for (const { objectId, url, passed } of mappings) {
+      const result = this.injectOneCell(doc, objectId, url, passed);
       results.push(result);
     }
 
@@ -66,7 +72,8 @@ export class DrawioUrlInjector {
   private injectOneCell(
     doc: ReturnType<DOMParser['parseFromString']>,
     objectId: string,
-    url: string
+    url: string,
+    passed?: boolean
   ): InjectionResult {
     // Only accept HTTPS URLs — reject data URIs, http://, and other schemes.
     if (!url.startsWith('https://')) {
@@ -119,7 +126,7 @@ export class DrawioUrlInjector {
     // Replace image=<value> (ends at ;" or "). Handles base64, https://, and
     // empty image= values. setAttribute takes the raw (unescaped) URL value;
     // the serialiser will escape & and other special chars in the output XML.
-    const newStyle = oldStyle.replace(/image=[^;"]*/, `image=${url}`);
+    let newStyle = oldStyle.replace(/image=[^;"]*/, `image=${url}`);
 
     if (newStyle === oldStyle) {
       return {
@@ -127,6 +134,21 @@ export class DrawioUrlInjector {
         success: false,
         message: `image= pattern not found in style for id="${objectId}"`,
       };
+    }
+
+    // Apply pass/fail border colour when the caller provides a result.
+    if (passed !== undefined) {
+      const strokeColor = passed ? '#00A550' : '#FF3B30';
+      if (newStyle.includes('strokeColor=')) {
+        newStyle = newStyle.replace(/strokeColor=[^;]*/, `strokeColor=${strokeColor}`);
+      } else {
+        newStyle += `;strokeColor=${strokeColor}`;
+      }
+      if (newStyle.includes('strokeWidth=')) {
+        newStyle = newStyle.replace(/strokeWidth=[^;]*/, 'strokeWidth=4');
+      } else {
+        newStyle += ';strokeWidth=4';
+      }
     }
 
     imageCell.setAttribute('style', newStyle);
