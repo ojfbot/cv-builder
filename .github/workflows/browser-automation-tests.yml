@@ -285,7 +285,39 @@ jobs:
               ? fs.readFileSync(summaryPath, 'utf8')
               : '## Browser Automation Test Results\n\n⚠️ Test report not generated. Check workflow logs.\n';
 
-            // Only add the Draw.io section when there is at least one link to show
+            // Read S3 pipeline result for screenshot URLs and draw.io link
+            const pipelineResultPath = 'packages/browser-automation/temp/pipeline-result.json';
+            let uploaded = [];
+            let drawioS3Url = null;
+            if (fs.existsSync(pipelineResultPath)) {
+              try {
+                const pr = JSON.parse(fs.readFileSync(pipelineResultPath, 'utf8'));
+                uploaded = pr.uploaded || [];
+                drawioS3Url = pr.drawioS3Url || null;
+              } catch (e) {
+                console.warn('Could not parse pipeline-result.json:', e.message);
+              }
+            }
+
+            // Screenshot thumbnail gallery (S3-hosted, GitHub proxies via camo)
+            if (uploaded.length > 0) {
+              comment += '\n\n### Screenshots\n\n';
+              comment += '<table><tr>\n';
+              for (const u of uploaded) {
+                const name = u.filename.replace(/\.png$/, '');
+                comment += `  <td align="center"><img src="${u.url}" width="200" alt="${name}"/><br><sub><code>${name}</code></sub></td>\n`;
+              }
+              comment += '</tr></table>\n';
+            }
+
+            // GitHub Pages dashboard link — always shown so devs know where to go
+            const [owner, repoName] = '${{ github.repository }}'.split('/');
+            const pagesUrl = `https://${owner}.github.io/${repoName}/`;
+            comment += `\n\n### Visual Dashboard\n\n`;
+            comment += `**[📊 View on GitHub Pages →](${pagesUrl})**  \n`;
+            comment += `_(Live after the next push to main; shows baseline vs actual side-by-side with RED/GREEN diff frames)_\n`;
+
+            // Draw.io architecture canvas
             const viewerUrl = process.env.VIEWER_URL || '';
             if (viewerUrl) {
               comment += '\n\n### Draw.io Architecture Canvas\n\n';
