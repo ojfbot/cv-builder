@@ -28,7 +28,12 @@ visual_outcome = os.environ.get("VISUAL_OUTCOME", "skipped")
 
 
 def icon(s):
-    return {"success": "✅", "failure": "❌"}.get(s, "⚠️")
+    return {
+        "success": "✅",
+        "failure": "❌",
+        "skipped": "⏭️",   # intentionally not run (e.g. conditional step)
+        "cancelled": "🚫", # externally interrupted mid-run
+    }.get(s, "⚠️")
 
 
 def escape_md(s: str) -> str:

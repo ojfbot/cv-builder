@@ -15,7 +15,7 @@ overrides:
   langchain: ^1.2.3
   '@langchain/langgraph-sdk': '>=0.0.112 <2.0.0'
   qs: '>=6.14.1 <7.0.0'
-  fast-xml-parser: '>=5.3.6'
+  fast-xml-parser: '>=5.3.6 <6.0.0'
 
 importers:
 
@@ -296,6 +296,9 @@ importers:
       swagger-ui-express:
         specifier: ^5.0.1
         version: 5.0.1(express@4.22.1)
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@types/cors':
         specifier: ^2.8.17
@@ -7275,7 +7278,7 @@ snapshots:
       p-retry: 7.1.0
       uuid: 10.0.0
       yaml: 2.8.2
-      zod: 3.25.76
+      zod: 4.3.6
     optionalDependencies:
       langsmith: 0.3.82(openai@6.10.0(zod@3.25.76))
     transitivePeerDependencies:
@@ -7296,7 +7299,7 @@ snapshots:
       mustache: 4.2.0
       p-queue: 6.6.2
       uuid: 10.0.0
-      zod: 3.25.76
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@opentelemetry/api'
       - '@opentelemetry/exporter-trace-otlp-proto'
@@ -7335,14 +7338,14 @@ snapshots:
       - react
       - react-dom
 
-  '@langchain/langgraph@1.1.5(@langchain/core@1.1.27(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76)':
+  '@langchain/langgraph@1.1.5(@langchain/core@1.1.27(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.3.6)':
     dependencies:
       '@langchain/core': 1.1.27(openai@6.10.0(zod@3.25.76))
       '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.27(openai@6.10.0(zod@3.25.76)))
       '@langchain/langgraph-sdk': 0.0.112(@langchain/core@1.1.27(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@standard-schema/spec': 1.1.0
       uuid: 10.0.0
-      zod: 3.25.76
+      zod: 4.3.6
     transitivePeerDependencies:
       - react
       - react-dom
@@ -7351,8 +7354,8 @@ snapshots:
     dependencies:
       '@langchain/core': 1.1.27(openai@6.10.0(zod@3.25.76))
       js-tiktoken: 1.0.21
-      openai: 6.10.0(zod@3.25.76)
-      zod: 3.25.76
+      openai: 6.10.0(zod@4.3.6)
+      zod: 4.3.6
     transitivePeerDependencies:
       - ws
 
@@ -9992,11 +9995,11 @@ snapshots:
   langchain@1.2.26(@langchain/core@1.1.27(openai@6.10.0(zod@3.25.76)))(openai@6.10.0(zod@3.25.76))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@langchain/core': 1.1.27(openai@6.10.0(zod@3.25.76))
-      '@langchain/langgraph': 1.1.5(@langchain/core@1.1.27(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76)
+      '@langchain/langgraph': 1.1.5(@langchain/core@1.1.27(openai@6.10.0(zod@3.25.76)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.3.6)
       '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.27(openai@6.10.0(zod@3.25.76)))
       langsmith: 0.5.6(openai@6.10.0(zod@3.25.76))
       uuid: 10.0.0
-      zod: 3.25.76
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@opentelemetry/api'
       - '@opentelemetry/exporter-trace-otlp-proto'
@@ -10979,6 +10982,11 @@ snapshots:
   openai@6.10.0(zod@3.25.76):
     optionalDependencies:
       zod: 3.25.76
+    optional: true
+
+  openai@6.10.0(zod@4.3.6):
+    optionalDependencies:
+      zod: 4.3.6
 
   openapi-types@12.1.3: {}
 

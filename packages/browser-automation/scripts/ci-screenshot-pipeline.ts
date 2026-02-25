@@ -42,6 +42,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
+import { z } from 'zod';
 import { S3Uploader, s3ConfigFromEnv, type UploadResult } from '../src/storage/s3-uploader.js';
 import { DrawioUrlInjector, type CellUrlMapping } from '../src/drawio/url-injector.js';
 
@@ -71,8 +72,12 @@ const ACTUAL_DIR = path.resolve(
   process.env.ACTUAL_DIR || '../../temp/screenshots/visual-test'
 );
 
-// Visual comparison threshold — matches VISUAL_THRESHOLDS.STANDARD in the test suite
-const DIFF_THRESHOLD = 0.1;
+// Per-pixel colour tolerance passed to pixelmatch (0–1 scale).
+// Matches VISUAL_THRESHOLDS.STANDARD in the test suite.
+const PIXEL_TOLERANCE = 0.1;
+
+// Maximum percentage of differing pixels before a comparison is considered failed.
+const MAX_DIFF_PERCENT = 10;
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -102,19 +107,24 @@ interface RunsIndex {
   lastUpdated: string;
 }
 
-interface ManifestCell {
-  objectId: string;
-  screenshotBaseline: string;
-  description: string;
-  testStep: string;
-  uiState: Record<string, string>;
-}
+// Zod schemas for runtime-validated inputs (manifest, runs-index).
+// A malformed file produces a clear ZodError rather than a cryptic TypeError.
+const ManifestCellSchema = z.object({
+  objectId: z.string(),
+  screenshotBaseline: z.string(),
+  description: z.string(),
+  testStep: z.string(),
+  uiState: z.record(z.string()),
+});
 
-interface Manifest {
-  version: string;
-  screenshotDir: string;
-  cells: ManifestCell[];
-}
+const ManifestSchema = z.object({
+  version: z.string(),
+  screenshotDir: z.string(),
+  cells: z.array(ManifestCellSchema),
+});
+
+type ManifestCell = z.infer<typeof ManifestCellSchema>;
+type Manifest = z.infer<typeof ManifestSchema>;
 
 interface PipelineResult {
   uploaded: UploadResult[];
@@ -157,11 +167,11 @@ async function compareImages(
     diffPng.data,
     baseline.width,
     baseline.height,
-    { threshold: DIFF_THRESHOLD, diffColor: [255, 0, 0], alpha: 0.1 }
+    { threshold: PIXEL_TOLERANCE, diffColor: [255, 0, 0], alpha: 0.1 }
   );
 
   const diffPercent = (diffCount / totalPixels) * 100;
-  const passed = diffPercent <= DIFF_THRESHOLD * 100;
+  const passed = diffPercent <= MAX_DIFF_PERCENT;
 
   if (!passed) {
     const diffBuffer = await new Promise<Buffer>((resolve, reject) => {
@@ -193,10 +203,22 @@ async function run(): Promise<void> {
     throw new Error(`Screenshot manifest not found: ${SCREENSHOT_MANIFEST}`);
   }
 
-  const manifest: Manifest = JSON.parse(fs.readFileSync(SCREENSHOT_MANIFEST, 'utf-8'));
+  const manifest = ManifestSchema.parse(
+    JSON.parse(fs.readFileSync(SCREENSHOT_MANIFEST, 'utf-8'))
+  );
   console.log(`Manifest:    ${manifest.cells.length} cells`);
   console.log(`Baselines:   ${BASELINES_DIR}`);
-  console.log(`Actuals:     ${ACTUAL_DIR}\n`);
+  console.log(`Actuals:     ${ACTUAL_DIR}`);
+
+  // Warn loudly when the actuals directory is missing — every cell will appear
+  // as "no actual screenshot" which gives false-green pass-on-no-actuals results.
+  if (!fs.existsSync(ACTUAL_DIR)) {
+    console.warn(`\n⚠️  WARNING: ACTUAL_DIR does not exist: ${ACTUAL_DIR}`);
+    console.warn('   All cells will be treated as baseline-only (no comparison).');
+    console.warn('   If this is unexpected, check ACTUAL_DIR or the Docker volume mount.\n');
+  } else {
+    console.log();
+  }
 
   // 2. S3 config
   const s3Config = s3ConfigFromEnv();
@@ -354,7 +376,7 @@ async function run(): Promise<void> {
   }));
 
   const newEntry: RunEntry = {
-    runNumber: parseInt(process.env.GITHUB_RUN_NUMBER ?? '0', 10),
+    runNumber: Number(process.env.GITHUB_RUN_NUMBER || '0'),
     timestamp: new Date().toISOString(),
     drawioUrl,
     screenshots: screenshotEntries,
