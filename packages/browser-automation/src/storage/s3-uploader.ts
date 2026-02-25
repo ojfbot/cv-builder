@@ -75,7 +75,8 @@ export class S3Uploader {
         Key: key,
         Body: content,
         ContentType: contentType,
-        // Screenshots for a given run are immutable
+        // Keys are run-scoped (e.g. ojfbot-cv-builder/run-98/bio-tab.png),
+        // making them immutable — safe to long-cache.
         CacheControl: 'public, max-age=31536000',
       })
     );
