@@ -1,83 +1,330 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2025-12-11T00:31:20.181Z",
+  "updatedAt": "2026-02-25T06:56:23.853Z",
   "baselines": {
     "cv-builder-visual/dashboard-initial-desktop": {
       "id": "cv-builder-visual/dashboard-initial-desktop",
       "testName": "cv-builder-visual",
       "name": "dashboard-initial-desktop",
-      "createdAt": "2025-12-10T23:40:32.121Z",
-      "updatedAt": "2025-12-11T00:31:12.306Z",
+      "createdAt": "2026-02-25T06:55:17.530Z",
+      "updatedAt": "2026-02-25T06:55:56.442Z",
       "dimensions": {
         "width": 1920,
         "height": 1080
       },
-      "fileSize": 65738,
-      "platform": "linux"
-    },
-    "cv-builder-visual/dashboard-mobile": {
-      "id": "cv-builder-visual/dashboard-mobile",
-      "testName": "cv-builder-visual",
-      "name": "dashboard-mobile",
-      "createdAt": "2025-12-10T23:40:33.499Z",
-      "updatedAt": "2025-12-11T00:31:16.709Z",
-      "dimensions": {
-        "width": 375,
-        "height": 667
-      },
-      "fileSize": 25837,
-      "platform": "linux"
-    },
-    "cv-builder-visual/dashboard-tablet": {
-      "id": "cv-builder-visual/dashboard-tablet",
-      "testName": "cv-builder-visual",
-      "name": "dashboard-tablet",
-      "createdAt": "2025-12-10T23:40:34.691Z",
-      "updatedAt": "2025-12-11T00:31:18.310Z",
-      "dimensions": {
-        "width": 768,
-        "height": 1024
-      },
-      "fileSize": 62681,
+      "fileSize": 62524,
       "platform": "linux"
     },
     "cv-builder-visual/bio-tab-desktop": {
       "id": "cv-builder-visual/bio-tab-desktop",
       "testName": "cv-builder-visual",
       "name": "bio-tab-desktop",
-      "createdAt": "2025-12-10T23:41:30.197Z",
-      "updatedAt": "2025-12-11T00:31:13.657Z",
+      "createdAt": "2026-02-25T06:55:18.349Z",
+      "updatedAt": "2026-02-25T06:55:57.251Z",
       "dimensions": {
         "width": 1920,
         "height": 1080
       },
-      "fileSize": 60883,
+      "fileSize": 57411,
       "platform": "linux"
     },
     "cv-builder-visual/jobs-tab-desktop": {
       "id": "cv-builder-visual/jobs-tab-desktop",
       "testName": "cv-builder-visual",
       "name": "jobs-tab-desktop",
-      "createdAt": "2025-12-10T23:41:30.913Z",
-      "updatedAt": "2025-12-11T00:31:15.089Z",
+      "createdAt": "2026-02-25T06:55:19.155Z",
+      "updatedAt": "2026-02-25T06:55:58.045Z",
       "dimensions": {
         "width": 1920,
         "height": 1080
       },
-      "fileSize": 47927,
+      "fileSize": 45590,
+      "platform": "linux"
+    },
+    "cv-builder-visual/dashboard-mobile": {
+      "id": "cv-builder-visual/dashboard-mobile",
+      "testName": "cv-builder-visual",
+      "name": "dashboard-mobile",
+      "createdAt": "2026-02-25T06:55:20.327Z",
+      "updatedAt": "2026-02-25T06:55:59.226Z",
+      "dimensions": {
+        "width": 375,
+        "height": 667
+      },
+      "fileSize": 24065,
+      "platform": "linux"
+    },
+    "cv-builder-visual/dashboard-tablet": {
+      "id": "cv-builder-visual/dashboard-tablet",
+      "testName": "cv-builder-visual",
+      "name": "dashboard-tablet",
+      "createdAt": "2026-02-25T06:55:21.525Z",
+      "updatedAt": "2026-02-25T06:56:00.441Z",
+      "dimensions": {
+        "width": 768,
+        "height": 1024
+      },
+      "fileSize": 59216,
+      "platform": "linux"
+    },
+    "cv-builder-visual/sidebar-collapsed-desktop": {
+      "id": "cv-builder-visual/sidebar-collapsed-desktop",
+      "testName": "cv-builder-visual",
+      "name": "sidebar-collapsed-desktop",
+      "createdAt": "2026-02-25T06:55:22.341Z",
+      "updatedAt": "2026-02-25T06:56:01.272Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 67278,
       "platform": "linux"
     },
     "cv-builder-visual/chat-component-desktop": {
       "id": "cv-builder-visual/chat-component-desktop",
       "testName": "cv-builder-visual",
       "name": "chat-component-desktop",
-      "createdAt": "2025-12-10T23:41:34.025Z",
-      "updatedAt": "2025-12-11T00:31:20.181Z",
+      "createdAt": "2026-02-25T06:55:23.122Z",
+      "updatedAt": "2026-02-25T06:56:02.056Z",
       "dimensions": {
         "width": 1920,
         "height": 1080
       },
-      "fileSize": 65980,
+      "fileSize": 62569,
+      "platform": "linux"
+    },
+    "cv-builder-visual/theme-light-desktop": {
+      "id": "cv-builder-visual/theme-light-desktop",
+      "testName": "cv-builder-visual",
+      "name": "theme-light-desktop",
+      "createdAt": "2026-02-25T06:55:24.025Z",
+      "updatedAt": "2026-02-25T06:56:02.956Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 62956,
+      "platform": "linux"
+    },
+    "cv-builder-visual/settings-modal-open-desktop": {
+      "id": "cv-builder-visual/settings-modal-open-desktop",
+      "testName": "cv-builder-visual",
+      "name": "settings-modal-open-desktop",
+      "createdAt": "2026-02-25T06:55:25.256Z",
+      "updatedAt": "2026-02-25T06:56:04.205Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 67150,
+      "platform": "linux"
+    },
+    "cv-builder-visual/outputs-tab-desktop": {
+      "id": "cv-builder-visual/outputs-tab-desktop",
+      "testName": "cv-builder-visual",
+      "name": "outputs-tab-desktop",
+      "createdAt": "2026-02-25T06:55:26.372Z",
+      "updatedAt": "2026-02-25T06:56:05.304Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 44931,
+      "platform": "linux"
+    },
+    "cv-builder-visual/chat-help-badge-desktop": {
+      "id": "cv-builder-visual/chat-help-badge-desktop",
+      "testName": "cv-builder-visual",
+      "name": "chat-help-badge-desktop",
+      "createdAt": "2026-02-25T06:55:27.151Z",
+      "updatedAt": "2026-02-25T06:56:06.083Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 62569,
+      "platform": "linux"
+    },
+    "cv-builder-visual/bio-form-empty-desktop": {
+      "id": "cv-builder-visual/bio-form-empty-desktop",
+      "testName": "cv-builder-visual",
+      "name": "bio-form-empty-desktop",
+      "createdAt": "2026-02-25T06:55:28.473Z",
+      "updatedAt": "2026-02-25T06:56:07.408Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 56669,
+      "platform": "linux"
+    },
+    "cv-builder-visual/sidebar-expanded-desktop": {
+      "id": "cv-builder-visual/sidebar-expanded-desktop",
+      "testName": "cv-builder-visual",
+      "name": "sidebar-expanded-desktop",
+      "createdAt": "2026-02-25T06:55:29.888Z",
+      "updatedAt": "2026-02-25T06:56:08.787Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 67118,
+      "platform": "linux"
+    },
+    "cv-builder-visual/chat-input-focused-desktop": {
+      "id": "cv-builder-visual/chat-input-focused-desktop",
+      "testName": "cv-builder-visual",
+      "name": "chat-input-focused-desktop",
+      "createdAt": "2026-02-25T06:55:31.438Z",
+      "updatedAt": "2026-02-25T06:56:10.325Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 62454,
+      "platform": "linux"
+    },
+    "cv-builder-visual/bio-tab-mobile": {
+      "id": "cv-builder-visual/bio-tab-mobile",
+      "testName": "cv-builder-visual",
+      "name": "bio-tab-mobile",
+      "createdAt": "2026-02-25T06:55:32.195Z",
+      "updatedAt": "2026-02-25T06:56:11.042Z",
+      "dimensions": {
+        "width": 375,
+        "height": 667
+      },
+      "fileSize": 23053,
+      "platform": "linux"
+    },
+    "cv-builder-visual/jobs-tab-mobile": {
+      "id": "cv-builder-visual/jobs-tab-mobile",
+      "testName": "cv-builder-visual",
+      "name": "jobs-tab-mobile",
+      "createdAt": "2026-02-25T06:55:32.876Z",
+      "updatedAt": "2026-02-25T06:56:11.724Z",
+      "dimensions": {
+        "width": 375,
+        "height": 667
+      },
+      "fileSize": 23217,
+      "platform": "linux"
+    },
+    "cv-builder-visual/interactive-tab-tablet": {
+      "id": "cv-builder-visual/interactive-tab-tablet",
+      "testName": "cv-builder-visual",
+      "name": "interactive-tab-tablet",
+      "createdAt": "2026-02-25T06:55:33.596Z",
+      "updatedAt": "2026-02-25T06:56:12.465Z",
+      "dimensions": {
+        "width": 768,
+        "height": 1024
+      },
+      "fileSize": 59259,
+      "platform": "linux"
+    },
+    "cv-builder-visual/research-tab-desktop": {
+      "id": "cv-builder-visual/research-tab-desktop",
+      "testName": "cv-builder-visual",
+      "name": "research-tab-desktop",
+      "createdAt": "2026-02-25T06:55:34.701Z",
+      "updatedAt": "2026-02-25T06:56:13.583Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 48459,
+      "platform": "linux"
+    },
+    "cv-builder-visual/pipelines-tab-desktop": {
+      "id": "cv-builder-visual/pipelines-tab-desktop",
+      "testName": "cv-builder-visual",
+      "name": "pipelines-tab-desktop",
+      "createdAt": "2026-02-25T06:55:35.798Z",
+      "updatedAt": "2026-02-25T06:56:14.704Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 48492,
+      "platform": "linux"
+    },
+    "cv-builder-visual/toolbox-tab-desktop": {
+      "id": "cv-builder-visual/toolbox-tab-desktop",
+      "testName": "cv-builder-visual",
+      "name": "toolbox-tab-desktop",
+      "createdAt": "2026-02-25T06:55:36.885Z",
+      "updatedAt": "2026-02-25T06:56:15.785Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 46816,
+      "platform": "linux"
+    },
+    "cv-builder-visual/bio-chat-open-desktop": {
+      "id": "cv-builder-visual/bio-chat-open-desktop",
+      "testName": "cv-builder-visual",
+      "name": "bio-chat-open-desktop",
+      "createdAt": "2026-02-25T06:55:38.298Z",
+      "updatedAt": "2026-02-25T06:56:17.205Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 57397,
+      "platform": "linux"
+    },
+    "cv-builder-visual/bio-file-browser-desktop": {
+      "id": "cv-builder-visual/bio-file-browser-desktop",
+      "testName": "cv-builder-visual",
+      "name": "bio-file-browser-desktop",
+      "createdAt": "2026-02-25T06:55:39.730Z",
+      "updatedAt": "2026-02-25T06:56:18.647Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 47381,
+      "platform": "linux"
+    },
+    "cv-builder-visual/jobs-chat-open-desktop": {
+      "id": "cv-builder-visual/jobs-chat-open-desktop",
+      "testName": "cv-builder-visual",
+      "name": "jobs-chat-open-desktop",
+      "createdAt": "2026-02-25T06:55:41.130Z",
+      "updatedAt": "2026-02-25T06:56:20.070Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 45575,
+      "platform": "linux"
+    },
+    "cv-builder-visual/jobs-sidebar-chat-desktop": {
+      "id": "cv-builder-visual/jobs-sidebar-chat-desktop",
+      "testName": "cv-builder-visual",
+      "name": "jobs-sidebar-chat-desktop",
+      "createdAt": "2026-02-25T06:55:43.089Z",
+      "updatedAt": "2026-02-25T06:56:22.004Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 49997,
+      "platform": "linux"
+    },
+    "cv-builder-visual/outputs-sidebar-desktop": {
+      "id": "cv-builder-visual/outputs-sidebar-desktop",
+      "testName": "cv-builder-visual",
+      "name": "outputs-sidebar-desktop",
+      "createdAt": "2026-02-25T06:55:44.966Z",
+      "updatedAt": "2026-02-25T06:56:23.853Z",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fileSize": 49222,
       "platform": "linux"
     }
   }
