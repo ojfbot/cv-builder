@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+// test: verify full CI pipeline post-merge (PR #93)
 /**
  * CI Screenshot Pipeline
  *
