@@ -55,6 +55,18 @@ const BASELINES_DIR = path.resolve(
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
+interface RunEntry {
+  runNumber: number;
+  timestamp: string;
+  drawioUrl: string | null;
+  screenshots: Array<{ name: string; url: string }>;
+}
+
+interface RunsIndex {
+  runs: RunEntry[];
+  lastUpdated: string;
+}
+
 interface ManifestCell {
   objectId: string;
   screenshotBaseline: string;
@@ -161,7 +173,42 @@ async function run(): Promise<void> {
   const drawioUrl = await uploader.uploadFile(DRAWIO_TEMPLATE, drawioKey);
   console.log(`  ✓  cvBuilder.drawio.xml → ${drawioUrl}`);
 
-  // 6. Write a JSON summary for downstream CI steps
+  // 6. Update the runs-index.json in S3 so the visual dashboard can discover this run
+  console.log('\n─── Updating runs index ────────────────────────────────');
+  const namespace = s3Config.prefix.replace(/\/run-[^/]+$/, '');
+  const indexKey = `${namespace}/runs-index.json`;
+  const indexUrl = uploader.publicUrl(indexKey);
+
+  let existingRuns: RunEntry[] = [];
+  try {
+    const res = await fetch(indexUrl);
+    if (res.ok) {
+      const data: RunsIndex = await res.json();
+      existingRuns = data.runs ?? [];
+    }
+  } catch {
+    // First run or network error — start fresh
+  }
+
+  const newEntry: RunEntry = {
+    runNumber: parseInt(process.env.GITHUB_RUN_NUMBER ?? '0', 10),
+    timestamp: new Date().toISOString(),
+    drawioUrl,
+    screenshots: uploaded.map((u) => ({
+      name: u.filename.replace(/\.png$/i, ''),
+      url: u.url,
+    })),
+  };
+
+  // Prepend new entry; keep at most 20 historical runs
+  const updatedRuns = [newEntry, ...existingRuns].slice(0, 20);
+  const indexBuffer = Buffer.from(
+    JSON.stringify({ runs: updatedRuns, lastUpdated: new Date().toISOString() }, null, 2)
+  );
+  const publishedIndexUrl = await uploader.uploadBuffer(indexBuffer, indexKey, 'application/json');
+  console.log(`  ✓  runs-index.json → ${publishedIndexUrl}`);
+
+  // 7. Write a JSON summary for downstream CI steps
   const result: PipelineResult = {
     uploaded,
     injected,
