@@ -16,6 +16,7 @@ interface CaptureRequest {
   fullPage?: boolean;
   selector?: string;
   sessionDir?: string;
+  path?: string;
   viewport?: ViewportPreset | ViewportSize;
   format?: ImageFormat;
   quality?: number;
@@ -27,7 +28,7 @@ interface CaptureRequest {
  */
 router.post('/screenshot', async (req: Request, res: Response) => {
   try {
-    const { name, fullPage = true, selector, sessionDir, viewport, format, quality }: CaptureRequest = req.body;
+    const { name, fullPage = true, selector, sessionDir, path: pathOption, viewport, format, quality }: CaptureRequest = req.body;
 
     if (!name) {
       res.status(400).json({
@@ -74,7 +75,7 @@ router.post('/screenshot', async (req: Request, res: Response) => {
       name,
       fullPage,
       selector,
-      path: sessionDir,
+      path: sessionDir ?? pathOption,
       viewport,
       format,
       quality,

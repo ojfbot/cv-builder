@@ -92,7 +92,7 @@ async function main() {
       name: 'dashboard-initial',
       viewport: 'desktop',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -123,7 +123,7 @@ async function main() {
       name: 'bio-tab-layout',
       viewport: 'desktop',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -149,7 +149,7 @@ async function main() {
       name: 'jobs-tab-layout',
       viewport: 'desktop',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -171,7 +171,7 @@ async function main() {
       name: 'dashboard-mobile',
       viewport: 'mobile',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -193,7 +193,7 @@ async function main() {
       name: 'dashboard-tablet',
       viewport: 'tablet',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -252,7 +252,7 @@ async function main() {
       name: 'chat-component',
       viewport: 'desktop',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -465,7 +465,7 @@ async function main() {
       name: 'sidebar-expanded',
       viewport: 'desktop',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -532,7 +532,7 @@ async function main() {
       name: 'bio-tab-mobile',
       viewport: 'mobile',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -557,7 +557,7 @@ async function main() {
       name: 'jobs-tab-mobile',
       viewport: 'mobile',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -582,7 +582,7 @@ async function main() {
       name: 'interactive-tab-tablet',
       viewport: 'tablet',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
@@ -814,7 +814,7 @@ async function main() {
       name: 'jobs-sidebar-chat',
       viewport: 'desktop',
       fullPage: true,
-      path: 'temp/screenshots/visual-test',
+      path: SCREENSHOTS_DIR,
     });
 
     assert.screenshotCaptured(result);
