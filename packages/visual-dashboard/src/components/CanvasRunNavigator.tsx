@@ -20,7 +20,7 @@
  *   - Historical trend chart
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { z } from 'zod';
 
 const S3_BASE = import.meta.env.VITE_S3_BASE_URL;
@@ -221,7 +221,19 @@ export function CanvasRunNavigator() {
   );
 }
 
-function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
+/** One image panel within a ScreenshotCard — tracks its own broken-URL state. */
+function Img({ src, alt }: { src: string; alt: string }) {
+  const [broken, setBroken] = useState(false);
+  const imgStyle: React.CSSProperties = { width: '100%', height: '120px', objectFit: 'cover', display: 'block' };
+  const placeholderStyle: React.CSSProperties = {
+    width: '100%', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: '0.7rem', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary, #f4f4f4)',
+  };
+  if (broken) return <div style={placeholderStyle}>Image unavailable</div>;
+  return <img src={src} alt={alt} loading="lazy" style={imgStyle} onError={() => setBroken(true)} />;
+}
+
+const ScreenshotCard = memo(function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
   const [showDiff, setShowDiff] = useState(false);
 
   const borderColor =
@@ -230,24 +242,6 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
       : shot.passed === false
         ? '#FF3B30'
         : 'var(--color-border)';
-
-  const imgStyle: React.CSSProperties = {
-    width: '100%',
-    height: '120px',
-    objectFit: 'cover',
-    display: 'block',
-  };
-
-  const showUnavailableOnError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget as HTMLImageElement;
-    img.style.display = 'none';
-    const placeholder = document.createElement('div');
-    placeholder.style.cssText =
-      'width:100%;height:120px;display:flex;align-items:center;justify-content:center;' +
-      'font-size:0.7rem;color:var(--color-text-secondary);background:var(--color-bg-secondary,#f4f4f4)';
-    placeholder.textContent = 'Image unavailable';
-    img.parentElement?.insertBefore(placeholder, img);
-  };
 
   // All URLs validated against S3 origin before use.
   // safeBaselineUrl falls back to shot.url (which is already origin-checked by
@@ -276,13 +270,7 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
             borderRight: safeActualUrl ? '1px solid var(--color-border)' : undefined,
           }}
         >
-          <img
-            src={safeBaselineUrl}
-            alt={`${shot.name} baseline`}
-            loading="lazy"
-            style={imgStyle}
-            onError={showUnavailableOnError}
-          />
+          <Img src={safeBaselineUrl} alt={`${shot.name} baseline`} />
           <div
             style={{
               fontSize: '0.65rem',
@@ -303,13 +291,7 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
               borderRight: hasDiff ? '1px solid var(--color-border)' : undefined,
             }}
           >
-            <img
-              src={safeActualUrl}
-              alt={`${shot.name} actual`}
-              loading="lazy"
-              style={imgStyle}
-              onError={showUnavailableOnError}
-            />
+            <Img src={safeActualUrl} alt={`${shot.name} actual`} />
             <div
               style={{
                 fontSize: '0.65rem',
@@ -326,13 +308,7 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
         {/* RIGHT: pixel diff — shown on failure when toggled on */}
         {hasDiff && showDiff && (
           <div style={{ flex: 1 }}>
-            <img
-              src={safeDiffUrl}
-              alt={`${shot.name} diff`}
-              loading="lazy"
-              style={imgStyle}
-              onError={showUnavailableOnError}
-            />
+            <Img src={safeDiffUrl} alt={`${shot.name} diff`} />
             <div
               style={{
                 fontSize: '0.65rem',
@@ -399,4 +375,4 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
       </div>
     </div>
   );
-}
+});

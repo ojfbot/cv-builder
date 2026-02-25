@@ -389,7 +389,7 @@ jobs:
           git diff --cached --quiet && echo "No draw.io changes to commit" || \
             git commit -m "chore(ci): update draw.io canvas with run #${{ github.run_number }} screenshots [skip ci]"
           git pull --rebase --autostash origin ${{ github.ref_name }} && git push \
-            || echo "::warning::git rebase/push failed — possible concurrent run collision. The draw.io canvas update will be retried on the next run."
+            || echo "::error::git rebase/push failed — possible concurrent run collision. The draw.io canvas update will be retried on the next run."
 
       # Download baselines that were captured inside Docker in browser-tests
       - name: Download updated baselines artifact
@@ -415,7 +415,7 @@ jobs:
           git diff --cached --quiet && echo "No baseline changes" || \
             git commit -m "chore: update visual regression baselines [skip ci]"
           git pull --rebase --autostash origin ${{ github.ref_name }} && git push \
-            || echo "::warning::git rebase/push failed — possible concurrent run collision. Re-trigger with update_baselines=true to retry."
+            || echo "::error::git rebase/push failed — possible concurrent run collision. Re-trigger with update_baselines=true to retry."
 
       # Build and deploy the visual-dashboard React app to GitHub Pages.
       # Only runs on the main branch (push or workflow_dispatch on main).
@@ -438,7 +438,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build visual dashboard
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && needs.browser-tests.result == 'success'
         env:
           # Set VITE_S3_BASE_URL as a repository variable to enable canvas thumbnails.
           # e.g. https://ojfbot-cv-builder-<ACCOUNT_ID>-us-east-1.s3.us-east-1.amazonaws.com

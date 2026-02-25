@@ -114,7 +114,9 @@ const ManifestCellSchema = z.object({
   screenshotBaseline: z.string(),
   description: z.string(),
   testStep: z.string(),
-  uiState: z.record(z.string()),
+  // Zod v4: z.record() requires (keySchema, valueSchema) — single-arg form
+  // is a breaking change vs v3 where one arg meant the value schema.
+  uiState: z.record(z.string(), z.string()),
 });
 
 const ManifestSchema = z.object({
@@ -203,9 +205,15 @@ async function run(): Promise<void> {
     throw new Error(`Screenshot manifest not found: ${SCREENSHOT_MANIFEST}`);
   }
 
-  const manifest = ManifestSchema.parse(
-    JSON.parse(fs.readFileSync(SCREENSHOT_MANIFEST, 'utf-8'))
-  );
+  let rawManifest: unknown;
+  try {
+    rawManifest = JSON.parse(fs.readFileSync(SCREENSHOT_MANIFEST, 'utf-8'));
+  } catch (err) {
+    throw new Error(
+      `Failed to parse manifest at ${SCREENSHOT_MANIFEST}: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+  const manifest = ManifestSchema.parse(rawManifest);
   console.log(`Manifest:    ${manifest.cells.length} cells`);
   console.log(`Baselines:   ${BASELINES_DIR}`);
   console.log(`Actuals:     ${ACTUAL_DIR}`);
@@ -259,7 +267,10 @@ async function run(): Promise<void> {
     diffPercent: number | undefined;
   }
 
-  const processed: ProcessedCell[] = await Promise.all(
+  // Promise.allSettled so a single S3 upload failure doesn't abort all cells.
+  // Rejected cells are logged and omitted from the run entry; the dashboard
+  // will show a partial run rather than no run at all.
+  const settlements = await Promise.allSettled(
     work.map(async ({ cell, baselinePath, actualPath }) => {
       const name = cell.screenshotBaseline;
 
@@ -311,6 +322,18 @@ async function run(): Promise<void> {
       };
     })
   );
+
+  const processed: ProcessedCell[] = [];
+  for (const settlement of settlements) {
+    if (settlement.status === 'fulfilled') {
+      processed.push(settlement.value);
+    } else {
+      console.error(`  ❌ Upload failed for a cell: ${settlement.reason instanceof Error ? settlement.reason.message : String(settlement.reason)}`);
+    }
+  }
+  if (processed.length < work.length) {
+    console.warn(`  ⚠️  ${work.length - processed.length} cell(s) failed to upload and will be omitted from this run.`);
+  }
 
   const uploaded = processed.map((r) => r.baselineUpload);
   const cellMappings: CellUrlMapping[] = processed.map((r) => ({

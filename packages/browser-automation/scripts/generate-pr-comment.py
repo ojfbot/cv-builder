@@ -38,7 +38,10 @@ def icon(s):
 
 def escape_md(s: str) -> str:
     """Escape characters that would break a GFM table cell."""
-    return s.replace('|', r'\|').replace('[', r'\[').replace(']', r'\]')
+    return (s.replace('|', r'\|')
+             .replace('[', r'\[')
+             .replace(']', r'\]')
+             .replace('`', r'\`'))
 
 
 cells = []
