@@ -22,8 +22,8 @@
  * Required env vars:
  *   S3_BUCKET             — bucket name
  *   AWS_REGION            — defaults to us-east-1
- *   AWS_ACCESS_KEY_ID     — picked up automatically by AWS SDK
- *   AWS_SECRET_ACCESS_KEY — picked up automatically by AWS SDK
+ *   AWS credentials       — injected by aws-actions/configure-aws-credentials@v4 via
+ *                           OIDC; no static keys are used or required
  *
  * Optional:
  *   GITHUB_RUN_NUMBER     — used to build the S3 key prefix

@@ -142,7 +142,7 @@ export class SQLiteCheckpointer extends BaseCheckpointSaver {
     config: RunnableConfig,
     checkpoint: Checkpoint,
     metadata: CheckpointMetadata,
-    _newVersions: Record<string, string | number>
+    _newVersions: Parameters<BaseCheckpointSaver['put']>[3]
   ): Promise<RunnableConfig> {
     const { thread_id } = config.configurable || {};
 
