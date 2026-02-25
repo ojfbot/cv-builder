@@ -46,6 +46,19 @@ export class S3Uploader {
     });
   }
 
+  async uploadBuffer(buffer: Buffer, key: string, contentType: string): Promise<string> {
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.config.bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+        CacheControl: 'no-cache, no-store',
+      })
+    );
+    return this.publicUrl(key);
+  }
+
   async uploadFile(filePath: string, key: string): Promise<string> {
     const content = fs.readFileSync(filePath);
     const ext = path.extname(filePath).toLowerCase();

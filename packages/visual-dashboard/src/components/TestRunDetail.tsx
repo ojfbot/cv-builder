@@ -6,9 +6,8 @@ import { useState } from 'react';
 import type { TestRun, ScreenshotMetadata } from '../types';
 import { useManifest } from '../hooks/useManifest';
 import { ScreenshotGallery } from './ScreenshotGallery';
-import { DiagramViewer } from './DiagramViewer';
+import { CanvasRunNavigator } from './CanvasRunNavigator';
 import { InteractionInspector } from './InteractionInspector';
-import { getDiagramUrl } from '../utils/dataLoader';
 
 interface TestRunDetailProps {
   run: TestRun;
@@ -116,13 +115,8 @@ export function TestRunDetail({ run, onBack }: TestRunDetailProps) {
         </div>
       </div>
 
-      {/* Diagram Viewer */}
-      {run.diagrams && run.diagrams.length > 0 && (
-        <DiagramViewer
-          diagramUrl={getDiagramUrl(run.diagrams[0], run.manifestPath)}
-          diagramName={run.diagrams[0]}
-        />
-      )}
+      {/* Canvas Snapshots — thumbnail navigator backed by S3 screenshot pipeline */}
+      <CanvasRunNavigator />
 
       {/* Test Analysis */}
       {manifest.summary.totalFailed > 0 && (
