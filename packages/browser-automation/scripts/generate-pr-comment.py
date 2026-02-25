@@ -33,7 +33,8 @@ def icon(s):
 
 
 cells = []
-if os.path.exists(manifest_path):
+manifest_missing = not os.path.exists(manifest_path)
+if not manifest_missing:
     with open(manifest_path) as f:
         cells = json.load(f)["cells"]
 
@@ -62,17 +63,20 @@ lines.append(f"| Comprehensive tests | {icon(tests_outcome)} `{tests_outcome}` |
 lines.append(f"| Visual regression   | {icon(visual_outcome)} `{visual_outcome}` |")
 lines.append("")
 
-if available == total:
+if manifest_missing:
+    lines.append(f"> ⚠️ Manifest not found at `{manifest_path}` — baseline table unavailable.")
+elif available == total:
     lines.append(f"### Screenshot Baselines — {available}/{total} ✅ Complete")
 else:
     lines.append(f"### Screenshot Baselines — {available}/{total} ({missing} missing)")
 
-lines.append("")
-lines.append("| Status | Baseline | Test Step | UI State |")
-lines.append("|--------|----------|-----------|----------|")
-lines.extend(rows)
+if not manifest_missing:
+    lines.append("")
+    lines.append("| Status | Baseline | Test Step | UI State |")
+    lines.append("|--------|----------|-----------|----------|")
+    lines.extend(rows)
 
-if missing > 0:
+if not manifest_missing and missing > 0:
     lines.append("")
     lines.append("<details>")
     lines.append(

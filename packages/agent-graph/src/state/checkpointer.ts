@@ -92,7 +92,7 @@ export class PostgresCheckpointer extends BaseCheckpointSaver {
     config: RunnableConfig,
     checkpoint: Checkpoint,
     metadata: CheckpointMetadata,
-    _newVersions: Record<string, unknown>
+    _newVersions: Record<string, string | number>
   ): Promise<RunnableConfig> {
     const { thread_id } = config.configurable || {};
 

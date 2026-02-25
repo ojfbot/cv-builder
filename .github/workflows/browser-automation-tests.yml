@@ -2,6 +2,11 @@ name: Browser Automation Tests (Docker)
 
 # ✅ Docker infrastructure complete - runs visual regression tests in containers
 # Uses docker-compose.ci.yml for deterministic, isolated testing environment
+#
+# Job structure:
+#   browser-tests  — runs tests, S3 pipeline, PR comment; read-only git permissions
+#   deploy         — commits draw.io + baselines, deploys visual-dashboard to Pages
+#                    (non-PR events only, Pages deployment gated on main branch)
 
 on:
   pull_request:
@@ -42,15 +47,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write        # needed by: "Commit updated draw.io" + "Update baselines" steps
-                             # (both gated on vars.S3_BUCKET/workflow_dispatch; always granted
-                             # at job level because GitHub Actions doesn't support step-level permissions)
       pull-requests: write   # needed by: "Comment PR with results" step
       issues: write          # needed by: GitHub script in PR comment step
       id-token: write        # needed by: OIDC → AWS role assumption (no static keys)
       packages: none
       statuses: none
-      pages: write           # needed by: deploy-pages step (GitHub Pages viewer for draw.io canvas)
     # Force sequential execution to avoid Docker resource contention
     concurrency:
       group: browser-automation-tests
@@ -198,17 +199,6 @@ jobs:
           echo "📸 Uploading screenshots to S3 and updating draw.io canvas..."
           pnpm --filter @cv-builder/browser-automation pipeline:screenshots
 
-      - name: Commit updated draw.io canvas
-        if: always() && vars.S3_BUCKET != '' && github.event_name != 'pull_request'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add packages/browser-automation/templates/drawio/cvBuilder.drawio.xml
-          git diff --cached --quiet && echo "No draw.io changes to commit" || \
-            git commit -m "chore(ci): update draw.io canvas with run #${{ github.run_number }} screenshots [skip ci]"
-          git pull --rebase origin ${{ github.ref_name }} && git push \
-            || echo "::warning::git rebase/push failed — possible concurrent run collision. The draw.io canvas update will be retried on the next run."
-
       - name: Upload pipeline summary artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -218,6 +208,18 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
+      # Upload modified draw.io canvas for the deploy job to commit
+      - name: Upload draw.io canvas artifact
+        if: always() && vars.S3_BUCKET != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: drawio-canvas-${{ github.run_number }}
+          path: packages/browser-automation/templates/drawio/cvBuilder.drawio.xml
+          retention-days: 1
+          if-no-files-found: ignore
+
+      # Run baseline capture inside Docker (containers only available in this job).
+      # Git commit is handled by the deploy job to keep contents:write scoped there.
       - name: Update baselines (if requested)
         if: |
           github.event.inputs.update_baselines == 'true' &&
@@ -233,16 +235,19 @@ jobs:
             cv-builder-automation-ci:/app/packages/browser-automation/test-baselines/. \
             packages/browser-automation/test-baselines/
 
-          # Commit updated baselines
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add packages/browser-automation/test-baselines/
-          git diff --cached --quiet && echo "No baseline changes" || \
-            git commit -m "chore: update visual regression baselines [skip ci]"
-          git pull --rebase origin ${{ github.ref_name }} && git push \
-            || echo "::warning::git rebase/push failed — possible concurrent run collision. Re-trigger with update_baselines=true to retry."
+      # Upload baselines for the deploy job to commit
+      - name: Upload updated baselines artifact
+        if: |
+          github.event.inputs.update_baselines == 'true' &&
+          github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-baselines-${{ github.run_number }}
+          path: packages/browser-automation/test-baselines/
+          retention-days: 1
+          if-no-files-found: warn
 
-      - name: Generate draw.io viewer page
+      - name: Generate draw.io viewer URL
         id: viewer-page
         if: always()
         continue-on-error: true
@@ -250,8 +255,6 @@ jobs:
           GH_BRANCH: ${{ github.head_ref || github.ref_name }}
           GH_REPO: ${{ github.repository }}
         run: |
-          mkdir -p _site
-          cp packages/browser-automation/templates/drawio/cvBuilder.drawio.xml _site/
           # Use S3-hosted XML (images replaced with S3 URLs → tiny file) if pipeline ran
           DRAWIO_URL=""
           PIPELINE_RESULT="packages/browser-automation/temp/pipeline-result.json"
@@ -264,29 +267,14 @@ jobs:
           fi
           ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1],safe=''))" "$DRAWIO_URL")
           VIEWER_URL="https://viewer.diagrams.net/?url=$ENCODED&nav=1&title=cvBuilder.drawio.xml"
-          VIEWER_URL="$VIEWER_URL" python3 -c "import os; v=os.environ['VIEWER_URL']; open('_site/index.html','w').write('<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>CV Builder \u2014 Architecture Canvas</title><style>*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}iframe{display:block;width:100vw;height:100vh;border:none}</style></head><body><iframe src=\"' + v + '\" allowfullscreen></iframe></body></html>')"
           echo "viewer_url=$VIEWER_URL" >> "$GITHUB_OUTPUT"
           echo "Generated: $VIEWER_URL"
-
-      - name: Upload draw.io viewer to GitHub Pages
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site/
-
-      - name: Deploy draw.io viewer to GitHub Pages
-        id: deploy-pages
-        if: always()
-        continue-on-error: true
-        uses: actions/deploy-pages@v4
 
       - name: Comment PR with results
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         env:
           VIEWER_URL: ${{ steps.viewer-page.outputs.viewer_url }}
-          PAGES_URL: ${{ steps.deploy-pages.outputs.page_url }}
         with:
           script: |
             const fs = require('fs');
@@ -296,15 +284,11 @@ jobs:
               ? fs.readFileSync(summaryPath, 'utf8')
               : '## Browser Automation Test Results\n\n⚠️ Test report not generated. Check workflow logs.\n';
 
-            // Draw.io canvas links
+            // Only add the Draw.io section when there is at least one link to show
             const viewerUrl = process.env.VIEWER_URL || '';
-            const pagesUrl  = process.env.PAGES_URL  || '';
-            comment += '\n\n### Draw.io Architecture Canvas\n\n';
             if (viewerUrl) {
+              comment += '\n\n### Draw.io Architecture Canvas\n\n';
               comment += `[Open interactive diagram →](${viewerUrl})\n`;
-            }
-            if (pagesUrl) {
-              comment += `[GitHub Pages viewer →](${pagesUrl})\n`;
             }
 
             // Artifact links
@@ -340,6 +324,118 @@ jobs:
           fi
           echo "✅ All tests passed"
 
+  # Deploy job: commits draw.io canvas + baselines, deploys visual-dashboard to Pages.
+  # Runs on all non-PR events (push + workflow_dispatch) even if browser-tests failed,
+  # so the draw.io canvas commit is not blocked by flaky tests.
+  # Pages deployment is gated on main branch only (push or workflow_dispatch).
+  deploy:
+    name: Deploy (non-PR events)
+    needs: [browser-tests]
+    if: github.event_name != 'pull_request' && (needs.browser-tests.result == 'success' || needs.browser-tests.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write   # for git commit (draw.io canvas, baselines)
+      pages: write      # for GitHub Pages deployment
+      id-token: write   # for OIDC (Pages)
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+    concurrency:
+      group: deploy-pages
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Download the draw.io canvas that was modified by the S3 pipeline
+      - name: Download draw.io canvas artifact
+        if: vars.S3_BUCKET != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: drawio-canvas-${{ github.run_number }}
+          path: packages/browser-automation/templates/drawio/
+        continue-on-error: true
+
+      - name: Commit updated draw.io canvas
+        if: vars.S3_BUCKET != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/browser-automation/templates/drawio/cvBuilder.drawio.xml
+          git diff --cached --quiet && echo "No draw.io changes to commit" || \
+            git commit -m "chore(ci): update draw.io canvas with run #${{ github.run_number }} screenshots [skip ci]"
+          git pull --rebase origin ${{ github.ref_name }} && git push \
+            || echo "::warning::git rebase/push failed — possible concurrent run collision. The draw.io canvas update will be retried on the next run."
+
+      # Download baselines that were captured inside Docker in browser-tests
+      - name: Download updated baselines artifact
+        if: |
+          github.event.inputs.update_baselines == 'true' &&
+          github.event_name == 'workflow_dispatch' &&
+          needs.browser-tests.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-baselines-${{ github.run_number }}
+          path: packages/browser-automation/test-baselines/
+        continue-on-error: true
+
+      - name: Commit updated baselines
+        if: |
+          github.event.inputs.update_baselines == 'true' &&
+          github.event_name == 'workflow_dispatch' &&
+          needs.browser-tests.result == 'success'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/browser-automation/test-baselines/
+          git diff --cached --quiet && echo "No baseline changes" || \
+            git commit -m "chore: update visual regression baselines [skip ci]"
+          git pull --rebase origin ${{ github.ref_name }} && git push \
+            || echo "::warning::git rebase/push failed — possible concurrent run collision. Re-trigger with update_baselines=true to retry."
+
+      # Build and deploy the visual-dashboard React app to GitHub Pages.
+      # Only runs on the main branch (push or workflow_dispatch on main).
+      # Set VITE_S3_BASE_URL as a repository variable to enable canvas thumbnails.
+      - name: Enable Corepack
+        if: github.ref == 'refs/heads/main'
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.4 --activate
+
+      - name: Setup Node.js
+        if: github.ref == 'refs/heads/main'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        if: github.ref == 'refs/heads/main'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build visual dashboard
+        if: github.ref == 'refs/heads/main'
+        env:
+          # Set VITE_S3_BASE_URL as a repository variable to enable canvas thumbnails.
+          # e.g. https://ojfbot-cv-builder-<ACCOUNT_ID>-us-east-1.s3.us-east-1.amazonaws.com
+          VITE_S3_BASE_URL: ${{ vars.VITE_S3_BASE_URL }}
+        run: pnpm --filter @cv-builder/visual-dashboard build
+
+      - name: Upload visual dashboard to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/visual-dashboard/dist/
+
+      - name: Deploy visual dashboard to GitHub Pages
+        id: deploy-pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/deploy-pages@v4
+
   # Optional: Matrix testing across different viewports
   # TODO: Re-enable after debugging why React app doesn't render in matrix job
   # Main visual regression tests pass, but matrix jobs timeout waiting for .app-container
@@ -372,12 +468,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Build packages
-        run: |
-          echo "✅ Building packages with TypeScript type checking"
-          echo "✅ Visual regression tests will run using Docker (images build internally)"
-        continue-on-error: true
 
       - name: Start services
         run: docker compose -f docker-compose.ci.yml up -d
