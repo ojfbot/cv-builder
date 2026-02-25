@@ -27,11 +27,12 @@ jobs:
   propose-blog-post:
     runs-on: ubuntu-latest
 
-    # Don't run on draft PRs unless they're being closed/merged
+    # Only run for pull_request events (not push) — guards against empty PR context
+    # causing github.event.pull_request.draft to coerce '' == false → true on push events
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.draft == false) ||
-      (github.event.action == 'closed' && github.event.pull_request.merged == true)
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
 
     permissions:
       contents: write
@@ -253,21 +254,16 @@ jobs:
             const score = ${{ steps.results.outputs.score }};
             const priority = '${{ steps.results.outputs.priority }}';
 
-            const comment = `## Blog Post Proposal Analysis
-
-**Blog-Worthiness Score**: ${score}/10 ${priority}
-
-This PR does not meet the threshold for a blog post proposal (score < 5).
-
-**Why?**
-The changes in this PR, while valuable, are either:
-- Routine maintenance or small improvements
-- Lack significant educational value for a blog audience
-- Don't introduce novel solutions or patterns
-- Have limited measurable impact
-
-If you believe this PR should have a blog post, you can manually run the proposer agent with the \`--force\` flag.
-`;
+            const comment = '## Blog Post Proposal Analysis\n\n' +
+              `**Blog-Worthiness Score**: ${score}/10 ${priority}\n\n` +
+              'This PR does not meet the threshold for a blog post proposal (score < 5).\n\n' +
+              '**Why?**\n' +
+              'The changes in this PR, while valuable, are either:\n' +
+              '- Routine maintenance or small improvements\n' +
+              '- Lack significant educational value for a blog audience\n' +
+              '- Don\'t introduce novel solutions or patterns\n' +
+              '- Have limited measurable impact\n\n' +
+              'If you believe this PR should have a blog post, you can manually run the proposer agent with the `--force` flag.\n';
 
             await github.rest.issues.createComment({
               issue_number: ${{ steps.pr.outputs.number }},
