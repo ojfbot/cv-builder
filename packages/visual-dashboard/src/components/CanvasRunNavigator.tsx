@@ -56,11 +56,22 @@ const RunsIndexSchema = z.object({
 type RunEntry = z.infer<typeof RunEntrySchema>;
 type RunScreenshot = z.infer<typeof RunScreenshotSchema>;
 
-/** Returns url if it passes the S3 origin check, otherwise fallback. */
+/**
+ * Parse the origin of a URL string, returning null on invalid input.
+ * Used instead of startsWith to prevent subdomain-prefix bypass
+ * (e.g. 'https://s3.amazonaws.com.attacker.com' starts with 'https://s3.amazonaws.com').
+ */
+function urlOrigin(href: string): string | null {
+  try { return new URL(href).origin; } catch { return null; }
+}
+
+const S3_ORIGIN = S3_BASE ? urlOrigin(S3_BASE) : null;
+
+/** Returns url if its origin matches S3_BASE's origin, otherwise fallback. */
 function safeS3Url(url: string | undefined, fallback: string): string;
 function safeS3Url(url: string | undefined, fallback?: undefined): string | undefined;
 function safeS3Url(url: string | undefined, fallback?: string): string | undefined {
-  if (url && S3_BASE && url.startsWith(S3_BASE)) return url;
+  if (url && S3_ORIGIN && urlOrigin(url) === S3_ORIGIN) return url;
   return fallback;
 }
 
@@ -102,16 +113,26 @@ export function CanvasRunNavigator() {
 
   // Only pass a drawioUrl to the external viewer when it is from our own S3 origin.
   const safeDrawioUrl =
-    latestRun?.drawioUrl && S3_BASE && latestRun.drawioUrl.startsWith(S3_BASE)
+    latestRun?.drawioUrl && S3_ORIGIN && urlOrigin(latestRun.drawioUrl) === S3_ORIGIN
       ? latestRun.drawioUrl
       : null;
   const viewerUrl = safeDrawioUrl
     ? `https://viewer.diagrams.net/?url=${encodeURIComponent(safeDrawioUrl)}&nav=1&title=cvBuilder.drawio.xml`
     : null;
 
-  // Screenshots filtered to our S3 origin for security
-  const safeScreenshots =
-    latestRun?.screenshots.filter((shot) => S3_BASE && shot.url.startsWith(S3_BASE)) ?? [];
+  // Screenshots filtered to our S3 origin for security.
+  // Deduped by name — duplicate names would cause React key warnings and missed re-renders.
+  const safeScreenshots = (() => {
+    const seen = new Set<string>();
+    return (
+      latestRun?.screenshots.filter((shot) => {
+        if (!S3_ORIGIN || urlOrigin(shot.url) !== S3_ORIGIN) return false;
+        if (seen.has(shot.name)) return false;
+        seen.add(shot.name);
+        return true;
+      }) ?? []
+    );
+  })();
 
   // Pass/fail summary
   const passCount = safeScreenshots.filter((s) => s.passed === true).length;
@@ -217,8 +238,15 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
     display: 'block',
   };
 
-  const hideOnError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    (e.currentTarget as HTMLImageElement).style.display = 'none';
+  const showUnavailableOnError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget as HTMLImageElement;
+    img.style.display = 'none';
+    const placeholder = document.createElement('div');
+    placeholder.style.cssText =
+      'width:100%;height:120px;display:flex;align-items:center;justify-content:center;' +
+      'font-size:0.7rem;color:var(--color-text-secondary);background:var(--color-bg-secondary,#f4f4f4)';
+    placeholder.textContent = 'Image unavailable';
+    img.parentElement?.insertBefore(placeholder, img);
   };
 
   // All URLs validated against S3 origin before use.
@@ -253,7 +281,7 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
             alt={`${shot.name} baseline`}
             loading="lazy"
             style={imgStyle}
-            onError={hideOnError}
+            onError={showUnavailableOnError}
           />
           <div
             style={{
@@ -280,7 +308,7 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
               alt={`${shot.name} actual`}
               loading="lazy"
               style={imgStyle}
-              onError={hideOnError}
+              onError={showUnavailableOnError}
             />
             <div
               style={{
@@ -303,7 +331,7 @@ function ScreenshotCard({ shot }: { shot: RunScreenshot }) {
               alt={`${shot.name} diff`}
               loading="lazy"
               style={imgStyle}
-              onError={hideOnError}
+              onError={showUnavailableOnError}
             />
             <div
               style={{

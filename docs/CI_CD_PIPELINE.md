@@ -51,11 +51,12 @@ collisions).
 - uses: actions/setup-node@v4
   with: { node-version: '24', cache: 'pnpm' }
 - run: pnpm install --frozen-lockfile
-- run: pnpm type-check || echo "::warning::..."
+- run: pnpm type-check
 ```
 
-Type-check is non-blocking (warning only) so a type error in an unrelated package does not
-prevent visual regression results from being reported.
+Type-check is **blocking** — a type error in any package fails the job immediately.
+All pre-existing type errors in `agent-graph` were resolved in this PR, so this is now a
+clean hard-fail gate. The old `|| echo "::warning::..."` fallback has been removed.
 
 ### 2. Docker Compose — Start Services
 
