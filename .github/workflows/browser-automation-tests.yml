@@ -180,76 +180,6 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
-      - name: Generate draw.io viewer page
-        id: viewer-page
-        if: always()
-        continue-on-error: true
-        env:
-          GH_BRANCH: ${{ github.head_ref || github.ref_name }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          mkdir -p _site
-          cp packages/browser-automation/templates/drawio/cvBuilder.drawio.xml _site/
-          RAW_URL="https://raw.githubusercontent.com/$GH_REPO/$GH_BRANCH/packages/browser-automation/templates/drawio/cvBuilder.drawio.xml"
-          ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1],safe=''))" "$RAW_URL")
-          VIEWER_URL="https://viewer.diagrams.net/?url=$ENCODED&nav=1&title=cvBuilder.drawio.xml"
-          VIEWER_URL="$VIEWER_URL" python3 -c "import os; v=os.environ['VIEWER_URL']; open('_site/index.html','w').write('<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>CV Builder \u2014 Architecture Canvas</title><style>*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}iframe{display:block;width:100vw;height:100vh;border:none}</style></head><body><iframe src=\"' + v + '\" allowfullscreen></iframe></body></html>')"
-          echo "viewer_url=$VIEWER_URL" >> "$GITHUB_OUTPUT"
-          echo "Generated: $VIEWER_URL"
-
-      - name: Upload draw.io viewer to GitHub Pages
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site/
-
-      - name: Deploy draw.io viewer to GitHub Pages
-        id: deploy-pages
-        if: always()
-        continue-on-error: true
-        uses: actions/deploy-pages@v4
-
-      - name: Comment PR with results
-        if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v7
-        env:
-          VIEWER_URL: ${{ steps.viewer-page.outputs.viewer_url }}
-          PAGES_URL: ${{ steps.deploy-pages.outputs.page_url }}
-        with:
-          script: |
-            const fs = require('fs');
-
-            const summaryPath = 'temp/test-results/pr-comment.md';
-            let comment = fs.existsSync(summaryPath)
-              ? fs.readFileSync(summaryPath, 'utf8')
-              : '## Browser Automation Test Results\n\n⚠️ Test report not generated. Check workflow logs.\n';
-
-            // Draw.io canvas links
-            const viewerUrl = process.env.VIEWER_URL || '';
-            const pagesUrl  = process.env.PAGES_URL  || '';
-            comment += '\n\n### Draw.io Architecture Canvas\n\n';
-            if (viewerUrl) {
-              comment += `[Open interactive diagram →](${viewerUrl})\n`;
-            }
-            if (pagesUrl) {
-              comment += `[GitHub Pages viewer →](${pagesUrl})\n`;
-            }
-
-            // Artifact links
-            comment += '\n\n### Artifacts\n\n';
-            comment += `- [Test Screenshots](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-            comment += `- [Visual Diffs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-            comment += `- [Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-            comment += `\n**[View Full CI Run →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-
       - name: Configure AWS credentials (OIDC)
         if: always() && vars.S3_BUCKET != ''
         uses: aws-actions/configure-aws-credentials@v4
@@ -311,6 +241,85 @@ jobs:
             git commit -m "chore: update visual regression baselines [skip ci]"
           git pull --rebase origin ${{ github.ref_name }} && git push \
             || echo "::warning::git rebase/push failed — possible concurrent run collision. Re-trigger with update_baselines=true to retry."
+
+      - name: Generate draw.io viewer page
+        id: viewer-page
+        if: always()
+        continue-on-error: true
+        env:
+          GH_BRANCH: ${{ github.head_ref || github.ref_name }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p _site
+          cp packages/browser-automation/templates/drawio/cvBuilder.drawio.xml _site/
+          # Use S3-hosted XML (images replaced with S3 URLs → tiny file) if pipeline ran
+          DRAWIO_URL=""
+          PIPELINE_RESULT="packages/browser-automation/temp/pipeline-result.json"
+          if [ -f "$PIPELINE_RESULT" ]; then
+            DRAWIO_URL=$(python3 -c "import json; d=json.load(open('$PIPELINE_RESULT')); print(d.get('drawioS3Url') or '')" 2>/dev/null || true)
+          fi
+          # Fall back to raw GitHub URL (may be large if baselines not yet committed)
+          if [ -z "$DRAWIO_URL" ]; then
+            DRAWIO_URL="https://raw.githubusercontent.com/$GH_REPO/$GH_BRANCH/packages/browser-automation/templates/drawio/cvBuilder.drawio.xml"
+          fi
+          ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1],safe=''))" "$DRAWIO_URL")
+          VIEWER_URL="https://viewer.diagrams.net/?url=$ENCODED&nav=1&title=cvBuilder.drawio.xml"
+          VIEWER_URL="$VIEWER_URL" python3 -c "import os; v=os.environ['VIEWER_URL']; open('_site/index.html','w').write('<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>CV Builder \u2014 Architecture Canvas</title><style>*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}iframe{display:block;width:100vw;height:100vh;border:none}</style></head><body><iframe src=\"' + v + '\" allowfullscreen></iframe></body></html>')"
+          echo "viewer_url=$VIEWER_URL" >> "$GITHUB_OUTPUT"
+          echo "Generated: $VIEWER_URL"
+
+      - name: Upload draw.io viewer to GitHub Pages
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site/
+
+      - name: Deploy draw.io viewer to GitHub Pages
+        id: deploy-pages
+        if: always()
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        env:
+          VIEWER_URL: ${{ steps.viewer-page.outputs.viewer_url }}
+          PAGES_URL: ${{ steps.deploy-pages.outputs.page_url }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            const summaryPath = 'temp/test-results/pr-comment.md';
+            let comment = fs.existsSync(summaryPath)
+              ? fs.readFileSync(summaryPath, 'utf8')
+              : '## Browser Automation Test Results\n\n⚠️ Test report not generated. Check workflow logs.\n';
+
+            // Draw.io canvas links
+            const viewerUrl = process.env.VIEWER_URL || '';
+            const pagesUrl  = process.env.PAGES_URL  || '';
+            comment += '\n\n### Draw.io Architecture Canvas\n\n';
+            if (viewerUrl) {
+              comment += `[Open interactive diagram →](${viewerUrl})\n`;
+            }
+            if (pagesUrl) {
+              comment += `[GitHub Pages viewer →](${pagesUrl})\n`;
+            }
+
+            // Artifact links
+            comment += '\n\n### Artifacts\n\n';
+            comment += `- [Test Screenshots](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            comment += `- [Visual Diffs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            comment += `- [Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            comment += `\n**[View Full CI Run →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
 
       - name: Shutdown services
         if: always()
