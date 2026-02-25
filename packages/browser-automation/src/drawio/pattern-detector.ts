@@ -7,13 +7,10 @@
 
 import {
   DrawioNode,
-  DrawioEdge,
   DrawioUISchema,
   DetectedPattern,
-  InteractionType,
   ScreenshotConfig,
   StateAssertion,
-  VIEWPORT_PRESETS,
 } from './schema.js';
 
 /**

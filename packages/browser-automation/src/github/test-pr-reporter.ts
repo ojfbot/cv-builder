@@ -164,7 +164,7 @@ async function main() {
 async function generateMarkdownOnly(
   reporter: GitHubPRReporter,
   manifest: TestManifest,
-  screenshotDir: string,
+  _screenshotDir: string,
   uploadScreenshots: boolean
 ): Promise<string> {
   // Use reflection to access private methods

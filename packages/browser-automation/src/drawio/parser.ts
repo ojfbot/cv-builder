@@ -190,7 +190,18 @@ export class DrawioParser {
     const metadata: NodeMetadata = {
       style: rawCell.style,
       parentId: rawCell.parent,
-      geometry: rawCell.geometry,
+      geometry: rawCell.geometry &&
+        rawCell.geometry.x !== undefined &&
+        rawCell.geometry.y !== undefined &&
+        rawCell.geometry.width !== undefined &&
+        rawCell.geometry.height !== undefined
+        ? {
+            x: rawCell.geometry.x,
+            y: rawCell.geometry.y,
+            width: rawCell.geometry.width,
+            height: rawCell.geometry.height,
+          }
+        : undefined,
     };
 
     return {

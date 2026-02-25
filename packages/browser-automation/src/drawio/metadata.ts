@@ -11,7 +11,6 @@ import {
   InteractionType,
   ViewportConfig,
   StateAssertion,
-  VIEWPORT_PRESETS,
 } from './schema.js';
 
 /**

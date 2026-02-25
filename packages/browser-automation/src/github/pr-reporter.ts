@@ -7,8 +7,8 @@
 
 import { execSync } from 'child_process';
 import path from 'path';
-import { GistUploader, ScreenshotUploadResult } from './gist-uploader.js';
-import type { TestManifest, InteractionResult, ScreenshotMetadata } from '../drawio/metadata.js';
+import { GistUploader } from './gist-uploader.js';
+import type { TestManifest, InteractionResult } from '../drawio/metadata.js';
 
 /**
  * PR comment options

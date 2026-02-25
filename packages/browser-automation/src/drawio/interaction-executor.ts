@@ -8,17 +8,15 @@ import { Page } from 'playwright';
 import {
   DrawioNode,
   DrawioUISchema,
-  InteractionType,
   StateAssertion,
   ViewportConfig,
-  VIEWPORT_PRESETS,
 } from './schema.js';
 import { CapturedState } from './metadata.js';
 
 /**
- * Wait strategies
+ * Wait strategies (matches Playwright's LoadState)
  */
-export type WaitStrategy = 'networkIdle' | 'load' | 'domContentLoaded' | 'timeout';
+export type WaitStrategy = 'networkidle' | 'load' | 'domcontentloaded';
 
 /**
  * Execution options
@@ -60,7 +58,7 @@ export class InteractionExecutor {
   constructor(page: Page, options: ExecutionOptions = {}) {
     this.page = page;
     this.options = {
-      waitStrategy: options.waitStrategy || 'networkIdle',
+      waitStrategy: options.waitStrategy || 'networkidle',
       timeout: options.timeout || 30000,
       waitForAnimations: options.waitForAnimations ?? true,
       animationSettleTime: options.animationSettleTime || 300,

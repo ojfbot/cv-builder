@@ -12,7 +12,6 @@ import {
   DrawioTemplate,
   TemplateMetadata,
   DrawioNode,
-  DrawioEdge,
   SCHEMA_VERSION,
 } from './schema.js';
 
@@ -171,7 +170,7 @@ export class TemplateGenerator {
   /**
    * Generate form interaction template
    */
-  private generateFormTemplate(schema: DrawioUISchema): DrawioTemplate | null {
+  private generateFormTemplate(_schema: DrawioUISchema): DrawioTemplate | null {
     const metadata: TemplateMetadata = {
       name: 'Form Interaction',
       description: 'Template for documenting form filling, validation, and submission flows',
@@ -311,7 +310,7 @@ export class TemplateGenerator {
   /**
    * Generate modal dialog template
    */
-  private generateModalTemplate(schema: DrawioUISchema): DrawioTemplate | null {
+  private generateModalTemplate(_schema: DrawioUISchema): DrawioTemplate | null {
     const metadata: TemplateMetadata = {
       name: 'Modal Dialog Flow',
       description: 'Template for documenting modal opening, interaction, and closing',

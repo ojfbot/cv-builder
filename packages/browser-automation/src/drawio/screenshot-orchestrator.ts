@@ -311,27 +311,28 @@ export class ScreenshotOrchestrator {
     const baselinePath = this.baselineManager.getBaselinePath(testSuite, screenshotName);
     metadata.baselinePath = baselinePath;
 
-    // Compare
+    // Compare (generate diff in same directory as screenshot)
+    const diffPath = screenshotPath.replace(/\.png$/, '-diff.png');
     const result = await this.comparisonEngine.compare(
       baselinePath,
       screenshotPath,
+      diffPath,
       {
         threshold: options.threshold || 0.001,
-        createDiffImage: true,
       }
     );
 
     // Update metadata
-    metadata.passed = result.passed;
+    metadata.passed = result.matches;
     metadata.diffPercentage = result.diffPercentage;
-    metadata.diffPixels = result.numDiffPixels;
+    metadata.diffPixels = result.diffPixelCount;
 
-    if (result.diffImagePath) {
-      metadata.diffPath = result.diffImagePath;
+    if (result.diffPath) {
+      metadata.diffPath = result.diffPath;
     }
 
     // Log result
-    if (!result.passed) {
+    if (!result.matches) {
       console.warn(
         `Visual regression: ${screenshotName} failed (${result.diffPercentage.toFixed(2)}% diff)`
       );
