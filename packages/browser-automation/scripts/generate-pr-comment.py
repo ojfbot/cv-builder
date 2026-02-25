@@ -32,6 +32,11 @@ def icon(s):
     return {"success": "✅", "failure": "❌"}.get(s, "⚠️")
 
 
+def escape_md(s: str) -> str:
+    """Escape characters that would break a GFM table cell."""
+    return s.replace('|', r'\|').replace('[', r'\[').replace(']', r'\]')
+
+
 cells = []
 manifest_missing = not os.path.exists(manifest_path)
 if not manifest_missing:
@@ -46,9 +51,9 @@ for c in cells:
     if exists:
         available += 1
     status = "✅ captured" if exists else "⬜ missing"
-    test_step = c.get("testStep", name)
+    test_step = escape_md(c.get("testStep", name))
     ui_state = c.get("uiState", {})
-    state_str = ", ".join(f"{k}={v}" for k, v in ui_state.items() if v)
+    state_str = escape_md(", ".join(f"{k}={v}" for k, v in ui_state.items() if v))
     rows.append(f"| {status} | `{name}` | {test_step} | {state_str} |")
 
 total = len(cells)
