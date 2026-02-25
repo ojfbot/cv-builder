@@ -460,36 +460,42 @@ in the browser with `fetch(diagramUrl)`. This is a cross-origin request — with
 CORS policy on the bucket the browser will block it and the diagram viewer will show
 an error state even though the file is publicly readable.
 
-### Via AWS CLI
+### Via AWS CLI (recommended — scoped to your Pages origin)
+
+Replace `YOUR_GITHUB_ORG` with your GitHub username or organisation:
 
 ```bash
+PAGES_ORIGIN="https://YOUR_GITHUB_ORG.github.io"
 aws s3api put-bucket-cors --bucket "$BUCKET" \
-  --cors-configuration '{"CORSRules":[{"AllowedHeaders":[],"AllowedMethods":["GET"],"AllowedOrigins":["*"],"ExposeHeaders":[],"MaxAgeSeconds":3600}]}'
+  --cors-configuration "{\"CORSRules\":[{\"AllowedHeaders\":[],\"AllowedMethods\":[\"GET\"],\"AllowedOrigins\":[\"$PAGES_ORIGIN\",\"http://localhost:3000\",\"http://localhost:3002\"],\"ExposeHeaders\":[],\"MaxAgeSeconds\":3600}]}"
 ```
 
 ### Via AWS Console
 
-In **S3 → bucket → Permissions → Cross-origin resource sharing (CORS)**, paste:
+In **S3 → bucket → Permissions → Cross-origin resource sharing (CORS)**, paste
+(replace `YOUR_GITHUB_ORG`):
 
 ```json
 [
   {
     "AllowedHeaders": [],
     "AllowedMethods": ["GET"],
-    "AllowedOrigins": ["*"],
+    "AllowedOrigins": [
+      "https://YOUR_GITHUB_ORG.github.io",
+      "http://localhost:3000",
+      "http://localhost:3002"
+    ],
     "ExposeHeaders": [],
     "MaxAgeSeconds": 3600
   }
 ]
 ```
 
-> **Why `*` for origins?** The dashboard runs on `http://localhost:3000` during
-> development and on whatever domain you deploy to in production. The draw.io
-> web viewer (`app.diagrams.net`) also fetches diagram files directly. Rather than
-> maintaining a list of allowed origins, `*` on `GET`-only is safe because the
-> bucket only contains non-sensitive screenshot images (public anyway by the bucket
-> policy). If you lock down the bucket to private + CloudFront (see Future
-> improvements), restrict `AllowedOrigins` to your specific domains at that point.
+> **Note:** Scoping `AllowedOrigins` to your Pages domain and localhost is more
+> secure than `"*"` — it prevents other websites from silently fetching your
+> screenshots via the browser. The bucket is already GET-public, but CORS scoping
+> stops cross-site credential theft patterns. If you also need `viewer.diagrams.net`
+> or `app.diagrams.net` to fetch the XML directly, add those origins to the list.
 
 ---
 

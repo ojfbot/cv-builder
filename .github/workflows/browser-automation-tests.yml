@@ -47,6 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      contents: read         # needed by: actions/checkout@v4 (explicit to avoid implicit none)
       pull-requests: write   # needed by: "Comment PR with results" step
       issues: write          # needed by: GitHub script in PR comment step
       id-token: write        # needed by: OIDC → AWS role assumption (no static keys)
@@ -79,7 +80,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Type-check packages
-        run: pnpm type-check || echo "::warning::Type-check failed — see step logs for details"
+        run: pnpm type-check
 
       - name: Setup temp directories
         run: |

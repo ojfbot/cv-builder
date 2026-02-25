@@ -123,9 +123,12 @@ export class DrawioUrlInjector {
 
     const oldStyle = imageCell.getAttribute('style') || '';
 
-    // Replace image=<value> (ends at ;" or "). Handles base64, https://, and
-    // empty image= values. setAttribute takes the raw (unescaped) URL value;
-    // the serialiser will escape & and other special chars in the output XML.
+    // Replace image=<value> (ends at ; or "). Handles base64 data URIs, https://
+    // URLs, and empty image= values. setAttribute takes the raw (unescaped) URL;
+    // the serialiser re-escapes & → &amp; and other special chars on write-back.
+    // S3 run-scoped URLs are path-only (no query string), so stopping at `;` is
+    // correct. Pre-signed URLs with & query params would need a different approach
+    // but are not used here.
     let newStyle = oldStyle.replace(/image=[^;"]*/, `image=${url}`);
 
     if (newStyle === oldStyle) {
