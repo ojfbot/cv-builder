@@ -50,24 +50,35 @@ export function CanvasRunNavigator() {
       return;
     }
 
+    const controller = new AbortController();
     const indexUrl = `${S3_BASE}/${S3_PREFIX}/runs-index.json`;
 
     (async () => {
       try {
-        const res = await fetch(indexUrl);
+        const res = await fetch(indexUrl, { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status} fetching runs index`);
         const data: RunsIndex = await res.json();
-        setLatestRun(data.runs[0] ?? null);
+        // Sort descending so index [0] is always the highest run number
+        const sorted = [...data.runs].sort((a, b) => b.runNumber - a.runNumber);
+        setLatestRun(sorted[0] ?? null);
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
         setError(err instanceof Error ? err.message : 'Failed to load canvas snapshots');
       } finally {
         setLoading(false);
       }
     })();
+
+    return () => controller.abort();
   }, []);
 
-  const viewerUrl = latestRun?.drawioUrl
-    ? `https://viewer.diagrams.net/?url=${encodeURIComponent(latestRun.drawioUrl)}&nav=1&title=cvBuilder.drawio.xml`
+  // Only pass a drawioUrl to the external viewer when it is from our own S3 origin.
+  const safeDrawioUrl =
+    latestRun?.drawioUrl && S3_BASE && latestRun.drawioUrl.startsWith(S3_BASE)
+      ? latestRun.drawioUrl
+      : null;
+  const viewerUrl = safeDrawioUrl
+    ? `https://viewer.diagrams.net/?url=${encodeURIComponent(safeDrawioUrl)}&nav=1&title=cvBuilder.drawio.xml`
     : null;
 
   return (
@@ -135,7 +146,7 @@ export function CanvasRunNavigator() {
             gap: '0.75rem',
           }}
         >
-          {latestRun.screenshots.map((shot) => (
+          {latestRun.screenshots.filter((shot) => S3_BASE && shot.url.startsWith(S3_BASE)).map((shot) => (
             <div
               key={shot.name}
               style={{

@@ -14,7 +14,6 @@ Environment variables (all optional, defaults shown):
 
 import json
 import os
-import sys
 
 manifest_path = os.environ.get(
     "MANIFEST",
@@ -40,13 +39,19 @@ def escape_md(s: str) -> str:
 cells = []
 manifest_missing = not os.path.exists(manifest_path)
 if not manifest_missing:
-    with open(manifest_path) as f:
-        cells = json.load(f)["cells"]
+    try:
+        with open(manifest_path) as f:
+            cells = json.load(f)["cells"]
+    except (json.JSONDecodeError, KeyError, OSError) as exc:
+        manifest_missing = True
+        print(f"Warning: could not parse manifest ({exc}) — baseline table unavailable.")
 
 rows = []
 available = 0
 for c in cells:
-    name = c["screenshotBaseline"]
+    name = c.get("screenshotBaseline")
+    if not name:
+        continue
     exists = os.path.exists(f"{baselines_dir}/{name}.png")
     if exists:
         available += 1
@@ -95,7 +100,7 @@ if not manifest_missing and missing > 0:
     lines.append("3. Set **Update visual regression baselines** → `true`")
     lines.append("</details>")
 
-out_path = "temp/test-results/pr-comment.md"
+out_path = os.environ.get("OUT_PATH", "temp/test-results/pr-comment.md")
 os.makedirs(os.path.dirname(out_path), exist_ok=True)
 with open(out_path, "w") as f:
     f.write("\n".join(lines) + "\n")
