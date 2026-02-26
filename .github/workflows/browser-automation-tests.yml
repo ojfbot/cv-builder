@@ -209,6 +209,17 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
+      # Upload runs-index.json so the deploy job can bake it into GitHub Pages.
+      # Pages serves it at /cv-builder/data/runs-index.json (same-origin) — no S3 CORS needed.
+      - name: Upload runs-index artifact
+        if: always() && vars.S3_BUCKET != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: runs-index-${{ github.run_number }}
+          path: packages/browser-automation/temp/runs-index.json
+          retention-days: 30
+          if-no-files-found: ignore
+
       # Upload modified draw.io canvas for the deploy job to commit
       - name: Upload draw.io canvas artifact
         if: always() && vars.S3_BUCKET != ''
@@ -274,64 +285,71 @@ jobs:
       - name: Comment PR with results
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
-        env:
-          VIEWER_URL: ${{ steps.viewer-page.outputs.viewer_url }}
         with:
           script: |
             const fs = require('fs');
 
+            // ── Summary section (test outcomes + baseline table) ──────────────
             const summaryPath = 'temp/test-results/pr-comment.md';
             let comment = fs.existsSync(summaryPath)
               ? fs.readFileSync(summaryPath, 'utf8')
               : '## Browser Automation Test Results\n\n⚠️ Test report not generated. Check workflow logs.\n';
 
-            // Read S3 pipeline result for screenshot URLs and draw.io link
+            // ── Per-screenshot <details> accordions ───────────────────────────
+            // Reads from pipeline-result.json which includes per-screenshot
+            // baselineUrl / actualUrl / diffUrl / passed / diffPercent.
             const pipelineResultPath = 'packages/browser-automation/temp/pipeline-result.json';
-            let uploaded = [];
+            let screenshots = [];
             let drawioS3Url = null;
             if (fs.existsSync(pipelineResultPath)) {
               try {
                 const pr = JSON.parse(fs.readFileSync(pipelineResultPath, 'utf8'));
-                uploaded = pr.uploaded || [];
+                screenshots = pr.screenshots || [];
                 drawioS3Url = pr.drawioS3Url || null;
               } catch (e) {
                 console.warn('Could not parse pipeline-result.json:', e.message);
               }
             }
 
-            // Screenshot thumbnail gallery (S3-hosted, GitHub proxies via camo)
-            if (uploaded.length > 0) {
-              comment += '\n\n### Screenshots\n\n';
-              comment += '<table><tr>\n';
-              for (const u of uploaded) {
-                const name = u.filename.replace(/\.png$/, '');
-                comment += `  <td align="center"><img src="${u.url}" width="200" alt="${name}"/><br><sub><code>${name}</code></sub></td>\n`;
+            if (screenshots.length > 0) {
+              const passCount  = screenshots.filter(s => s.passed === true).length;
+              const failCount  = screenshots.filter(s => s.passed === false).length;
+              const skipCount  = screenshots.filter(s => s.passed == null).length;
+
+              let badge = '';
+              if (passCount > 0) badge += ` ✅ ${passCount}`;
+              if (failCount > 0) badge += ` ❌ ${failCount}`;
+              if (skipCount > 0) badge += ` ⏭ ${skipCount} no actual`;
+
+              comment += `\n\n<details open>\n<summary><strong>📸 Screenshots (${screenshots.length})${badge}</strong></summary>\n\n`;
+
+              for (const s of screenshots) {
+                const status =
+                  s.passed === true  ? `✅ 0%` :
+                  s.passed === false ? `❌ ${s.diffPercent != null ? s.diffPercent.toFixed(1) + '%' : '?'}` :
+                  `⏭ no actual`;
+
+                comment += `<details>\n<summary>${status} &nbsp; <code>${s.name}</code></summary>\n\n`;
+                comment += `<table><tr>`;
+                comment += `<th>Baseline</th>`;
+                if (s.actualUrl) comment += `<th>Actual (run #${{ github.run_number }})</th>`;
+                if (s.diffUrl)   comment += `<th>Diff</th>`;
+                comment += `</tr><tr>`;
+                comment += `<td>${s.baselineUrl ? `<img src="${s.baselineUrl}" width="280" alt="baseline"/>` : '_missing_'}</td>`;
+                if (s.actualUrl) comment += `<td><img src="${s.actualUrl}" width="280" alt="actual"/></td>`;
+                if (s.diffUrl)   comment += `<td><img src="${s.diffUrl}" width="280" alt="diff"/></td>`;
+                comment += `</tr></table>\n\n</details>\n\n`;
               }
-              comment += '</tr></table>\n';
+
+              comment += `</details>\n`;
             }
 
-            // GitHub Pages dashboard link — always shown so devs know where to go
+            // ── Dashboard + CI run links ──────────────────────────────────────
             const [owner, repoName] = '${{ github.repository }}'.split('/');
             const pagesUrl = `https://${owner}.github.io/${repoName}/`;
-            comment += `\n\n### Visual Dashboard\n\n`;
-            comment += `**[📊 View on GitHub Pages →](${pagesUrl})**  \n`;
-            comment += `_(Live after the next push to main; shows baseline vs actual side-by-side with RED/GREEN diff frames)_\n`;
+            comment += `\n**[📊 Visual Dashboard →](${pagesUrl})** &nbsp;|&nbsp; **[CI Run →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
 
-            // Draw.io architecture canvas
-            const viewerUrl = process.env.VIEWER_URL || '';
-            if (viewerUrl) {
-              comment += '\n\n### Draw.io Architecture Canvas\n\n';
-              comment += `[Open interactive diagram →](${viewerUrl})\n`;
-            }
-
-            // Artifact links
-            comment += '\n\n### Artifacts\n\n';
-            comment += `- [Test Screenshots](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-            comment += `- [Visual Diffs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-            comment += `- [Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-            comment += `\n**[View Full CI Run →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
-
-            // Find-or-update: avoids flooding the PR timeline on every push.
+            // ── Find-or-update: one comment per PR ────────────────────────────
             const BOT_MARKER = '<!-- browser-automation-results -->';
             const fullBody = BOT_MARKER + '\n' + comment;
             const existing = await github.rest.issues.listComments({
@@ -468,6 +486,16 @@ jobs:
       - name: Install dependencies
         if: github.ref == 'refs/heads/main'
         run: pnpm install --frozen-lockfile
+
+      # Embed runs-index.json into the Pages build so the dashboard fetches it
+      # same-origin (no S3 CORS required). Falls back gracefully if artifact missing.
+      - name: Embed runs-index into Pages build
+        if: github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: runs-index-${{ github.run_number }}
+          path: packages/visual-dashboard/public/data/
+        continue-on-error: true
 
       - name: Build visual dashboard
         if: github.ref == 'refs/heads/main' && needs.browser-tests.result == 'success'

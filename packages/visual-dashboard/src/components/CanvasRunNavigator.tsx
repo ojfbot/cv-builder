@@ -76,30 +76,40 @@ function safeS3Url(url: string | undefined, fallback?: string): string | undefin
 }
 
 export function CanvasRunNavigator() {
-  const [latestRun, setLatestRun] = useState<RunEntry | null>(null);
+  const [runs, setRuns] = useState<RunEntry[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!S3_BASE) {
-      setError('VITE_S3_BASE_URL is not set — canvas snapshots unavailable.');
-      setLoading(false);
-      return;
-    }
-
     const controller = new AbortController();
-    const indexUrl = `${S3_BASE}/${S3_PREFIX}/runs-index.json`;
+
+    // Primary: same-origin Pages URL (no S3 CORS required).
+    // Baked in by the deploy job from the runs-index artifact.
+    // Fallback: direct S3 fetch (works locally when VITE_S3_BASE_URL is set).
+    const pagesUrl = `${import.meta.env.BASE_URL}data/runs-index.json`;
+    const s3Url = S3_BASE ? `${S3_BASE}/${S3_PREFIX}/runs-index.json` : null;
+
+    const tryFetch = async (url: string) => {
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return RunsIndexSchema.parse(await res.json());
+    };
 
     (async () => {
       try {
-        const res = await fetch(indexUrl, { signal: controller.signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status} fetching runs index`);
-        // Validate with Zod so malformed/missing fields surface as a clear error
-        // rather than a cryptic TypeError inside the render path.
-        const data = RunsIndexSchema.parse(await res.json());
-        // Sort descending so index [0] is always the highest run number
+        let data: ReturnType<typeof RunsIndexSchema.parse>;
+        try {
+          data = await tryFetch(pagesUrl);
+        } catch (pagesErr) {
+          if (pagesErr instanceof Error && pagesErr.name === 'AbortError') return;
+          if (!s3Url) throw pagesErr;
+          // Pages URL failed (e.g. local dev, 404) — try S3 directly
+          data = await tryFetch(s3Url);
+        }
         const sorted = [...data.runs].sort((a, b) => b.runNumber - a.runNumber);
-        setLatestRun(sorted[0] ?? null);
+        setRuns(sorted);
+        setSelectedIndex(0);
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') return;
         setError(err instanceof Error ? err.message : 'Failed to load canvas snapshots');
@@ -111,10 +121,12 @@ export function CanvasRunNavigator() {
     return () => controller.abort();
   }, []);
 
+  const selectedRun = runs[selectedIndex] ?? null;
+
   // Only pass a drawioUrl to the external viewer when it is from our own S3 origin.
   const safeDrawioUrl =
-    latestRun?.drawioUrl && S3_ORIGIN && urlOrigin(latestRun.drawioUrl) === S3_ORIGIN
-      ? latestRun.drawioUrl
+    selectedRun?.drawioUrl && S3_ORIGIN && urlOrigin(selectedRun.drawioUrl) === S3_ORIGIN
+      ? selectedRun.drawioUrl
       : null;
   const viewerUrl = safeDrawioUrl
     ? `https://viewer.diagrams.net/?url=${encodeURIComponent(safeDrawioUrl)}&nav=1&title=cvBuilder.drawio.xml`
@@ -125,7 +137,7 @@ export function CanvasRunNavigator() {
   const safeScreenshots = (() => {
     const seen = new Set<string>();
     return (
-      latestRun?.screenshots.filter((shot) => {
+      selectedRun?.screenshots.filter((shot) => {
         if (!S3_ORIGIN || urlOrigin(shot.url) !== S3_ORIGIN) return false;
         if (seen.has(shot.name)) return false;
         seen.add(shot.name);
@@ -144,25 +156,43 @@ export function CanvasRunNavigator() {
       <div className="flex-between" style={{ marginBottom: '1rem' }}>
         <div>
           <h3 style={{ margin: 0 }}>Canvas Snapshots</h3>
-          {latestRun && (
-            <p
-              style={{
-                margin: '0.25rem 0 0',
-                color: 'var(--color-text-secondary)',
-                fontSize: '0.875rem',
-              }}
-            >
-              Run #{latestRun.runNumber} &middot;{' '}
-              {new Date(latestRun.timestamp).toLocaleString()}
+          {selectedRun && (
+            <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {/* Run selector — Phase 1 of issue #94 */}
+              {runs.length > 1 ? (
+                <select
+                  value={selectedIndex}
+                  onChange={(e) => setSelectedIndex(Number(e.target.value))}
+                  style={{
+                    fontSize: '0.875rem',
+                    padding: '2px 6px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--border-radius)',
+                    background: 'var(--color-bg)',
+                    color: 'var(--color-text)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {runs.map((r, i) => (
+                    <option key={r.runNumber} value={i}>
+                      Run #{r.runNumber} &middot; {new Date(r.timestamp).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
+                  Run #{selectedRun.runNumber} &middot; {new Date(selectedRun.timestamp).toLocaleString()}
+                </span>
+              )}
               {hasResults && (
-                <span style={{ marginLeft: '0.75rem' }}>
+                <span style={{ fontSize: '0.875rem' }}>
                   <span style={{ color: '#00A550' }}>✅ {passCount}</span>
                   {failCount > 0 && (
                     <span style={{ color: '#FF3B30', marginLeft: '0.4rem' }}>❌ {failCount}</span>
                   )}
                 </span>
               )}
-            </p>
+            </div>
           )}
         </div>
         {viewerUrl && (
@@ -191,15 +221,15 @@ export function CanvasRunNavigator() {
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>{error}</p>
       )}
 
-      {!loading && !error && !latestRun && (
+      {!loading && !error && runs.length === 0 && (
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
           No CI runs found yet. Trigger a CI run to populate this view.
         </p>
       )}
 
-      {!loading && !error && latestRun && safeScreenshots.length === 0 && (
+      {!loading && !error && selectedRun && safeScreenshots.length === 0 && (
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
-          No screenshots captured in run #{latestRun.runNumber} yet. Re-run CI with{' '}
+          No screenshots captured in run #{selectedRun.runNumber} yet. Re-run CI with{' '}
           <code>update_baselines: true</code> to capture baselines.
         </p>
       )}
