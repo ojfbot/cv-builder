@@ -134,6 +134,8 @@ interface PipelineResult {
   skipped: string[];
   drawioS3Key: string | null;
   drawioS3Url: string | null;
+  /** Per-screenshot comparison data — used by PR comment step for side-by-side display */
+  screenshots: ScreenshotEntry[];
 }
 
 // ── Image comparison helper ────────────────────────────────────────────────
@@ -351,7 +353,7 @@ async function run(): Promise<void> {
 
   if (cellMappings.length === 0) {
     console.log('\n⚠  No screenshots to inject — nothing to commit.');
-    writeSummary({ uploaded, injected: 0, skipped, drawioS3Key: null, drawioS3Url: null });
+    writeSummary({ uploaded, injected: 0, skipped, drawioS3Key: null, drawioS3Url: null, screenshots: [] });
     return;
   }
 
@@ -413,6 +415,13 @@ async function run(): Promise<void> {
   const publishedIndexUrl = await uploader.uploadBuffer(indexBuffer, indexKey, 'application/json');
   console.log(`  ✓  runs-index.json → ${publishedIndexUrl}`);
 
+  // Write a local copy of runs-index.json so the deploy job can embed it in Pages
+  // (avoids S3 CORS requirements — dashboard fetches from same-origin Pages instead)
+  const localIndexPath = path.resolve(packageRoot, 'temp/runs-index.json');
+  fs.mkdirSync(path.dirname(localIndexPath), { recursive: true });
+  fs.writeFileSync(localIndexPath, JSON.stringify({ runs: updatedRuns, lastUpdated: new Date().toISOString() }, null, 2));
+  console.log(`  ✓  local runs-index.json → ${localIndexPath}`);
+
   // 7. Write a JSON summary for downstream CI steps
   const result: PipelineResult = {
     uploaded,
@@ -420,6 +429,7 @@ async function run(): Promise<void> {
     skipped,
     drawioS3Key: drawioKey,
     drawioS3Url: drawioUrl,
+    screenshots: screenshotEntries,
   };
   writeSummary(result);
 
