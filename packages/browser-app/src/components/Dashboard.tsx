@@ -1,4 +1,7 @@
 import { useEffect } from 'react'
+import { Provider } from 'react-redux'
+import { store } from '../store'
+import { AgentProvider } from '../contexts/AgentContext'
 import {
   Tabs,
   TabList,
@@ -153,8 +156,18 @@ function DashboardContent() {
   )
 }
 
+// When mounted as a Module Federation remote, the shell's Provider wraps everything
+// at a higher level but does NOT carry cv-builder's slice reducers. This self-contained
+// wrapper ensures the remote is always backed by its own store + context regardless of
+// how the shell composes its store. See docs/FEDERATION.md for the Redux store contract.
 function Dashboard() {
-  return <DashboardContent />
+  return (
+    <Provider store={store}>
+      <AgentProvider>
+        <DashboardContent />
+      </AgentProvider>
+    </Provider>
+  )
 }
 
 export default Dashboard
