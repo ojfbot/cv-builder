@@ -1,16 +1,8 @@
 name: Blog Post Proposer
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    # Only run for significant changes (ignore docs-only PRs)
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/**'
-      - 'README.md'
-      - 'CLAUDE.md'
-
+  # Removed pull_request trigger — no longer runs automatically on every PR.
+  # Run manually from Actions → Blog Post Proposer → Run workflow.
   workflow_dispatch:
     inputs:
       pr_number:
