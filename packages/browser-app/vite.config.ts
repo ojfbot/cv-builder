@@ -16,9 +16,15 @@ export default defineConfig({
       exposes: {
         './Dashboard': './src/components/Dashboard',
       },
-      // @carbon/react must be shared to avoid duplicate copies (style conflicts, inflated bundle).
-      // Shell must pin the same major version (^1.x). See docs/FEDERATION.md.
-      shared: ['react', 'react-dom', '@reduxjs/toolkit', 'react-redux', '@carbon/react'],
+      // Object form enforces singleton + version constraints — mismatches surface as warnings
+      // rather than silent duplicate instances. See docs/FEDERATION.md for shell version table.
+      shared: {
+        react:              { singleton: true, requiredVersion: '^18.3.1' },
+        'react-dom':        { singleton: true, requiredVersion: '^18.3.1' },
+        '@reduxjs/toolkit': { singleton: true },
+        'react-redux':      { singleton: true },
+        '@carbon/react':    { singleton: true, requiredVersion: '^1.0.0' },
+      },
     }),
   ],
   resolve: {
@@ -28,9 +34,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    // Scoped to the shell host origin; avoids exposing the remote entry to arbitrary local pages.
-    // Add production shell origin (https://app.jim.software) for staging/prod dev servers.
-    cors: { origin: ['http://localhost:4000', 'http://127.0.0.1:4000'] },
+    // Scoped to the shell host origin. Set VITE_SHELL_ORIGIN for staging/preview environments.
+    cors: {
+      origin: process.env.VITE_SHELL_ORIGIN
+        ? [process.env.VITE_SHELL_ORIGIN]
+        : ['http://localhost:4000', 'http://127.0.0.1:4000'],
+    },
   },
   preview: {
     port: 3000,
