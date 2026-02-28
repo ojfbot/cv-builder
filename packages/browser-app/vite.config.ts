@@ -21,9 +21,9 @@ export default defineConfig({
       shared: {
         react:              { singleton: true, requiredVersion: '^18.3.1' },
         'react-dom':        { singleton: true, requiredVersion: '^18.3.1' },
-        '@reduxjs/toolkit': { singleton: true },
-        'react-redux':      { singleton: true },
-        '@carbon/react':    { singleton: true, requiredVersion: '^1.0.0' },
+        '@reduxjs/toolkit': { singleton: true, requiredVersion: '^2.11.0' },
+        'react-redux':      { singleton: true, requiredVersion: '^9.2.0' },
+        '@carbon/react':    { singleton: true, requiredVersion: '^1.67.0' },
       },
     }),
   ],
@@ -34,10 +34,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    // Scoped to the shell host origin. Set VITE_SHELL_ORIGIN for staging/preview environments.
+    // Scoped to the shell host origin. Set SHELL_ORIGIN for staging/preview environments.
+    // Not VITE_-prefixed — this is a server-side build var, never injected into the bundle.
+    // See .env.example for usage.
     cors: {
-      origin: process.env.VITE_SHELL_ORIGIN
-        ? [process.env.VITE_SHELL_ORIGIN]
+      origin: process.env.SHELL_ORIGIN
+        ? [process.env.SHELL_ORIGIN]
         : ['http://localhost:4000', 'http://127.0.0.1:4000'],
     },
   },
