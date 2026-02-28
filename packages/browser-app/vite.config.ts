@@ -2,6 +2,18 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import federation from '@originjs/vite-plugin-federation'
 import path from 'path'
+import { readFileSync } from 'fs'
+
+// Read version specifiers from package.json files so federation shared config
+// stays in sync automatically when deps are bumped — eliminates silent drift.
+function dep(pkgPath: string, name: string): string {
+  const pkg = JSON.parse(readFileSync(path.resolve(__dirname, pkgPath), 'utf8'))
+  return pkg.dependencies?.[name] ?? pkg.devDependencies?.[name] ?? '*'
+}
+// browser-app owns: react, react-dom, @carbon/react
+// root workspace owns: @reduxjs/toolkit, react-redux
+const appPkg  = './package.json'
+const rootPkg = '../../package.json'
 
 export default defineConfig({
   plugins: [
@@ -19,11 +31,11 @@ export default defineConfig({
       // Object form enforces singleton + version constraints — mismatches surface as warnings
       // rather than silent duplicate instances. See docs/FEDERATION.md for shell version table.
       shared: {
-        react:              { singleton: true, requiredVersion: '^18.3.1' },
-        'react-dom':        { singleton: true, requiredVersion: '^18.3.1' },
-        '@reduxjs/toolkit': { singleton: true, requiredVersion: '^2.11.0' },
-        'react-redux':      { singleton: true, requiredVersion: '^9.2.0' },
-        '@carbon/react':    { singleton: true, requiredVersion: '^1.67.0' },
+        react:              { singleton: true, requiredVersion: dep(appPkg,  'react') },
+        'react-dom':        { singleton: true, requiredVersion: dep(appPkg,  'react-dom') },
+        '@reduxjs/toolkit': { singleton: true, requiredVersion: dep(rootPkg, '@reduxjs/toolkit') },
+        'react-redux':      { singleton: true, requiredVersion: dep(rootPkg, 'react-redux') },
+        '@carbon/react':    { singleton: true, requiredVersion: dep(appPkg,  '@carbon/react') },
       },
     }),
   ],
@@ -47,7 +59,12 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
     host: true,
-    allowedHosts: true  // Allow all hosts (workaround for Vite bug in 6.0.9+)
+    allowedHosts: true,  // Allow all hosts (workaround for Vite bug in 6.0.9+)
+    cors: {
+      origin: process.env.SHELL_ORIGIN
+        ? [process.env.SHELL_ORIGIN]
+        : ['http://localhost:4000', 'http://127.0.0.1:4000'],
+    },
   },
   build: {
     // Module Federation requires non-legacy chunk format

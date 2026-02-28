@@ -4,7 +4,7 @@ Last updated: 2026-02-28
 
 | ID | Severity | Kind | Location | Description | Effort | Status |
 |----|----------|------|----------|-------------|--------|--------|
-| TD-001 | HIGH | configuration | `packages/browser-app/package.json` + `pnpm-lock.yaml` | package.json specifier bumped without regenerating lockfile — CI frozen-lockfile fails, cascades to no pipeline-result.json, overwrites PR accordion comments with bare "skipped" | S | open |
+| TD-001 | HIGH | configuration | `packages/browser-app/package.json` + `pnpm-lock.yaml` | package.json specifier bumped without regenerating lockfile — CI frozen-lockfile fails, cascades to no pipeline-result.json, overwrites PR accordion comments with bare "skipped" | S | resolved #100 |
 
 ---
 
@@ -24,6 +24,7 @@ The damage is invisible locally (install succeeds without `--frozen-lockfile`) a
 
 **Root cause incident:** commit `c0dd2b4` bumped `@originjs/vite-plugin-federation` from `^1.3.5` to `^1.4.1` in PR #98 without updating the lockfile. Two CI runs failed; the PR #98 accordion (run #123) and the PR #100 first run were both overwritten.
 
-**Proposed fix:** Add a pre-commit guard that detects when `package.json` is staged with a specifier change but `pnpm-lock.yaml` is not also staged. Block the commit with a clear message. See `scripts/check-lockfile.sh`.
+**Fix implemented in #100:** Pre-commit guard in `scripts/check-lockfile.sh` (wired via `.husky/pre-commit`) detects when a dependency specifier changes in `package.json` without a corresponding `pnpm-lock.yaml` update and blocks the commit with a clear message.
 
 **Effort:** S
+**Status:** Resolved — [PR #100](https://github.com/ojfbot/cv-builder/pull/100)
