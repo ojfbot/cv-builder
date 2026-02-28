@@ -156,10 +156,11 @@ function DashboardContent() {
   )
 }
 
-// When mounted as a Module Federation remote, the shell's Provider wraps everything
-// at a higher level but does NOT carry cv-builder's slice reducers. This self-contained
-// wrapper ensures the remote is always backed by its own store + context regardless of
-// how the shell composes its store. See docs/FEDERATION.md for the Redux store contract.
+// Self-contained export for Module Federation. When mounted by the shell, this carries
+// its own store + context. In standalone mode App.tsx also wraps in Provider+AgentProvider
+// with the SAME store singleton — the inner Provider wins for DashboardContent, and
+// AgentProvider safely skips re-init (checks `if (!orchestrator)` against the same store).
+// Double-wrap is intentional and harmless. See docs/FEDERATION.md.
 function Dashboard() {
   return (
     <Provider store={store}>
