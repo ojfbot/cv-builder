@@ -72,3 +72,7 @@ yarn-error.log*
 *.db
 *.db-wal
 *.db-shm
+
+# Managed by core — do not commit
+domain-knowledge/
+.claude/commands/
