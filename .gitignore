@@ -76,3 +76,6 @@ yarn-error.log*
 # Managed by core — do not commit
 domain-knowledge/
 .claude/commands/
+decisions/
+personal-knowledge/
+.claude/settings.json
