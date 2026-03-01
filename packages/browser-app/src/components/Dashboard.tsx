@@ -104,7 +104,7 @@ function DashboardContent({ shellMode }: DashboardProps) {
         data-element="app-container"
       >
         <div className="dashboard-header">
-          <Heading className="page-header">CV Builder Dashboard</Heading>
+          {!shellMode && <Heading className="page-header">CV Builder Dashboard</Heading>}
 
           <div className="dashboard-header-actions">
             <V2Toggle />
@@ -177,7 +177,7 @@ function DashboardContent({ shellMode }: DashboardProps) {
 // with the SAME store singleton — the inner Provider wins for DashboardContent, and
 // AgentProvider safely skips re-init (checks `if (!orchestrator)` against the same store).
 // Double-wrap is intentional and harmless. See docs/FEDERATION.md.
-function Dashboard({ shellMode }: DashboardProps = {}) {
+function Dashboard({ shellMode }: DashboardProps) {
   return (
     <Provider store={store}>
       <AgentProvider>
