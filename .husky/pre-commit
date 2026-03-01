@@ -45,5 +45,5 @@ echo "✅ Security checks passed"
 # Lockfile drift check (TD-001): block commits that bump package.json specifiers
 # without regenerating pnpm-lock.yaml — prevents CI frozen-lockfile cascade.
 if [ "${SKIP_LOCKFILE_CHECK:-0}" != "1" ]; then
-  sh "$(dirname -- "$0")/../scripts/check-lockfile.sh"
+  sh "$(git rev-parse --show-toplevel)/scripts/check-lockfile.sh"
 fi
