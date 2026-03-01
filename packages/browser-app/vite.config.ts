@@ -31,6 +31,7 @@ export default defineConfig({
       filename: 'remoteEntry.js',
       exposes: {
         './Dashboard': './src/components/Dashboard',
+        './Settings':  './src/components/settings/SettingsPanel',
       },
       // Object form enforces singleton + version constraints — mismatches surface as warnings
       // rather than silent duplicate instances. See docs/FEDERATION.md for shell version table.
