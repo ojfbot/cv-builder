@@ -8,7 +8,11 @@ import { readFileSync } from 'fs'
 // stays in sync automatically when deps are bumped — eliminates silent drift.
 function dep(pkgPath: string, name: string): string {
   const pkg = JSON.parse(readFileSync(path.resolve(__dirname, pkgPath), 'utf8'))
-  return pkg.dependencies?.[name] ?? pkg.devDependencies?.[name] ?? '*'
+  const version = pkg.dependencies?.[name] ?? pkg.devDependencies?.[name]
+  if (!version) {
+    throw new Error(`dep(): "${name}" not found in ${pkgPath} — check spelling or package location`)
+  }
+  return version
 }
 // browser-app owns: react, react-dom, @carbon/react
 // root workspace owns: @reduxjs/toolkit, react-redux
@@ -51,7 +55,7 @@ export default defineConfig({
     // See .env.example for usage.
     cors: {
       origin: process.env.SHELL_ORIGIN
-        ? [process.env.SHELL_ORIGIN]
+        ? [process.env.SHELL_ORIGIN, 'http://localhost:4000', 'http://127.0.0.1:4000']
         : ['http://localhost:4000', 'http://127.0.0.1:4000'],
     },
   },
@@ -62,7 +66,7 @@ export default defineConfig({
     allowedHosts: true,  // Allow all hosts (workaround for Vite bug in 6.0.9+)
     cors: {
       origin: process.env.SHELL_ORIGIN
-        ? [process.env.SHELL_ORIGIN]
+        ? [process.env.SHELL_ORIGIN, 'http://localhost:4000', 'http://127.0.0.1:4000']
         : ['http://localhost:4000', 'http://127.0.0.1:4000'],
     },
   },
