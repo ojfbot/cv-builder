@@ -139,13 +139,13 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
       <style>{`
         .thread-sidebar {
           position: fixed !important;
-          right: 0 !important;
+          right: 1rem !important;
           left: auto !important;
-          top: 48px !important;
-          height: calc(100vh - 48px) !important;
+          top: calc(48px + 0.5rem) !important;
+          height: calc(100vh - 48px - 1rem) !important;
           width: 320px !important;
           max-width: 320px !important;
-          transform: translateX(${isExpanded ? '0' : '100%'}) !important;
+          transform: translateX(${isExpanded ? '0' : 'calc(100% + 1rem)'}) !important;
           transition: transform 0.3s ease !important;
           background: var(--cds-layer-01) !important;
           border-left: 1px solid var(--cds-border-subtle) !important;
@@ -282,9 +282,18 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
           left: auto !important;
         }
 
-        /* Ensure all SideNav internal elements align properly */
+        /* Carbon's .cds--side-nav__navigation has position:fixed + top:48px in its own CSS.
+         * Because .thread-sidebar has transform (slide animation), transform creates a
+         * containing block for fixed descendants — so the inner nav positions 48px from
+         * the sidebar top instead of the viewport, creating a blank gap. Zero it out. */
         .thread-sidebar .cds--side-nav__navigation {
+          top: 0 !important;
+          height: 100% !important;
           width: 100% !important;
+        }
+
+        .thread-sidebar .cds--side-nav__items {
+          padding-top: 0 !important;
         }
       `}</style>
     </SideNav>
