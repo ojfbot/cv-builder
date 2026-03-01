@@ -57,12 +57,13 @@
 /* Contained tabs: explicit equal-width stretching + tab bar background.
  * Carbon's cds--tabs--contained rules live in the @carbon/react shared chunk.
  * In the shell, that chunk is replaced by the host singleton, so these rules
- * may not be present. Declaring them here makes the Dashboard self-sufficient. */
-.dashboard-wrapper .cds--tabs--contained .cds--tab--list {
+ * may not be present in MF mode. Scoped to .shell-mode so standalone mode
+ * relies on Carbon's own rules and this block cannot shadow future Carbon updates. */
+.dashboard-wrapper.shell-mode .cds--tabs--contained .cds--tab--list {
   display: flex;
   background-color: var(--cds-layer-accent-01, #393939);
 }
-.dashboard-wrapper .cds--tabs--contained .cds--tabs__nav-item {
+.dashboard-wrapper.shell-mode .cds--tabs--contained .cds--tabs__nav-item {
   flex: 1 0 auto; /* matches Carbon's own rule — grows but never shrinks below content width */
 }
 
@@ -79,8 +80,10 @@
   overflow-y: auto;
 }
 
-/* Interactive tab: full height, no padding (InteractiveChat manages its own layout) */
-.dashboard-wrapper.shell-mode .cds--tab-content:first-of-type {
+/* Interactive tab: full height, no padding (InteractiveChat manages its own layout).
+ * Targets by data-element rather than :first-of-type to be resilient against
+ * tab reordering or Carbon DOM changes. */
+.dashboard-wrapper.shell-mode .cds--tab-content[data-element="interactive-panel"] {
   overflow: hidden;
 }
 
@@ -139,8 +142,9 @@
   max-height: calc(100vh - 48px - 72px - 48px); /* viewport - header - margins - tab list */
 }
 
-/* Interactive tab has no padding (InteractiveChat handles its own layout) */
-.dashboard-wrapper .cds--tab-content:first-of-type {
+/* Interactive tab has no padding (InteractiveChat handles its own layout).
+ * Targets by data-element rather than :first-of-type — see shell-mode block above. */
+.dashboard-wrapper .cds--tab-content[data-element="interactive-panel"] {
   padding: 0;
   overflow: hidden;
 }

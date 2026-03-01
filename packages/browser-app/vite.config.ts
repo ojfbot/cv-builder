@@ -26,12 +26,17 @@ export default defineConfig({
     // cssInjectedByJs must come before federation — it intercepts CSS extraction and
     // converts it to JS style-injection, so the exposed Dashboard module carries its
     // own styles and applies them automatically when the shell mounts the remote.
-    // jsAssetsFilterFunction scopes injection to the Dashboard exposed bundle only —
-    // without it the plugin picks a shared chunk (react-dom) that the shell never
-    // loads (singleton already provided by host), so CSS would never execute.
+    // jsAssetsFilterFunction scopes injection to our exposed bundles only — without
+    // it the plugin picks a shared chunk (react-dom) that the shell never loads
+    // (singleton already provided by host), so CSS would never execute.
+    //
+    // The `__federation_expose_` prefix is @originjs/vite-plugin-federation's internal
+    // chunk naming convention (verified at v1.4.x). If CSS stops loading after a plugin
+    // upgrade, check dist/ chunk names and update these strings accordingly.
     cssInjectedByJs({
       jsAssetsFilterFunction: ({ fileName }) =>
-        fileName.includes('__federation_expose_Dashboard'),
+        fileName.includes('__federation_expose_Dashboard') ||
+        fileName.includes('__federation_expose_Settings'),
     }),
     // Module Federation REMOTE — exposes cv-builder Dashboard to the shell host.
     // Shell dev:  cv_builder@http://localhost:3000/assets/remoteEntry.js
