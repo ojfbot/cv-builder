@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import federation from '@originjs/vite-plugin-federation'
+import cssInjectedByJs from 'vite-plugin-css-injected-by-js'
 import path from 'path'
 import { readFileSync } from 'fs'
 
@@ -22,6 +23,16 @@ const rootPkg = '../../package.json'
 export default defineConfig({
   plugins: [
     react(),
+    // cssInjectedByJs must come before federation — it intercepts CSS extraction and
+    // converts it to JS style-injection, so the exposed Dashboard module carries its
+    // own styles and applies them automatically when the shell mounts the remote.
+    // jsAssetsFilterFunction scopes injection to the Dashboard exposed bundle only —
+    // without it the plugin picks a shared chunk (react-dom) that the shell never
+    // loads (singleton already provided by host), so CSS would never execute.
+    cssInjectedByJs({
+      jsAssetsFilterFunction: ({ fileName }) =>
+        fileName.includes('__federation_expose_Dashboard'),
+    }),
     // Module Federation REMOTE — exposes cv-builder Dashboard to the shell host.
     // Shell dev:  cv_builder@http://localhost:3000/assets/remoteEntry.js
     // Shell prod: shell reads VITE_REMOTE_CV_BUILDER env var — set in shell/packages/shell-app/vite.config.ts.

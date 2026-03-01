@@ -29,7 +29,14 @@ import { ThreadSidebar } from './ThreadSidebar'
 import { V2Toggle } from './V2Toggle'
 import './Dashboard.css'
 
-function DashboardContent() {
+interface DashboardProps {
+  /** True when mounted inside the Frame shell host. Suppresses the internal
+   *  app title heading and reduces standalone-mode margins so the shell's own
+   *  chrome governs layout. Does NOT remove the V2 / thread-sidebar controls. */
+  shellMode?: boolean
+}
+
+function DashboardContent({ shellMode }: DashboardProps) {
   const dispatch = useAppDispatch()
   const currentTab = useAppSelector(state => state.navigation.currentTab)
   const currentTabIndex = useAppSelector(state => state.navigation.currentTabIndex)
@@ -39,6 +46,7 @@ function DashboardContent() {
   const showThreadSidebar = useAppSelector(state => state.v2.showThreadSidebar)
   const sidebarExpanded = useAppSelector(state => state.v2.sidebarExpanded)
   const bioModalOpen = useAppSelector(state => state.v2.bioModalOpen)
+  const chatExpanded = useAppSelector(state => state.chat.displayState === 'expanded')
 
   // Load V2 settings on mount
   useEffect(() => {
@@ -86,7 +94,15 @@ function DashboardContent() {
         />
       )}
 
-      <div className={`dashboard-wrapper ${v2Enabled && showThreadSidebar && sidebarExpanded ? 'with-sidebar' : ''}`} data-element="app-container">
+      <div
+        className={[
+          'dashboard-wrapper',
+          v2Enabled && showThreadSidebar && sidebarExpanded ? 'with-sidebar' : '',
+          shellMode ? 'shell-mode' : '',
+          shellMode && chatExpanded ? 'chat-expanded' : '',
+        ].filter(Boolean).join(' ')}
+        data-element="app-container"
+      >
         <div className="dashboard-header">
           <Heading className="page-header">CV Builder Dashboard</Heading>
 
@@ -161,11 +177,11 @@ function DashboardContent() {
 // with the SAME store singleton — the inner Provider wins for DashboardContent, and
 // AgentProvider safely skips re-init (checks `if (!orchestrator)` against the same store).
 // Double-wrap is intentional and harmless. See docs/FEDERATION.md.
-function Dashboard() {
+function Dashboard({ shellMode }: DashboardProps = {}) {
   return (
     <Provider store={store}>
       <AgentProvider>
-        <DashboardContent />
+        <DashboardContent shellMode={shellMode} />
       </AgentProvider>
     </Provider>
   )
