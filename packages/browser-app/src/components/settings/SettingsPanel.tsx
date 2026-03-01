@@ -10,11 +10,7 @@
 
 import { InlineNotification } from '@carbon/react'
 
-interface SettingsPanelProps {
-  onClose?: () => void
-}
-
-export default function SettingsPanel(_props: SettingsPanelProps) {
+export default function SettingsPanel() {
   return (
     <div>
       <p style={{ marginBottom: '1rem' }}>
