@@ -16,10 +16,9 @@
 }
 
 /* Move condensed chat left when V2 sidebar is open */
-/* Dashboard changes margin-right from 72px to calc(320px + 1rem) */
-/* So chat should change from 72px to calc(320px + 1rem) to match */
+/* Dashboard margin-right with-sidebar = calc(320px + 2rem); match so right edge aligns. */
 .condensed-chat.with-sidebar {
-  right: calc(320px + 1rem);
+  right: calc(320px + 2rem);
 }
 
 .condensed-chat.expanded {

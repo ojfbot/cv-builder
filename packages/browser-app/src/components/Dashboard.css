@@ -11,9 +11,77 @@
   transition: margin-right 0.3s ease;
 }
 
-/* Dashboard wrapper when sidebar is open (right side) */
+/* Dashboard wrapper when sidebar is open (right side).
+ * Sidebar is inset 1rem from viewport right + 320px wide + 1rem gap to content. */
 .dashboard-wrapper.with-sidebar {
-  margin-right: calc(320px + 1rem);
+  margin-right: calc(320px + 2rem);
+}
+
+/* Shell-mode: flex height chain.
+ *
+ * Carbon v11 DOM reality (from inspection):
+ *   <Tabs> renders NO DOM element — just a context provider.
+ *   <TabList contained> renders <div class="cds--tabs cds--tabs--contained">.
+ *   <TabPanels>        renders <div class="cds--tab-panels">.
+ *
+ * So inside dashboard-wrapper (flex-col), the direct children are:
+ *   .dashboard-header      — auto height
+ *   .cds--tabs             — the tab BAR (not a wrapper!), must stay at natural height
+ *   .cds--tab-panels       — tab content, fills remaining space
+ *
+ * The previous approach (flex:1 + flex-direction:column on .cds--tabs) was wrong:
+ * it made the tab BAR itself flex-column (breaking Carbon's scroll layout) and grew
+ * it to fill half the dashboard, leaving the panels with 0 height. */
+.dashboard-wrapper.shell-mode {
+  /* Visual rhythm: top gap = horizontal margin (72px = 4.5rem).
+   * ThreadSidebar top is calc(48px + 4.5rem) to match. */
+  margin-top: 4.5rem;
+}
+
+/* When CondensedChat is expanded, shrink dashboard from below so the bottom of the
+ * dashboard is separated from the viewport bottom by the same 72px horizontal margin.
+ * CondensedChat (position:fixed, bottom:1rem) floats in that zone. */
+.dashboard-wrapper.shell-mode.chat-expanded {
+  margin-bottom: 4.5rem;
+}
+
+/* Tab bar: don't grow or shrink — stay at Carbon's natural height.
+ * flex-direction: column is Carbon's own rule for .cds--tabs--contained;
+ * it lives in the @carbon/react shared chunk which the shell replaces with
+ * its singleton, so we must declare it here to make the tab list fill width. */
+.dashboard-wrapper.shell-mode .cds--tabs {
+  flex-shrink: 0;
+  flex-direction: column;
+}
+
+/* Contained tabs: explicit equal-width stretching + tab bar background.
+ * Carbon's cds--tabs--contained rules live in the @carbon/react shared chunk.
+ * In the shell, that chunk is replaced by the host singleton, so these rules
+ * may not be present. Declaring them here makes the Dashboard self-sufficient. */
+.dashboard-wrapper .cds--tabs--contained .cds--tab--list {
+  display: flex;
+  background-color: var(--cds-layer-accent-01, #393939);
+}
+.dashboard-wrapper .cds--tabs--contained .cds--tabs__nav-item {
+  flex: 1 0 auto; /* matches Carbon's own rule — grows but never shrinks below content width */
+}
+
+/* Panels: fill all remaining space after header + tab bar */
+.dashboard-wrapper.shell-mode .cds--tab-panels {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-wrapper.shell-mode .cds--tab-content {
+  max-height: none;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Interactive tab: full height, no padding (InteractiveChat manages its own layout) */
+.dashboard-wrapper.shell-mode .cds--tab-content:first-of-type {
+  overflow: hidden;
 }
 
 /* Dashboard header with toggle button */
@@ -62,12 +130,6 @@
 .dashboard-header .cds--popover-container,
 .dashboard-header .cds--popover {
   z-index: 10000 !important;
-}
-
-/* Tabs container */
-.dashboard-wrapper .cds--tabs {
-  display: flex;
-  flex-direction: column;
 }
 
 /* Tab content panels */
