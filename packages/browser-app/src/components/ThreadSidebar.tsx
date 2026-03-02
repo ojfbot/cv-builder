@@ -64,6 +64,9 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
   };
 
   return (
+    /* inert wrapper: blocks all keyboard/pointer interaction with the off-screen sidebar.
+     * SideNav is position:fixed so the wrapper div has zero layout footprint. */
+    <div {...(!isExpanded ? { inert: '' } : {})}>
     <SideNav
       aria-label="Thread navigation"
       expanded={isExpanded}
@@ -146,7 +149,8 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
           width: 320px !important;
           max-width: 320px !important;
           transform: translateX(${isExpanded ? '0' : 'calc(100% + 1rem)'}) !important;
-          transition: transform 0.3s ease !important;
+          visibility: ${isExpanded ? 'visible' : 'hidden'} !important;
+          transition: transform 0.3s ease, visibility 0s${isExpanded ? '' : ' 0.3s'} !important;
           background: var(--cds-layer-01) !important;
           border-left: 1px solid var(--cds-border-subtle) !important;
           border-right: none !important;
@@ -297,5 +301,6 @@ export function ThreadSidebar({ isExpanded, onToggle }: ThreadSidebarProps) {
         }
       `}</style>
     </SideNav>
+    </div>
   );
 }
