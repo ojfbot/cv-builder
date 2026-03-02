@@ -104,7 +104,7 @@ function DashboardContent({ shellMode }: DashboardProps) {
         data-element="app-container"
       >
         <div className="dashboard-header">
-          {!shellMode && <Heading className="page-header">CV Builder Dashboard</Heading>}
+          <Heading className="page-header">CV Builder Dashboard</Heading>
 
           <div className="dashboard-header-actions">
             <V2Toggle />
