@@ -279,3 +279,33 @@ The project emphasizes iterative development: Plan → Implement → Test → Re
 ## Privacy
 
 Personal data (bio, jobs, outputs) is gitignored. Only example data in `public/examples/` should be committed.
+
+---
+
+## Frame OS Integration
+
+cv-builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`).
+
+### MF remote surface area
+`packages/browser-app/vite.config.ts` exposes two components:
+- `./Dashboard` — loaded by the shell as the main content view
+- `./Settings` — bare settings panel loaded inside the shell's `SettingsModal`
+
+### Shared singletons (must match shell exactly)
+```typescript
+shared: {
+  react:              { singleton: true, requiredVersion: '^18.3.1' },
+  'react-dom':        { singleton: true, requiredVersion: '^18.3.1' },
+  '@reduxjs/toolkit': { singleton: true, requiredVersion: '^2.5.0' },
+  'react-redux':      { singleton: true, requiredVersion: '^9.2.0' },
+  '@carbon/react':    { singleton: true, requiredVersion: '^1.67.0' },
+} as any   // 'as any' required — singleton/requiredVersion typed as commented-out in plugin types
+```
+
+### Local MF dev
+`@originjs/vite-plugin-federation` only generates `remoteEntry.js` on `vite build`, NOT `vite dev`.
+For MF local dev: `pnpm --filter @cv-builder/browser-app build && pnpm --filter @cv-builder/browser-app preview`
+
+### Production deployment
+cv.jim.software (Vercel) — auto-deploys on push to main.
+Branch protection: PR required, rebase-only merge (GitHub Ruleset).
