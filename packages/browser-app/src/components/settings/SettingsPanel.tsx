@@ -1,35 +1,27 @@
 /**
  * CV Builder SettingsPanel — exposed via MF './Settings' to the shell.
  *
- * Shell provides the <Modal> chrome (ComposedModal + tab bar + search).
- * This component owns the form fields, reads settings from the shell's
- * shared Redux store, and dispatches updates back.
+ * Shell provides the <Modal> chrome. This component reads from the shell's
+ * shared Redux store and dispatches updates via action type string.
  *
- * ── Redux dispatch pattern ───────────────────────────────────────────────────
- *
- * Sub-apps cannot import from the shell (that would create a circular MF
- * dependency). Instead, dispatch uses the Redux action type string directly:
- *
- *   dispatch({ type: 'settings/updateCvBuilderSettings', payload: partial })
- *
- * This is valid Redux — the shell's settingsSlice reducer handles it.
- * The store is shared via Module Federation's 'react-redux' singleton.
- *
- * ── Sensitive data ───────────────────────────────────────────────────────────
- *
- * API keys (ANTHROPIC_API_KEY) live in server-side env.json — never in
- * the browser or Redux. This panel only configures non-sensitive settings.
+ * Connection status: probes the cv-builder API server's /health endpoint
+ * directly from the panel — no redirect to the standalone app needed.
+ * Health URL is derived from the effective base URL (Redux override or env
+ * default) so it reflects whatever URL is currently configured.
  */
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   TextInput,
   Select,
   SelectItem,
-  InlineNotification,
+  InlineLoading,
+  Button,
   FormGroup,
+  Tag,
 } from '@carbon/react'
+import { Renew } from '@carbon/icons-react'
 import { DEFAULT_API_BASE_URL } from '../../config/api.js'
 
 const ACTION_TYPE = 'settings/updateCvBuilderSettings'
@@ -48,12 +40,44 @@ const DEFAULTS: CvSettings = {
   language: 'en',
 }
 
+// ── Connection status hook ────────────────────────────────────────────────────
+
+type ConnStatus = 'idle' | 'checking' | 'connected' | 'unreachable'
+
+function useConnectionStatus(apiBaseUrl: string) {
+  const [status, setStatus] = useState<ConnStatus>('idle')
+
+  const check = useCallback(async () => {
+    setStatus('checking')
+    try {
+      // Derive /health from any base URL (strips /api, /api/v2, etc.)
+      const healthUrl = new URL('/health', apiBaseUrl || DEFAULT_API_BASE_URL).href
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 4000)
+      const res = await fetch(healthUrl, { signal: controller.signal })
+      clearTimeout(timer)
+      setStatus(res.ok ? 'connected' : 'unreachable')
+    } catch {
+      setStatus('unreachable')
+    }
+  }, [apiBaseUrl])
+
+  useEffect(() => { check() }, [check])
+
+  return { status, recheck: check }
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function SettingsPanel({ onClose: _onClose }: { onClose?: () => void }) {
   const dispatch = useDispatch()
-  // Reads from the shell's Redux singleton (shared via MF)
-  const stored = useSelector((s: any) => s?.settings?.apps?.['cv-builder'] as CvSettings | undefined) ?? DEFAULTS
+  const stored =
+    useSelector((s: any) => s?.settings?.apps?.['cv-builder'] as CvSettings | undefined) ?? DEFAULTS
 
-  // API URL — save on blur (avoid partial-URL dispatches while typing)
+  const effectiveUrl = stored.apiBaseUrl || DEFAULT_API_BASE_URL
+  const { status, recheck } = useConnectionStatus(stored.apiBaseUrl)
+
+  // API URL — save on blur to avoid partial-URL dispatches while typing
   const [apiBaseUrl, setApiBaseUrl] = useState(stored.apiBaseUrl)
 
   function handleApiUrlBlur() {
@@ -80,14 +104,24 @@ export default function SettingsPanel({ onClose: _onClose }: { onClose?: () => v
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiBaseUrl(e.target.value)}
           onBlur={handleApiUrlBlur}
         />
-        <InlineNotification
-          kind="info"
-          title="API keys"
-          subtitle="Keys are stored securely in packages/agent-core/env.json on the server — never in the browser."
-          lowContrast
-          hideCloseButton
-          className="settings-info-banner"
-        />
+
+        <div className="settings-connection-row">
+          <ConnectionIndicator status={status} url={effectiveUrl} />
+          <Button
+            kind="ghost"
+            size="sm"
+            renderIcon={Renew}
+            iconDescription="Re-check"
+            hasIconOnly
+            onClick={recheck}
+            disabled={status === 'checking'}
+            className="settings-recheck-btn"
+          />
+        </div>
+
+        <p className="settings-info-text">
+          API keys are stored securely in <code>packages/agent-core/env.json</code> on the server.
+        </p>
       </FormGroup>
 
       {/* ── Preferences ──────────────────────────────────────────────────── */}
@@ -96,7 +130,9 @@ export default function SettingsPanel({ onClose: _onClose }: { onClose?: () => v
           id="cv-default-template"
           labelText="Default template"
           value={stored.defaultTemplate}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handlePrefChange('defaultTemplate', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            handlePrefChange('defaultTemplate', e.target.value)
+          }
         >
           <SelectItem value="modern"  text="Modern" />
           <SelectItem value="classic" text="Classic" />
@@ -107,7 +143,9 @@ export default function SettingsPanel({ onClose: _onClose }: { onClose?: () => v
           id="cv-export-format"
           labelText="Export format"
           value={stored.exportFormat}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handlePrefChange('exportFormat', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            handlePrefChange('exportFormat', e.target.value)
+          }
         >
           <SelectItem value="pdf"  text="PDF" />
           <SelectItem value="docx" text="Word (.docx)" />
@@ -117,7 +155,9 @@ export default function SettingsPanel({ onClose: _onClose }: { onClose?: () => v
           id="cv-language"
           labelText="Language"
           value={stored.language}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handlePrefChange('language', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            handlePrefChange('language', e.target.value)
+          }
         >
           <SelectItem value="en" text="English" />
           <SelectItem value="fr" text="French" />
@@ -127,4 +167,35 @@ export default function SettingsPanel({ onClose: _onClose }: { onClose?: () => v
       </FormGroup>
     </div>
   )
+}
+
+// ── Shared status indicator (inline — no cross-app import needed) ─────────────
+
+function ConnectionIndicator({ status, url }: { status: ConnStatus; url: string }) {
+  if (status === 'checking') {
+    return (
+      <InlineLoading
+        description="Checking connection…"
+        status="active"
+        className="settings-conn-loading"
+      />
+    )
+  }
+  if (status === 'connected') {
+    return (
+      <span className="settings-conn-status">
+        <Tag type="green" size="sm">Connected</Tag>
+        <span className="settings-conn-url">{url}</span>
+      </span>
+    )
+  }
+  if (status === 'unreachable') {
+    return (
+      <span className="settings-conn-status">
+        <Tag type="red" size="sm">Unreachable</Tag>
+        <span className="settings-conn-url">{url}</span>
+      </span>
+    )
+  }
+  return null
 }
