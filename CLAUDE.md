@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CV Builder is an AI-powered resume and career development tool that uses Claude AI agents to help users create tailored resumes, prepare for interviews, and develop professional skills. The system uses a **secure client-server architecture** with a multi-agent system where specialized agents run server-side and communicate with the browser through a REST API.
+Resume Builder is an AI-powered resume and career development tool that uses Claude AI agents to help users create tailored resumes, prepare for interviews, and develop professional skills. The system uses a **secure client-server architecture** with a multi-agent system where specialized agents run server-side and communicate with the browser through a REST API.
 
 **Key Architecture Changes** (as of latest update):
 - All agents now run **server-side only** via a new Express API (`packages/api/`)
@@ -161,25 +161,25 @@ All agents extend `BaseAgent` class which provides:
 - System prompt abstraction
 
 ### Monorepo Structure
-
+This project uses a monorepo structure with pnpm workspaces:
 This project uses a monorepo structure with npm workspaces:
 
 ```
 packages/
-├── agent-core/          # @cv-builder/agent-core
+├── agent-core/          # @resume-builder/agent-core
 │   ├── src/
 │   │   ├── agents/      # Agent implementations (BaseAgent, specialized agents)
 │   │   ├── cli/         # Command-line interface
 │   │   ├── models/      # Zod schemas and TypeScript types (Bio, Job, Output, Research)
 │   │   └── utils/       # Config and file storage utilities (Node.js only)
 │   └── package.json
-├── api/                 # @cv-builder/api
+├── api/                 # @resume-builder/api
 │   ├── src/
 │   │   ├── routes/      # Express API routes for agent operations
 │   │   ├── middleware/  # Auth, validation, error handling
 │   │   └── services/    # Agent manager for server-side execution
 │   └── package.json
-└── browser-app/         # @cv-builder/browser-app
+└── browser-app/         # @resume-builder/browser-app
     ├── src/
     │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat
     │   ├── api/         # API client for server communication
@@ -205,11 +205,11 @@ The monorepo uses package references for cross-package imports:
 
 ```typescript
 // Import from agent-core (main exports)
-import { BaseAgent, Bio, JobListing } from '@cv-builder/agent-core'
+import { BaseAgent, Bio, JobListing } from '@resume-builder/agent-core'
 
 // Import Node.js-only utilities (server-side)
-import { FileStorage } from '@cv-builder/agent-core/utils/file-storage'
-import { OrchestratorAgent } from '@cv-builder/agent-core/agents/orchestrator-agent'
+import { FileStorage } from '@resume-builder/agent-core/utils/file-storage'
+import { OrchestratorAgent } from '@resume-builder/agent-core/agents/orchestrator-agent'
 ```
 
 ## Agent System
@@ -284,7 +284,8 @@ Personal data (bio, jobs, outputs) is gitignored. Only example data in `public/e
 
 ## Frame OS Integration
 
-cv-builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`).
+Resume Builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`). It exposes a `FrameBeadLike` implementation via `GET /api/beads` (see ADR-0016 / Gas Town Sprint 1), mapping `JobListing` entities to the universal FrameBead shape for ShellAgent consumption.
+Resume Builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`).
 
 ### MF remote surface area
 `packages/browser-app/vite.config.ts` exposes two components:
@@ -304,7 +305,7 @@ shared: {
 
 ### Local MF dev
 `@originjs/vite-plugin-federation` only generates `remoteEntry.js` on `vite build`, NOT `vite dev`.
-For MF local dev: `pnpm --filter @cv-builder/browser-app build && pnpm --filter @cv-builder/browser-app preview`
+For MF local dev: `pnpm --filter @resume-builder/browser-app build && pnpm --filter @resume-builder/browser-app preview`
 
 ### Production deployment
 cv.jim.software (Vercel) — auto-deploys on push to main.

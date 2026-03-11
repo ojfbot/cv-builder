@@ -1,13 +1,13 @@
-# CV Builder
+# Resume Builder
 
-AI-powered CV builder with Claude agent orchestration system.
+AI-powered resume builder with Claude agent orchestration system.
 
 ## Project Structure
 
 This is a monorepo with two main packages:
 
 ```
-cv-builder/
+resume-builder/
 ├── packages/
 │   ├── agent-core/          # V1: Legacy agent system
 │   │   ├── src/
@@ -28,7 +28,7 @@ cv-builder/
 │   │
 │   ├── api/                 # Express API server
 │   │   ├── src/
-│   │   │   ├── routes/      # API endpoints (V1 & V2)
+│   │   │   ├── routes/      # API endpoints (V1 & V2, + GET /api/beads)
 │   │   │   ├── services/    # AgentManager & GraphManager
 │   │   │   └── middleware/  # Auth, validation, errors
 │   │   └── package.json
@@ -219,7 +219,7 @@ PR opened
 
 ### GitHub Pages — Live Architecture Viewer
 
-Every CI run publishes a live draw.io viewer to **<https://ojfbot.github.io/cv-builder/>**.
+Every CI run publishes a live draw.io viewer to **<https://ojfbot.github.io/cv-builder/>** (note: the GitHub Pages URL retains the repository name even after the display-name rename to Resume Builder).
 The viewer embeds the `cvBuilder.drawio.xml` canvas (with real screenshots injected by the
 pipeline) in a full-viewport `viewer.diagrams.net` iframe. Links to the viewer are posted
 automatically in the PR comment.
