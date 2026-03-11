@@ -1,5 +1,5 @@
 {
-  "name": "@cv-builder/agent-graph",
+  "name": "@resume-builder/agent-graph",
   "version": "0.1.0",
   "description": "LangGraph-based multi-agent system for CV Builder",
   "type": "module",
@@ -20,7 +20,7 @@
     "test:watch": "vitest watch"
   },
   "dependencies": {
-    "@cv-builder/agent-core": "file:../agent-core",
+    "@resume-builder/agent-core": "file:../agent-core",
     "@langchain/anthropic": "^0.3.9",
     "@langchain/classic": "^1.0.5",
     "@langchain/core": "^1.1.2",

@@ -1,4 +1,4 @@
-import type { Bio, JobListing } from '@cv-builder/agent-core';
+import type { Bio, JobListing } from '@resume-builder/agent-core';
 
 /**
  * API Client Configuration
@@ -30,9 +30,9 @@ interface ConversationMessage {
 }
 
 /**
- * API Client for CV Builder backend
+ * API Client for Resume Builder backend
  *
- * This client provides a robust, type-safe interface to the CV Builder API.
+ * This client provides a robust, type-safe interface to the Resume Builder API.
  * It follows best practices for API communication:
  * - Proper error handling and retry logic
  * - Request/response validation

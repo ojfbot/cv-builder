@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Button, TextArea, Loading, InlineNotification } from '@carbon/react'
 import { Send } from '@carbon/icons-react'
 import { bioFilesApi } from '../api/bioFilesApi'
-import type { DocumentSummary, ChatMessage } from '@cv-builder/agent-core'
+import type { DocumentSummary, ChatMessage } from '@resume-builder/agent-core'
 import { setDisplayState, ChatDisplayState } from '../store/slices/chatSlice'
 import type { RootState } from '../store'
 

@@ -22,7 +22,7 @@ import {
   type GraphConfig,
   type CVBuilderStateType,
   type Thread,
-} from '@cv-builder/agent-graph';
+} from '@resume-builder/agent-graph';
 import { HumanMessage } from '@langchain/core/messages';
 
 const logger = getLogger('graph-manager');

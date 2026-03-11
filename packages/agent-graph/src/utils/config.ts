@@ -1,4 +1,4 @@
-import { getConfig as getAgentCoreConfig } from "@cv-builder/agent-core/utils/config";
+import { getConfig as getAgentCoreConfig } from "@resume-builder/agent-core/utils/config";
 import { z } from "zod";
 import path from "path";
 

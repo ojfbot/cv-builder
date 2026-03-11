@@ -22,9 +22,9 @@ function findProjectRoot(): string {
       if (require('fs').existsSync(packageJsonPath)) {
         const pkg = JSON.parse(require('fs').readFileSync(packageJsonPath, 'utf-8'));
         // Look for workspace root or browser-automation package
-        if (pkg.workspaces || pkg.name === '@cv-builder/browser-automation') {
+        if (pkg.workspaces || pkg.name === '@resume-builder/browser-automation') {
           // If this is browser-automation package, go up 2 levels to monorepo root
-          if (pkg.name === '@cv-builder/browser-automation') {
+          if (pkg.name === '@resume-builder/browser-automation') {
             return path.resolve(currentDir, '../..');
           }
           return currentDir;

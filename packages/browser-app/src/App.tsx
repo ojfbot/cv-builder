@@ -69,7 +69,7 @@ function AppContent() {
   return (
     <Theme theme={theme}>
         <div className="app-container" style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <Header aria-label="CV Builder">
+          <Header aria-label="Resume Builder">
             <HeaderMenuButton
               data-element="sidebar-toggle"
               aria-label={sideNavExpanded ? 'Close menu' : 'Open menu'}
@@ -77,7 +77,7 @@ function AppContent() {
               isActive={sideNavExpanded}
               aria-expanded={sideNavExpanded}
             />
-            <HeaderName prefix="">CV Builder</HeaderName>
+            <HeaderName prefix="">Resume Builder</HeaderName>
             <HeaderGlobalBar>
               <HeaderGlobalAction
                 data-element="settings-button"

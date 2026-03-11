@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { agentManager } from '../services/agent-manager.js';
 import { validateBody } from '../middleware/validation.js';
 import { authenticate } from '../middleware/auth.js';
-import { BioSchema, JobListingSchema } from '@cv-builder/agent-core';
+import { BioSchema, JobListingSchema } from '@resume-builder/agent-core';
 
 const router: Router = Router();
 

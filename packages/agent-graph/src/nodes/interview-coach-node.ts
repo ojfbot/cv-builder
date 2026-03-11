@@ -9,7 +9,7 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { CVBuilderStateType } from "../state/schema";
 import { NodeOptions } from "./types";
-import { CoverLetterSchema } from "@cv-builder/agent-core/models/output";
+import { CoverLetterSchema } from "@resume-builder/agent-core/models/output";
 import { getLogger } from "../utils/logger";
 
 const logger = getLogger("interview-coach-node");

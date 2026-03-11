@@ -3,7 +3,7 @@ import path from 'path'
 import crypto from 'crypto'
 import mime from 'mime-types'
 import sharp from 'sharp'
-import { BioFile, FileListQuery, ParsedResumeContent } from '@cv-builder/agent-core'
+import { BioFile, FileListQuery, ParsedResumeContent } from '@resume-builder/agent-core'
 import { formatFileSize, sanitizeFilename, BIOS_DIR } from '../middleware/file-upload'
 
 interface FileMetadata {

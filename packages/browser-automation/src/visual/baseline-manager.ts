@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
  * Tries in order:
  * 1. Environment variable (BASELINE_ROOT)
  * 2. Monorepo markers (pnpm-workspace.yaml, .git)
- * 3. Package name match (@cv-builder/browser-automation)
+ * 3. Package name match (@resume-builder/browser-automation)
  * 4. Fallback to relative path
  */
 function findProjectRoot(): string {
@@ -54,7 +54,7 @@ function findProjectRoot(): string {
         }
 
         // Fallback: Check for specific package name (less robust)
-        if (pkg.name === '@cv-builder/browser-automation') {
+        if (pkg.name === '@resume-builder/browser-automation') {
           return path.resolve(currentDir, '../..');
         }
       }

@@ -3,8 +3,8 @@
  *
  * This is the main entry point that exports browser-compatible modules.
  * For Node.js-only utilities (FileStorage, getConfig), use specific imports:
- * - import { FileStorage } from '@cv-builder/agent-core/utils/file-storage'
- * - import { getConfig } from '@cv-builder/agent-core/utils/config'
+ * - import { FileStorage } from '@resume-builder/agent-core/utils/file-storage'
+ * - import { getConfig } from '@resume-builder/agent-core/utils/config'
  */
 
 // Base Agent
@@ -20,7 +20,7 @@ export { InterviewCoachAgent } from './agents/interview-coach-agent.js'
 
 // NOTE: OrchestratorAgent is NOT exported here (uses FileStorage/getConfig)
 // For Node.js environments, import it directly:
-//   import { OrchestratorAgent } from '@cv-builder/agent-core/agents/orchestrator-agent'
+//   import { OrchestratorAgent } from '@resume-builder/agent-core/agents/orchestrator-agent'
 
 // Models
 export {
@@ -47,5 +47,5 @@ export { ResearchEntrySchema, type ResearchEntry } from './models/research.js'
 // NOTE: FileStorage and getConfig are NOT exported here to maintain browser compatibility
 // They use Node.js fs module and should only be imported in Node.js environments
 // Import them directly when needed:
-//   import { FileStorage } from '@cv-builder/agent-core/utils/file-storage'
-//   import { getConfig } from '@cv-builder/agent-core/utils/config'
+//   import { FileStorage } from '@resume-builder/agent-core/utils/file-storage'
+//   import { getConfig } from '@resume-builder/agent-core/utils/config'

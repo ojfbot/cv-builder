@@ -38,7 +38,7 @@ export interface ChatState {
 
 const initialWelcomeMessage: Message = {
   role: 'assistant',
-  content: `# Welcome to CV Builder! 👋
+  content: `# Welcome to Resume Builder! 👋
 
 I'm your AI career assistant. I help you create resumes, analyze jobs, and prepare for interviews.
 

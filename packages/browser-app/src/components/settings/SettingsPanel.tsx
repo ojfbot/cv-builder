@@ -1,5 +1,5 @@
 /**
- * CV Builder SettingsPanel — exposed via MF './Settings' to the shell.
+ * Resume Builder SettingsPanel — exposed via MF './Settings' to the shell.
  *
  * Shell provides the <Modal> chrome. This component reads from the shell's
  * shared Redux store and dispatches updates via action type string.

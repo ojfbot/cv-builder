@@ -6,8 +6,8 @@
  * server-side through the API for security and separation of concerns.
  */
 
-import type { Bio, JobListing } from '@cv-builder/agent-core';
-import { BioSchema, JobListingSchema } from '@cv-builder/agent-core';
+import type { Bio, JobListing } from '@resume-builder/agent-core';
+import { BioSchema, JobListingSchema } from '@resume-builder/agent-core';
 import { BrowserStorage } from '../utils/browser-storage.js';
 import { apiClient as defaultApiClient, type ApiClient } from '../api/client.js';
 

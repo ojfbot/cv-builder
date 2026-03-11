@@ -1,5 +1,5 @@
 {
-  "name": "@cv-builder/browser-automation",
+  "name": "@resume-builder/browser-automation",
   "version": "0.3.0",
   "description": "Browser automation service with Playwright for UI testing, screenshot capture, and user interactions",
   "type": "module",

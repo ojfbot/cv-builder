@@ -104,7 +104,7 @@ function DashboardContent({ shellMode }: DashboardProps) {
         data-element="app-container"
       >
         <div className="dashboard-header">
-          <Heading className="page-header">CV Builder Dashboard</Heading>
+          <Heading className="page-header">Resume Builder Dashboard</Heading>
 
           <div className="dashboard-header-actions">
             <V2Toggle />
@@ -138,7 +138,7 @@ function DashboardContent({ shellMode }: DashboardProps) {
           selectedIndex={currentTabIndex}
           onChange={({ selectedIndex }) => dispatch(setCurrentTab(selectedIndex))}
         >
-          <TabList aria-label="CV Builder sections" contained>
+          <TabList aria-label="Resume Builder sections" contained>
             {TAB_ORDER.map(tabKey => {
               const tab = getTabByKey(tabKey)
               return (
