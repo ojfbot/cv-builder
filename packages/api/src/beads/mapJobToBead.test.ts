@@ -1,0 +1,63 @@
+/**
+ * Unit tests for mapJobToBead()
+ *
+ * Run with: pnpm --filter @resume-builder/api test
+ * (Requires vitest to be installed — add to devDependencies when test infra is set up)
+ */
+import { describe, it, expect } from 'vitest';
+import { mapJobToBead } from './mapJobToBead.js';
+import type { JobListing } from '@cv-builder/agent-core';
+
+const baseJob: JobListing = {
+  id: 'abc123',
+  title: 'Frontend Engineer',
+  company: 'Acme Corp',
+  description: 'Build great UIs.',
+  requirements: ['TypeScript', 'React'],
+};
+
+describe('mapJobToBead()', () => {
+  it('maps id with cv- prefix', () => {
+    const bead = mapJobToBead(baseJob);
+    expect(bead.id).toBe('cv-abc123');
+  });
+
+  it('maps active job status when no deadline is set', () => {
+    const bead = mapJobToBead(baseJob);
+    expect(bead.status).toBe('active');
+  });
+
+  it('maps active job status when deadline is in the future', () => {
+    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const bead = mapJobToBead({ ...baseJob, applicationDeadline: futureDate });
+    expect(bead.status).toBe('active');
+  });
+
+  it('maps archived status when deadline is in the past', () => {
+    const pastDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const bead = mapJobToBead({ ...baseJob, applicationDeadline: pastDate });
+    expect(bead.status).toBe('archived');
+  });
+
+  it('sets sourceApp to cv-builder', () => {
+    const bead = mapJobToBead(baseJob);
+    expect(bead.sourceApp).toBe('cv-builder');
+  });
+
+  it('includes required payload fields', () => {
+    const job: JobListing = {
+      ...baseJob,
+      location: 'Remote',
+      applicationDeadline: '2026-06-01',
+      postedDate: '2026-03-01',
+      applicationUrl: 'https://acme.com/apply',
+    };
+    const bead = mapJobToBead(job);
+    expect(bead.payload.jobTitle).toBe('Frontend Engineer');
+    expect(bead.payload.company).toBe('Acme Corp');
+    expect(bead.payload.location).toBe('Remote');
+    expect(bead.payload.applicationDeadline).toBe('2026-06-01');
+    expect(bead.payload.postedDate).toBe('2026-03-01');
+    expect(bead.payload.applicationUrl).toBe('https://acme.com/apply');
+  });
+});
