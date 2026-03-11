@@ -198,7 +198,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           echo "📸 Uploading screenshots to S3 and updating draw.io canvas..."
-          pnpm --filter @cv-builder/browser-automation pipeline:screenshots
+          pnpm --filter @resume-builder/browser-automation pipeline:screenshots
 
       - name: Upload pipeline summary artifact
         if: always()
@@ -503,7 +503,7 @@ jobs:
           # Set VITE_S3_BASE_URL as a repository variable to enable canvas thumbnails.
           # e.g. https://ojfbot-cv-builder-<ACCOUNT_ID>-us-east-1.s3.us-east-1.amazonaws.com
           VITE_S3_BASE_URL: ${{ vars.VITE_S3_BASE_URL }}
-        run: pnpm --filter @cv-builder/visual-dashboard build
+        run: pnpm --filter @resume-builder/visual-dashboard build
 
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main'

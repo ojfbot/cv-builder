@@ -33,7 +33,7 @@ RUN mkdir -p /app/data
 ENV NODE_ENV=development
 
 # Default command runs the CLI
-CMD ["pnpm", "--filter", "@cv-builder/agent-core", "cli"]
+CMD ["pnpm", "--filter", "@resume-builder/agent-core", "cli"]
 
 # Production stage
 FROM base AS production
@@ -50,4 +50,4 @@ RUN mkdir -p /app/data
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 USER nodejs
 
-CMD ["pnpm", "--filter", "@cv-builder/agent-core", "cli"]
+CMD ["pnpm", "--filter", "@resume-builder/agent-core", "cli"]

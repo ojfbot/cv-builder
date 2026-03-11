@@ -17,7 +17,7 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     env_file:
       - .env.local
-    command: pnpm --filter @cv-builder/agent-core cli
+    command: pnpm --filter @resume-builder/agent-core cli
     stdin_open: true
     tty: true
     networks:

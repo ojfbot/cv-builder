@@ -38,7 +38,7 @@ COPY packages/browser-app ./packages/browser-app
 
 # Build browser-app with environment variables
 ENV VITE_API_URL=${VITE_API_URL}
-RUN pnpm --filter @cv-builder/browser-app build
+RUN pnpm --filter @resume-builder/browser-app build
 
 # ===== Production Stage =====
 FROM base AS production

@@ -37,7 +37,7 @@ COPY packages/api/src ./packages/api/src
 COPY packages/api/tsconfig*.json ./packages/api/
 
 # Build API (this will compile TypeScript)
-RUN pnpm --filter @cv-builder/api build
+RUN pnpm --filter @resume-builder/api build
 
 # ===== Production Stage =====
 FROM base AS production

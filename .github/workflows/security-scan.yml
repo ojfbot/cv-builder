@@ -113,17 +113,17 @@ jobs:
       - name: Verify type checking works
         run: |
           echo "🔍 Running type checks on all packages..."
-          pnpm --filter @cv-builder/agent-core type-check
-          pnpm --filter @cv-builder/api type-check
-          pnpm --filter @cv-builder/browser-app type-check
-          echo "Note: @cv-builder/agent-graph excluded due to pre-existing LangChain type warnings (non-blocking)"
+          pnpm --filter @resume-builder/agent-core type-check
+          pnpm --filter @resume-builder/api type-check
+          pnpm --filter @resume-builder/browser-app type-check
+          echo "Note: @resume-builder/agent-graph excluded due to pre-existing LangChain type warnings (non-blocking)"
           echo "✅ Type checking passed"
 
       - name: Verify builds work
         run: |
           echo "🔍 Building core packages..."
-          pnpm --filter @cv-builder/agent-core build
-          pnpm --filter @cv-builder/api build
-          pnpm --filter @cv-builder/browser-app build
-          pnpm --filter @cv-builder/browser-automation build
+          pnpm --filter @resume-builder/agent-core build
+          pnpm --filter @resume-builder/api build
+          pnpm --filter @resume-builder/browser-app build
+          pnpm --filter @resume-builder/browser-automation build
           echo "✅ Build successful"
