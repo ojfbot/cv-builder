@@ -1,8 +1,7 @@
 /**
  * Unit tests for mapJobToBead()
  *
- * Run with: pnpm --filter @resume-builder/api test
- * (Requires vitest to be installed — add to devDependencies when test infra is set up)
+ * Run with: pnpm --filter @cv-builder/api test
  */
 import { describe, it, expect } from 'vitest';
 import { mapJobToBead } from './mapJobToBead.js';
@@ -14,6 +13,7 @@ const baseJob: JobListing = {
   company: 'Acme Corp',
   description: 'Build great UIs.',
   requirements: ['TypeScript', 'React'],
+  niceToHave: [],
 };
 
 describe('mapJobToBead()', () => {
