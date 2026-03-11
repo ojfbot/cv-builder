@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.pnpm-store \
     pnpm install --frozen-lockfile
 
 # Install Playwright browsers
-RUN pnpm --filter @cv-builder/browser-automation exec playwright install chromium
+RUN pnpm --filter @resume-builder/browser-automation exec playwright install chromium
 
 # Copy TypeScript configuration
 COPY packages/browser-automation/tsconfig.json ./packages/browser-automation/
