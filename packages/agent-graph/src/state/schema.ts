@@ -1,8 +1,8 @@
 import { Annotation } from "@langchain/langgraph";
 import { BaseMessage } from "@langchain/core/messages";
 import { z } from "zod";
-import type { Bio, JobListing } from "@cv-builder/agent-core";
-import { BioSchema, JobListingSchema } from "@cv-builder/agent-core";
+import type { Bio, JobListing } from "@resume-builder/agent-core";
+import { BioSchema, JobListingSchema } from "@resume-builder/agent-core";
 import {
   NextAction,
   JobAnalysisResult,

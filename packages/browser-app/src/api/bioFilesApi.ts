@@ -1,4 +1,4 @@
-import { BioFile, FileListQuery, DocumentSummary, ChatMessage } from '@cv-builder/agent-core'
+import { BioFile, FileListQuery, DocumentSummary, ChatMessage } from '@resume-builder/agent-core'
 import { DEFAULT_API_BASE_URL, DEFAULT_API_TIMEOUT } from '../config/api'
 
 /**

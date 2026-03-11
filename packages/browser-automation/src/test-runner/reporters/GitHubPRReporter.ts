@@ -225,7 +225,7 @@ export class GitHubPRReporter implements Reporter {
     markdown += 'If the visual changes are intentional:\n\n';
     markdown += '**Option 1: Update all baselines locally**\n';
     markdown += '```bash\n';
-    markdown += 'UPDATE_BASELINES=true pnpm --filter @cv-builder/browser-automation test:visual\n';
+    markdown += 'UPDATE_BASELINES=true pnpm --filter @resume-builder/browser-automation test:visual\n';
     markdown += 'git add packages/browser-automation/test-baselines/\n';
     markdown += 'git commit -m "chore: update visual regression baselines"\n';
     markdown += 'git push\n';

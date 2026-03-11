@@ -1,11 +1,11 @@
 import { BaseMessage } from "@langchain/core/messages";
 import { z } from "zod";
-import { Bio, JobListing } from "@cv-builder/agent-core";
+import { Bio, JobListing } from "@resume-builder/agent-core";
 import {
   ResumeOutputSchema,
   LearningPathSchema,
   CoverLetterSchema
-} from "@cv-builder/agent-core/models/output";
+} from "@resume-builder/agent-core/models/output";
 
 /**
  * Generic output type (union of all output types)

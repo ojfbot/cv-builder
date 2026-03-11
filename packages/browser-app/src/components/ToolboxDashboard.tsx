@@ -40,7 +40,7 @@ function ToolboxDashboard() {
       <Tile style={{ marginBottom: '2rem' }}>
         <p style={{ color: 'var(--cds-text-secondary)' }}>
           Define custom actions, configure AI agents, and manage automation tools.
-          Create reusable workflows and extend the CV Builder's capabilities.
+          Create reusable workflows and extend the Resume Builder's capabilities.
         </p>
       </Tile>
 

@@ -7,7 +7,7 @@
  * Maps application names to their respective localhost ports
  */
 export const APP_PORTS = {
-  'CV Builder': 3000,
+  'Resume Builder': 3000,
   'BlogEngine': 3005,
   'TripPlanner': 3010,
 } as const satisfies Record<string, number>

@@ -4,9 +4,9 @@ import {
   TailoringAgent,
   SkillsGapAgent,
   InterviewCoachAgent,
-} from '@cv-builder/agent-core';
-import { OrchestratorAgent } from '@cv-builder/agent-core/agents/orchestrator-agent';
-import { getConfig } from '@cv-builder/agent-core/utils/config';
+} from '@resume-builder/agent-core';
+import { OrchestratorAgent } from '@resume-builder/agent-core/agents/orchestrator-agent';
+import { getConfig } from '@resume-builder/agent-core/utils/config';
 
 /**
  * AgentManager - Singleton service for managing agent instances

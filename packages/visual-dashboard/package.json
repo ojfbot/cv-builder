@@ -1,5 +1,5 @@
 {
-  "name": "@cv-builder/visual-dashboard",
+  "name": "@resume-builder/visual-dashboard",
   "version": "1.0.0",
   "description": "GitHub Pages dashboard for visual regression test results",
   "type": "module",

@@ -1,5 +1,5 @@
 {
-  "name": "@cv-builder/agent-core",
+  "name": "@resume-builder/agent-core",
   "version": "0.1.0",
   "description": "Core AI agent system for CV Builder",
   "type": "module",

@@ -17,7 +17,7 @@ import {
   Column,
 } from '@carbon/react'
 import { DocumentAdd, Edit, Upload, ChatBot, DataTable, Connect, ViewFilled, View, Folder, TrashCan, Download } from '@carbon/icons-react'
-import { BioFile } from '@cv-builder/agent-core'
+import { BioFile } from '@resume-builder/agent-core'
 import { bioFilesApi } from '../api/bioFilesApi'
 import { setIsExpanded } from '../store/slices/chatSlice'
 import { setBioViewMode, type BioViewMode } from '../store/slices/navigationSlice'

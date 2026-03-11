@@ -1,5 +1,5 @@
 {
-  "name": "@cv-builder/api",
+  "name": "@resume-builder/api",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@cv-builder/agent-core": "file:../agent-core",
-    "@cv-builder/agent-graph": "file:../agent-graph",
+    "@resume-builder/agent-core": "file:../agent-core",
+    "@resume-builder/agent-graph": "file:../agent-graph",
     "@langchain/core": "catalog:",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",

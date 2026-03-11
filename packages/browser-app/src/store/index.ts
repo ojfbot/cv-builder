@@ -24,7 +24,7 @@ export const store = configureStore({
   // Enable Redux DevTools - this allows browser automation to access state
   // via the Redux DevTools extension API without directly exposing the store
   devTools: {
-    name: 'CV Builder',
+    name: 'Resume Builder',
     trace: true,
     traceLimit: 25,
   },

@@ -33,7 +33,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `# Welcome to CV Builder! 👋
+      content: `# Welcome to Resume Builder! 👋
 
 [📄 Generate Resume](action:Generate my professional resume in markdown format)
 

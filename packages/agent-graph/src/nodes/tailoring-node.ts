@@ -9,7 +9,7 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { CVBuilderStateType } from "../state/schema";
 import { NodeOptions } from "./types";
-import { ResumeOutputSchema } from "@cv-builder/agent-core/models/output";
+import { ResumeOutputSchema } from "@resume-builder/agent-core/models/output";
 import { getLogger } from "../utils/logger";
 
 const logger = getLogger("tailoring-node");

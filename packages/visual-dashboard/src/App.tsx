@@ -26,7 +26,7 @@ export function App() {
             Visual Regression Dashboard
           </h1>
           <p style={{ margin: '0.25rem 0 0 0', color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
-            CV Builder - Test Results
+            Resume Builder - Test Results
           </p>
         </div>
       </header>
@@ -55,7 +55,7 @@ export function App() {
           <p>
             Powered by{' '}
             <a href="https://github.com/ojfbot/cv-builder" target="_blank" rel="noopener noreferrer">
-              CV Builder
+              Resume Builder
             </a>
           </p>
         </div>

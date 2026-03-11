@@ -17,7 +17,7 @@
  * commit it to the repository (keeping the repo copy in sync with the latest run).
  *
  * Usage (in CI):
- *   pnpm --filter @cv-builder/browser-automation pipeline:screenshots
+ *   pnpm --filter @resume-builder/browser-automation pipeline:screenshots
  *
  * Required env vars:
  *   S3_BUCKET             — bucket name

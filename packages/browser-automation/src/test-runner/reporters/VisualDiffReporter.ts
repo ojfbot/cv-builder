@@ -173,11 +173,11 @@ export class VisualDiffReporter implements Reporter {
         lines.push('```bash');
         lines.push('# If changes are intentional, update the baseline:');
         lines.push(
-          `pnpm --filter @cv-builder/browser-automation test:visual:update -- "${failure.suiteName}" "${failure.testName}"`
+          `pnpm --filter @resume-builder/browser-automation test:visual:update -- "${failure.suiteName}" "${failure.testName}"`
         );
         lines.push('');
         lines.push('# Or update all baselines:');
-        lines.push('pnpm --filter @cv-builder/browser-automation test:visual:update:all');
+        lines.push('pnpm --filter @resume-builder/browser-automation test:visual:update:all');
         lines.push('```');
         lines.push('');
         lines.push('---');

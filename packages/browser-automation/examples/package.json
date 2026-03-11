@@ -1,5 +1,5 @@
 {
-  "name": "@cv-builder/browser-automation-examples",
+  "name": "@resume-builder/browser-automation-examples",
   "version": "0.3.0",
   "description": "Example scripts for browser automation service",
   "type": "module",

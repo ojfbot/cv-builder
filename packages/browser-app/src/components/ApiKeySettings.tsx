@@ -28,7 +28,7 @@ function ApiKeySettings({ open, onClose }: ApiKeySettingsProps) {
     >
       <div style={{ marginBottom: '1rem' }}>
         <p style={{ marginBottom: '1rem' }}>
-          CV Builder now uses a secure backend API for all agent operations.
+          Resume Builder now uses a secure backend API for all agent operations.
         </p>
         <p
           style={{

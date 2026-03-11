@@ -20,7 +20,7 @@ program
     const config = getConfig()
     const orchestrator = new OrchestratorAgent(config.anthropicApiKey)
 
-    console.log('CV Builder - Interactive Mode')
+    console.log('Resume Builder - Interactive Mode')
     console.log('Type "exit" or "quit" to end the session\n')
 
     const rl = createInterface({
