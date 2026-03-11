@@ -15,6 +15,7 @@ import interviewRouter from './routes/interview.js';
 import bioFilesRouter from './routes/bio-files.js';
 import toolsRouter from './routes/tools.js';
 import v2Router from './routes/v2/index.js';
+import beadsRouter from './routes/beads.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -89,6 +90,7 @@ app.use('/api/job', jobRouter);
 app.use('/api/interview', interviewRouter);
 app.use('/api/bios', bioFilesRouter);
 app.use('/api/tools', toolsRouter);
+app.use('/api/beads', beadsRouter);
 
 // V2 Routes (LangGraph) - feature flagged
 if (ENABLE_V2_API) {
