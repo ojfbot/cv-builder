@@ -39,9 +39,32 @@ describe('mapJobToBead()', () => {
     expect(bead.status).toBe('archived');
   });
 
+  it('sets type to job-listing', () => {
+    const bead = mapJobToBead(baseJob);
+    expect(bead.type).toBe('job-listing');
+  });
+
   it('sets sourceApp to cv-builder', () => {
     const bead = mapJobToBead(baseJob);
     expect(bead.sourceApp).toBe('cv-builder');
+  });
+
+  it('sets created_at from postedDate when available', () => {
+    const job = { ...baseJob, postedDate: '2026-03-01T00:00:00.000Z' };
+    const bead = mapJobToBead(job);
+    expect(bead.created_at).toBe('2026-03-01T00:00:00.000Z');
+  });
+
+  it('sets created_at to a valid ISO timestamp when postedDate is absent', () => {
+    const bead = mapJobToBead(baseJob);
+    expect(() => new Date(bead.created_at).toISOString()).not.toThrow();
+    expect(bead.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  it('sets updated_at to a valid ISO timestamp', () => {
+    const bead = mapJobToBead(baseJob);
+    expect(() => new Date(bead.updated_at).toISOString()).not.toThrow();
+    expect(bead.updated_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
   it('includes required payload fields', () => {

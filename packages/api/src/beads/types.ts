@@ -22,10 +22,16 @@ export type CVJobBeadStatus = 'active' | 'complete' | 'archived';
 export interface CVJobBead {
   /** Prefixed bead id: "cv-{jobId}" */
   id: string;
+  /** Discriminant type for Mayor aggregation layer */
+  type: 'job-listing';
   /** Lifecycle status derived from application deadline */
   status: CVJobBeadStatus;
   /** Owning sub-app — always "cv-builder" */
   sourceApp: 'cv-builder';
+  /** ISO 8601 — sourced from postedDate if available, otherwise wall-clock at map time */
+  created_at: string;
+  /** ISO 8601 — no update timestamp on JobListing; set to wall-clock at map time */
+  updated_at: string;
   /** Aggregation-relevant fields from the source JobListing */
   payload: {
     jobTitle: string;
