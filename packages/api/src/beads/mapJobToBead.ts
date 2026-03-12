@@ -24,16 +24,25 @@ function deriveStatus(applicationDeadline?: string): CVJobBeadStatus {
  * Map a JobListing domain object to a CVJobBead.
  *
  * ADR-0016 contract:
- *   id        — "cv-{jobId}"
- *   status    — derived from applicationDeadline
- *   sourceApp — "cv-builder"
- *   payload   — aggregation-relevant fields
+ *   id         — "cv-{jobId}"
+ *   type       — "job-listing" (Mayor discriminant)
+ *   status     — derived from applicationDeadline
+ *   sourceApp  — "cv-builder"
+ *   created_at — sourced from job.postedDate when available; wall-clock fallback (noted)
+ *   updated_at — no update timestamp on JobListing; wall-clock at map time
+ *   payload    — aggregation-relevant fields
  */
 export function mapJobToBead(job: JobListing): CVJobBead {
+  const now = new Date().toISOString();
   return {
     id: `cv-${job.id}`,
+    type: 'job-listing',
     status: deriveStatus(job.applicationDeadline),
     sourceApp: 'cv-builder',
+    // created_at: prefer postedDate (real signal); fall back to wall-clock (no stored date on JobListing)
+    created_at: job.postedDate ?? now,
+    // updated_at: JobListing has no update timestamp; wall-clock at map time
+    updated_at: now,
     payload: {
       jobTitle: job.title,
       company: job.company,
