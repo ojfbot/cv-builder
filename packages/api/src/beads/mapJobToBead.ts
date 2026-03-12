@@ -1,4 +1,4 @@
-import { type JobListing } from '@cv-builder/agent-core';
+import { type JobListing } from '@resume-builder/agent-core';
 import { type CVJobBead, type CVJobBeadStatus } from './types.js';
 
 /**

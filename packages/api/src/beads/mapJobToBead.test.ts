@@ -1,11 +1,11 @@
 /**
  * Unit tests for mapJobToBead()
  *
- * Run with: pnpm --filter @cv-builder/api test
+ * Run with: pnpm --filter @resume-builder/api test
  */
 import { describe, it, expect } from 'vitest';
 import { mapJobToBead } from './mapJobToBead.js';
-import type { JobListing } from '@cv-builder/agent-core';
+import type { JobListing } from '@resume-builder/agent-core';
 
 const baseJob: JobListing = {
   id: 'abc123',
