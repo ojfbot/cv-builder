@@ -38,12 +38,12 @@ export default defineConfig({
         fileName.includes('__federation_expose_Dashboard') ||
         fileName.includes('__federation_expose_Settings'),
     }),
-    // Module Federation REMOTE — exposes cv-builder Dashboard to the shell host.
-    // Shell dev:  cv_builder@http://localhost:3000/assets/remoteEntry.js
-    // Shell prod: shell reads VITE_REMOTE_CV_BUILDER env var — set in shell/packages/shell-app/vite.config.ts.
+    // Module Federation REMOTE — exposes Resume Builder Dashboard to the shell host.
+    // Shell dev:  resume_builder@http://localhost:3000/assets/remoteEntry.js
+    // Shell prod: shell reads VITE_REMOTE_RESUME_BUILDER env var — set in shell/packages/shell-app/vite.config.ts.
     // See docs/FEDERATION.md for full integration guide.
     federation({
-      name: 'cv_builder',
+      name: 'resume_builder',
       filename: 'remoteEntry.js',
       exposes: {
         './Dashboard': './src/components/Dashboard',
