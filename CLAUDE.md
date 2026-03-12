@@ -82,7 +82,7 @@ pnpm security:check
 
 The application supports two configuration methods (env.json is recommended):
 
-1. **env.json (Recommended)**: Create `packages/agent-core/env.json` with API key and settings
+1. **env.json (Recommended)**: Create `packages/agent-core/env.json` with API key and settings (note: the package is now `@resume-builder/agent-core`)
    ```bash
    cp packages/agent-core/env.json.example packages/agent-core/env.json
    # Edit env.json and add your Anthropic API key
@@ -162,7 +162,6 @@ All agents extend `BaseAgent` class which provides:
 
 ### Monorepo Structure
 This project uses a monorepo structure with pnpm workspaces:
-This project uses a monorepo structure with npm workspaces:
 
 ```
 packages/
@@ -284,8 +283,7 @@ Personal data (bio, jobs, outputs) is gitignored. Only example data in `public/e
 
 ## Frame OS Integration
 
-Resume Builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`). It exposes a `FrameBeadLike` implementation via `GET /api/beads` (see ADR-0016 / Gas Town Sprint 1), mapping `JobListing` entities to the universal FrameBead shape for ShellAgent consumption.
-Resume Builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`).
+Resume Builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`). It exposes a `FrameBeadLike` implementation via `GET /api/beads` (see ADR-0016 / Gas Town Sprint 1), mapping `JobListing` entities to the universal FrameBead shape for ShellAgent consumption. The bead mapper now includes `type`, `created_at`, `updated_at`, and `sourceApp` fields for Mayor compatibility.
 
 ### MF remote surface area
 `packages/browser-app/vite.config.ts` exposes two components:
