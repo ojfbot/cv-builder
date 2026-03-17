@@ -14,6 +14,41 @@
   min-height: 300px; /* Prevent collapse and ensure scrollable area */
 }
 
+.chat-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+  text-align: center;
+  padding: 2rem;
+  color: var(--cds-text-secondary);
+}
+
+.chat-empty-state__heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--cds-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.chat-empty-state__hint {
+  font-size: 0.875rem;
+  max-width: 36ch;
+  line-height: 1.5;
+}
+
+.chat-empty-state__hint kbd {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  font-size: 0.8em;
+  font-family: monospace;
+  background: var(--cds-layer-02);
+  border: 1px solid var(--cds-border-subtle);
+  border-radius: 3px;
+}
+
 .message-tile {
   margin-bottom: 1rem;
   padding: 1rem;
