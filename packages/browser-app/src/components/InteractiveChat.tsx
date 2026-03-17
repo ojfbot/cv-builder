@@ -610,6 +610,15 @@ function InteractiveChat() {
       )}
 
       <div className="chat-messages" ref={messagesContainerRef}>
+        {messages.length === 0 && !streamingContent && !isLoading && (
+          <div className="chat-empty-state">
+            <p className="chat-empty-state__heading">Start Fresh</p>
+            <p className="chat-empty-state__hint">
+              Describe the role you're targeting, paste a job description, or type{' '}
+              <kbd>/</kbd> to see available commands.
+            </p>
+          </div>
+        )}
         {messages.map((msg, idx) => (
           <Tile
             key={idx}
