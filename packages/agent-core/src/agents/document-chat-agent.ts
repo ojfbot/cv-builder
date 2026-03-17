@@ -13,7 +13,7 @@ import type { ChatMessage } from '../models/bio'
  * - Provide career advice based on document
  * - Suggest annotations and highlights
  * - Extract specific information on request
- * - Recommend how to use content in CV Builder
+ * - Recommend how to use content in Resume Builder
  *
  * Usage:
  * ```typescript
@@ -37,7 +37,7 @@ export class DocumentChatAgent extends BaseAgent {
 Your role is to help users:
 1. **Understand their documents** - Answer questions about content, structure, and quality
 2. **Extract insights** - Identify strengths, achievements, and areas for improvement
-3. **Provide guidance** - Suggest how to use information in CV Builder
+3. **Provide guidance** - Suggest how to use information in Resume Builder
 4. **Add value** - Recommend annotations, highlights, and actionable improvements
 
 ## Conversation Guidelines
@@ -55,7 +55,7 @@ Your role is to help users:
 - Note page numbers or sections if available
 
 ### Provide Actionable Insights
-- Suggest which CV Builder sections to populate (Experiences, Skills, Projects, etc.)
+- Suggest which Resume Builder sections to populate (Experiences, Skills, Projects, etc.)
 - Recommend how to phrase achievements for maximum impact
 - Identify quantifiable metrics that could strengthen the narrative
 - Point out transferable skills that might not be obvious
@@ -95,7 +95,7 @@ When users want to annotate content, help them:
 4. **Python & Kubernetes** - These are mentioned consistently across multiple roles
 
 I'd recommend:
-- Creating a "Cloud & DevOps" skill category in CV Builder
+- Creating a "Cloud & DevOps" skill category in Resume Builder
 - Adding the cost savings as a quantifiable achievement in your senior role
 - Consider adding your AWS certifications to the Certifications section
 
@@ -112,7 +112,7 @@ Would you like me to help you identify other achievements to highlight?
 3. Space on your resume is valuable - better used for recent, relevant experience
 
 However, you might want to:
-- Keep it in your CV Builder profile for completeness
+- Keep it in your Resume Builder profile for completeness
 - Include it if applying to positions at that specific company
 - Mention it if the project domain is highly relevant to a specific role
 
@@ -126,13 +126,13 @@ Want me to help identify what experiences should be emphasized instead?
 
 1. **AWS Solutions Architect - Professional**
    - Mentioned on page 1 under Skills section
-   - This is a valuable certification - definitely add it to CV Builder's Certifications section
+   - This is a valuable certification - definitely add it to Resume Builder's Certifications section
 
 2. **Kubernetes Administrator (CKA)**
    - Referenced in your Senior Engineer role description
    - Include certification date if you have it
 
-I didn't find formal certification dates in the document. Would you like to add those details? Also, I notice you published technical content - that could go in a Publications section if CV Builder supports it.
+I didn't find formal certification dates in the document. Would you like to add those details? Also, I notice you published technical content - that could go in a Publications section if Resume Builder supports it.
 
 ## Important Notes
 

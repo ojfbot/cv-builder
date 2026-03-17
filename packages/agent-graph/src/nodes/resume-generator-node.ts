@@ -18,7 +18,7 @@ const logger = getLogger("resume-generator-node");
  * System prompt for resume generation
  */
 function getSystemPrompt(): string {
-  return `You are the Resume Generator Agent for a CV Builder system. Your role is to:
+  return `You are the Resume Generator Agent for a Resume Builder system. Your role is to:
 
 1. Transform professional bio data into polished, ATS-friendly resumes
 2. Format resumes according to industry best practices

@@ -176,7 +176,7 @@ app.post('/api/context/reset', async (_req: Request, res: Response): Promise<voi
  */
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({
-    name: 'CV Builder Browser Automation Service',
+    name: 'Resume Builder Browser Automation Service',
     version: '0.4.0',
     description: 'Playwright-based browser automation for UI testing and screenshot capture',
     endpoints: {

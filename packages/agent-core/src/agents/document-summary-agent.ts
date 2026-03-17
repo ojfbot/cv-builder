@@ -11,7 +11,7 @@ import { DocumentSummary, DocumentSummarySchema } from '../models/bio'
  * - Generate concise document summaries
  * - Extract key information and highlights
  * - Identify document type and purpose
- * - Suggest how to use the document in CV Builder
+ * - Suggest how to use the document in Resume Builder
  *
  * Usage:
  * ```typescript
@@ -57,7 +57,7 @@ Your role is to analyze uploaded documents (resumes, CVs, cover letters, portfol
 - other: Any document that doesn't fit above categories
 
 ### Suggested Use
-- Explain how this document fits into the user's CV Builder workflow
+- Explain how this document fits into the user's Resume Builder workflow
 - Suggest which sections (experiences, projects, skills) could be populated
 - Note if content should be used for specific job applications
 - Highlight any gaps this document fills
@@ -73,7 +73,7 @@ You MUST respond with valid JSON matching this schema:
     "Third key point about unique qualification"
   ],
   "documentType": "resume" | "cover_letter" | "portfolio" | "transcript" | "certificate" | "other",
-  "suggestedUse": "Specific recommendation for how to use this in CV Builder"
+  "suggestedUse": "Specific recommendation for how to use this in Resume Builder"
 }
 
 ## Examples
@@ -163,7 +163,7 @@ ${metadataStr}
 Document Content:
 ${text}
 
-Provide your analysis as JSON following the schema in your instructions. Focus on extracting the most valuable information and providing actionable recommendations for how to use this document in CV Builder.`
+Provide your analysis as JSON following the schema in your instructions. Focus on extracting the most valuable information and providing actionable recommendations for how to use this document in Resume Builder.`
 
     const response = await this.chat(prompt)
 
