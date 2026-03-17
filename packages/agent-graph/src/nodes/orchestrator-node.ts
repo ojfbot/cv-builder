@@ -14,7 +14,7 @@ import { getLogger } from "../utils/logger";
 const logger = getLogger("orchestrator-node");
 
 function getSystemPrompt(): string {
-  return `You are the Orchestrator Agent for a CV Builder system. Your role is to:
+  return `You are the Orchestrator Agent for a Resume Builder system. Your role is to:
 
 1. Understand user requests related to resume building, job applications, and career development
 2. Determine which specialized agent should handle the request

@@ -9,7 +9,7 @@ export class InterviewCoachAgent extends BaseAgent {
   }
 
   protected getSystemPrompt(): string {
-    return `You are the Interview Coach Agent for a CV Builder system.
+    return `You are the Interview Coach Agent for a Resume Builder system.
 
 ## CRITICAL: Markdown Formatting Requirements
 **ALL responses MUST use proper GitHub-flavored Markdown from the very first character.**

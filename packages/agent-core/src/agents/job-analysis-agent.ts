@@ -8,7 +8,7 @@ export class JobAnalysisAgent extends BaseAgent {
   }
 
   protected getSystemPrompt(): string {
-    return `You are the Job Analysis Agent for a CV Builder system.
+    return `You are the Job Analysis Agent for a Resume Builder system.
 
 ## CRITICAL: Markdown Formatting Requirements
 **ALL responses MUST use proper GitHub-flavored Markdown from the very first character.**

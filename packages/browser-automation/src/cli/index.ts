@@ -16,7 +16,7 @@ const program = new Command();
 
 program
   .name('browser-automation')
-  .description('CLI for CV Builder browser automation service')
+  .description('CLI for Resume Builder browser automation service')
   .version('0.3.0');
 
 // Screenshot command
