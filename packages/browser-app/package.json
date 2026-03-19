@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "storybook": "storybook dev -p 6009",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
@@ -21,6 +23,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "storybook": "~8.4.0",
+    "@storybook/react": "~8.4.0",
+    "@storybook/react-vite": "~8.4.0",
+    "@storybook/addon-essentials": "~8.4.0",
     "@originjs/vite-plugin-federation": "^1.4.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
