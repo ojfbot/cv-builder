@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter @cv-builder/browser-app build",
+  "buildCommand": "pnpm --filter @resume-builder/browser-app build",
   "outputDirectory": "packages/browser-app/dist",
   "installCommand": "pnpm install",
   "rewrites": [
