@@ -82,7 +82,7 @@ pnpm security:check
 
 The application supports two configuration methods (env.json is recommended):
 
-1. **env.json (Recommended)**: Create `packages/agent-core/env.json` with API key and settings (note: the package is now `@resume-builder/agent-core`)
+1. **env.json (Recommended)**: Create `packages/agent-core/env.json` with API key and settings (note: the package is now `@cv-builder/agent-core`)
    ```bash
    cp packages/agent-core/env.json.example packages/agent-core/env.json
    # Edit env.json and add your Anthropic API key
@@ -165,20 +165,20 @@ This project uses a monorepo structure with pnpm workspaces:
 
 ```
 packages/
-├── agent-core/          # @resume-builder/agent-core
+├── agent-core/          # @cv-builder/agent-core
 │   ├── src/
 │   │   ├── agents/      # Agent implementations (BaseAgent, specialized agents)
 │   │   ├── cli/         # Command-line interface
 │   │   ├── models/      # Zod schemas and TypeScript types (Bio, Job, Output, Research)
 │   │   └── utils/       # Config and file storage utilities (Node.js only)
 │   └── package.json
-├── api/                 # @resume-builder/api
+├── api/                 # @cv-builder/api
 │   ├── src/
 │   │   ├── routes/      # Express API routes for agent operations
 │   │   ├── middleware/  # Auth, validation, error handling
 │   │   └── services/    # Agent manager for server-side execution
 │   └── package.json
-└── browser-app/         # @resume-builder/browser-app
+└── browser-app/         # @cv-builder/browser-app
     ├── src/
     │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat
     │   ├── api/         # API client for server communication
@@ -204,11 +204,11 @@ The monorepo uses package references for cross-package imports:
 
 ```typescript
 // Import from agent-core (main exports)
-import { BaseAgent, Bio, JobListing } from '@resume-builder/agent-core'
+import { BaseAgent, Bio, JobListing } from '@cv-builder/agent-core'
 
 // Import Node.js-only utilities (server-side)
-import { FileStorage } from '@resume-builder/agent-core/utils/file-storage'
-import { OrchestratorAgent } from '@resume-builder/agent-core/agents/orchestrator-agent'
+import { FileStorage } from '@cv-builder/agent-core/utils/file-storage'
+import { OrchestratorAgent } from '@cv-builder/agent-core/agents/orchestrator-agent'
 ```
 
 ## Agent System
@@ -303,8 +303,10 @@ shared: {
 
 ### Local MF dev
 `@originjs/vite-plugin-federation` only generates `remoteEntry.js` on `vite build`, NOT `vite dev`.
-For MF local dev: `pnpm --filter @resume-builder/browser-app build && pnpm --filter @resume-builder/browser-app preview`
+For MF local dev: `pnpm --filter @cv-builder/browser-app build && pnpm --filter @cv-builder/browser-app preview`
 
 ### Production deployment
 cv.jim.software (Vercel) — auto-deploys on push to main.
 Branch protection: PR required, rebase-only merge (GitHub Ruleset).
+
+**Cache headers**: `vercel.json` header rules must list specific paths (e.g., `remoteEntry.js` with `no-store`) **before** the catch-all `(.*)` rule. Vercel evaluates later rules with higher priority, so the catch-all must come first to be overridden by specific paths. See commit `9b84f80`.
