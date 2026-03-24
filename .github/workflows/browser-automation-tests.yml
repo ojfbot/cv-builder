@@ -65,6 +65,12 @@ jobs:
           # Fetch full history for baseline comparison
           fetch-depth: 0
 
+      - name: Checkout frame-ui-components
+        uses: actions/checkout@v4
+        with:
+          repository: ojfbot/frame-ui-components
+          path: ../frame-ui-components
+
       - name: Enable Corepack
         run: |
           corepack enable
@@ -431,6 +437,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Checkout frame-ui-components
+        uses: actions/checkout@v4
+        with:
+          repository: ojfbot/frame-ui-components
+          path: ../frame-ui-components
+
       # Download the draw.io canvas that was modified by the S3 pipeline.
       # Only commit when tests passed — avoid overwriting a good canvas with a broken run's output.
       - name: Download draw.io canvas artifact
@@ -549,6 +561,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Checkout frame-ui-components
+        uses: actions/checkout@v4
+        with:
+          repository: ojfbot/frame-ui-components
+          path: ../frame-ui-components
 
       - name: Enable Corepack
         run: |
