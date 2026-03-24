@@ -65,11 +65,8 @@ jobs:
           # Fetch full history for baseline comparison
           fetch-depth: 0
 
-      - name: Checkout frame-ui-components
-        uses: actions/checkout@v4
-        with:
-          repository: ojfbot/frame-ui-components
-          path: ../frame-ui-components
+      - name: Clone frame-ui-components (file: protocol dep)
+        run: git clone --depth 1 https://github.com/ojfbot/frame-ui-components.git ../frame-ui-components
 
       - name: Enable Corepack
         run: |
@@ -437,11 +434,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Checkout frame-ui-components
-        uses: actions/checkout@v4
-        with:
-          repository: ojfbot/frame-ui-components
-          path: ../frame-ui-components
+      - name: Clone frame-ui-components (file: protocol dep)
+        run: git clone --depth 1 https://github.com/ojfbot/frame-ui-components.git ../frame-ui-components
 
       # Download the draw.io canvas that was modified by the S3 pipeline.
       # Only commit when tests passed — avoid overwriting a good canvas with a broken run's output.
@@ -562,11 +556,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Checkout frame-ui-components
-        uses: actions/checkout@v4
-        with:
-          repository: ojfbot/frame-ui-components
-          path: ../frame-ui-components
+      - name: Clone frame-ui-components (file: protocol dep)
+        run: git clone --depth 1 https://github.com/ojfbot/frame-ui-components.git ../frame-ui-components
 
       - name: Enable Corepack
         run: |
