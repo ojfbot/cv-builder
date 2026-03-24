@@ -1,18 +1,18 @@
-import { Action } from '../models/badge-action'
+import type { Action, BadgeAction } from '@ojfbot/frame-ui-components'
 import { AppDispatch } from '../store'
 import {
   addMessage,
   setDraftInput as setDraftInputAction,
-  setIsExpanded as setIsExpandedAction,
+  setDisplayState as setDisplayStateAction,
 } from '../store/slices/chatSlice'
-import { navigateToTab, setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
-import { convertIndexToKey } from '../models/navigation'
+import { navigateToTab } from '../store/slices/navigationSlice'
+import { TabKey } from '../models/navigation'
 
 /**
- * Action Dispatcher
+ * Action Dispatcher — cv-builder specific.
  *
- * Centralized handler for executing badge button actions.
- * Integrates with Redux store to dispatch state changes.
+ * Executes shared Action[] sequences, mapping NavigateAction.target
+ * to cv-builder's TabKey enum for tab navigation.
  */
 
 export interface ActionDispatcherContext {
@@ -21,80 +21,69 @@ export interface ActionDispatcherContext {
   onFileUpload?: (accept?: string, multiple?: boolean) => void | Promise<void>
 }
 
-/**
- * Execute a single action
- */
+/** Map a NavigateAction.target string to TabKey. */
+const resolveTabKey = (target: string): TabKey => {
+  const map: Record<string, TabKey> = {
+    interactive: TabKey.INTERACTIVE,
+    bio: TabKey.BIO,
+    jobs: TabKey.JOBS,
+    outputs: TabKey.OUTPUTS,
+    research: TabKey.RESEARCH,
+    pipelines: TabKey.PIPELINES,
+    toolbox: TabKey.TOOLBOX,
+  }
+  return map[target] ?? TabKey.INTERACTIVE
+}
+
 export const executeAction = async (
   action: Action,
-  context: ActionDispatcherContext
+  context: ActionDispatcherContext,
 ): Promise<void> => {
-  console.log('[ActionDispatcher] Executing action:', action)
-
   switch (action.type) {
     case 'chat': {
-      // Optionally expand chat first
       if (action.expandChat) {
-        context.dispatch(setIsExpandedAction(true))
-        // Small delay to allow UI to expand
+        context.dispatch(setDisplayStateAction('expanded'))
         await new Promise(resolve => setTimeout(resolve, 100))
       }
-
-      // Send the message
       if (context.onSendMessage) {
         await context.onSendMessage(action.message)
       } else {
-        // Fallback: Set draft input and let user send manually
         context.dispatch(setDraftInputAction(action.message))
       }
       break
     }
 
     case 'navigate': {
-      console.log('[ActionDispatcher] Navigating to tab:', action.tab)
-      // Use the new keyed navigation
-      context.dispatch(navigateToTab(action.tab))
-      // Legacy support: if tabIndex is provided, use it
-      if (action.tabIndex !== undefined) {
-        console.log('[ActionDispatcher] Using legacy tabIndex:', action.tabIndex)
-        context.dispatch(setCurrentTabAction(action.tabIndex))
-      }
+      const tabKey = resolveTabKey(action.target)
+      context.dispatch(navigateToTab(tabKey))
       break
     }
 
     case 'file_upload': {
       if (context.onFileUpload) {
         await context.onFileUpload(action.accept, action.multiple)
-
-        // Navigate to target tab after upload if specified
         if (action.targetTab !== undefined) {
-          const tabKey = convertIndexToKey(action.targetTab)
+          const tabKey = resolveTabKey(String(action.targetTab))
           context.dispatch(navigateToTab(tabKey))
         }
-      } else {
-        console.warn('[ActionDispatcher] File upload not implemented')
       }
       break
     }
 
     case 'expand_chat': {
-      context.dispatch(setIsExpandedAction(true))
+      context.dispatch(setDisplayStateAction('expanded'))
       break
     }
 
     case 'copy_text': {
       try {
         await navigator.clipboard.writeText(action.text)
-        console.log('[ActionDispatcher] Text copied to clipboard')
-
-        // Could dispatch a notification here
-        context.dispatch(
-          addMessage({
-            role: 'assistant',
-            content: '✅ Copied to clipboard!',
-          })
-        )
+        context.dispatch(addMessage({
+          role: 'assistant',
+          content: 'Copied to clipboard!',
+        }))
       } catch (error) {
-        console.error('[ActionDispatcher] Failed to copy text:', error)
+        console.error('[ActionDispatcher] Failed to copy:', error)
       }
       break
     }
@@ -106,7 +95,6 @@ export const executeAction = async (
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      console.log('[ActionDispatcher] Download initiated:', action.filename)
       break
     }
 
@@ -118,82 +106,74 @@ export const executeAction = async (
       }
       break
     }
-
-    default:
-      console.warn('[ActionDispatcher] Unknown action type:', action)
   }
 }
 
-/**
- * Execute multiple actions in sequence
- */
 export const executeActions = async (
   actions: Action[],
-  context: ActionDispatcherContext
+  context: ActionDispatcherContext,
 ): Promise<void> => {
-  console.log('[ActionDispatcher] Executing action chain:', actions)
-
-  // Check if we have a navigate + chat action combo
-  const hasNavigate = actions.some(a => a.type === 'navigate')
-  const hasChatAfterNavigate = hasNavigate && actions.some(a => a.type === 'chat')
-
-  // If navigating with a chat action, expand the chat
-  if (hasChatAfterNavigate) {
-    console.log('[ActionDispatcher] Navigation + chat combo detected - expanding chat')
-  }
-
   for (let i = 0; i < actions.length; i++) {
     const action = actions[i]
     try {
-      // If this is a navigate action followed by a chat action, expand chat
       if (action.type === 'navigate' && i < actions.length - 1 && actions[i + 1].type === 'chat') {
         await executeAction(action, context)
-        // Add delay to allow tab transition
         await new Promise(resolve => setTimeout(resolve, 150))
-        // Expand the chat before sending the message
-        context.dispatch(setIsExpandedAction(true))
-        // Add another delay to allow chat expansion
+        context.dispatch(setDisplayStateAction('expanded'))
         await new Promise(resolve => setTimeout(resolve, 100))
       } else {
         await executeAction(action, context)
-        // Small delay between actions for better UX
         if (actions.length > 1 && i < actions.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 50))
         }
       }
     } catch (error) {
-      console.error('[ActionDispatcher] Error executing action:', action, error)
-      // Continue with next action even if one fails
+      console.error('[ActionDispatcher] Error:', action, error)
     }
   }
 }
 
-/**
- * Parse badge action metadata from agent response
- */
-export const parseBadgeActionMetadata = (content: string): any => {
-  try {
-    // Look for <metadata> tags in response
-    const metadataMatch = content.match(/<metadata>([\s\S]*?)<\/metadata>/i)
-    if (!metadataMatch) {
-      return null
+/** Handle a badge execution including suggestedMessage follow-up. */
+export const executeBadgeAction = async (
+  badgeAction: BadgeAction,
+  context: ActionDispatcherContext & {
+    isExpanded: boolean
+    onExpandChat: () => void
+    onFocusInput: () => void
+  },
+): Promise<void> => {
+  const { actions } = badgeAction
+
+  await executeActions(actions, context)
+
+  if (badgeAction.suggestedMessage) {
+    const { role, content, compactContent } = badgeAction.suggestedMessage
+    const hasNavigate = actions.some(a => a.type === 'navigate')
+
+    let willBeExpanded = context.isExpanded
+
+    if (hasNavigate && role === 'assistant' && !context.isExpanded) {
+      context.onExpandChat()
+      willBeExpanded = true
+      await new Promise(resolve => setTimeout(resolve, 200))
+    } else {
+      await new Promise(resolve => setTimeout(resolve, 300))
     }
 
-    const metadataJson = metadataMatch[1].trim()
-    return JSON.parse(metadataJson)
-  } catch (error) {
-    console.error('[ActionDispatcher] Failed to parse metadata:', error)
-    return null
-  }
-}
+    const messageToUse = (!willBeExpanded && compactContent) ? compactContent : content
 
-/**
- * Extract badge actions from metadata
- */
-export const extractBadgeActions = (metadata: any): any[] => {
-  if (!metadata?.suggestions) {
-    return []
+    if (role === 'user') {
+      context.dispatch(setDraftInputAction(messageToUse))
+      if (hasNavigate || willBeExpanded) {
+        setTimeout(async () => {
+          if (context.onSendMessage) await context.onSendMessage(messageToUse)
+        }, 100)
+      } else {
+        context.onFocusInput()
+      }
+    } else if (role === 'assistant') {
+      context.dispatch(addMessage({ role: 'assistant', content: messageToUse }))
+      setTimeout(() => context.onFocusInput(), 100)
+    }
   }
-
-  return Array.isArray(metadata.suggestions) ? metadata.suggestions : []
 }

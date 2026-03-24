@@ -12,6 +12,8 @@ import {
   Tooltip,
 } from '@carbon/react'
 import { Menu, Close } from '@carbon/icons-react'
+import { DashboardLayout } from '@ojfbot/frame-ui-components'
+import '@ojfbot/frame-ui-components/styles/dashboard-layout'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCurrentTab } from '../store/slices/navigationSlice'
 import { generateChatSummary, setChatSummary } from '../store/slices/chatSlice'
@@ -25,7 +27,7 @@ import ResearchDashboard from './ResearchDashboard'
 import PipelinesDashboard from './PipelinesDashboard'
 import ToolboxDashboard from './ToolboxDashboard'
 import CondensedChat from './CondensedChat'
-import { ThreadSidebar } from './ThreadSidebar'
+import ThreadSidebarConnected from './ThreadSidebarConnected'
 import { V2Toggle } from './V2Toggle'
 import './Dashboard.css'
 
@@ -88,22 +90,18 @@ function DashboardContent({ shellMode }: DashboardProps) {
     <>
       {/* V2 Thread Sidebar */}
       {v2Enabled && showThreadSidebar && (
-        <ThreadSidebar
+        <ThreadSidebarConnected
           isExpanded={sidebarExpanded}
           onToggle={() => dispatch(setSidebarExpanded(!sidebarExpanded))}
         />
       )}
 
-      <div
-        className={[
-          'dashboard-wrapper',
-          v2Enabled && showThreadSidebar && sidebarExpanded ? 'with-sidebar' : '',
-          shellMode ? 'shell-mode' : '',
-          shellMode && chatExpanded ? 'chat-expanded' : '',
-        ].filter(Boolean).join(' ')}
-        data-element="app-container"
+      <DashboardLayout
+        shellMode={shellMode}
+        sidebarExpanded={v2Enabled && showThreadSidebar && sidebarExpanded}
+        chatExpanded={chatExpanded}
       >
-        <div className="dashboard-header">
+        <DashboardLayout.Header>
           <Heading className="page-header">Resume Builder Dashboard</Heading>
 
           <div className="dashboard-header-actions">
@@ -132,7 +130,7 @@ function DashboardContent({ shellMode }: DashboardProps) {
               </Tooltip>
             )}
           </div>
-        </div>
+        </DashboardLayout.Header>
 
         <Tabs
           selectedIndex={currentTabIndex}
@@ -162,7 +160,7 @@ function DashboardContent({ shellMode }: DashboardProps) {
             ))}
           </TabPanels>
         </Tabs>
-      </div>
+      </DashboardLayout>
 
       {/* Show condensed chat on all non-Interactive tabs */}
       {currentTab !== TabKey.INTERACTIVE && (

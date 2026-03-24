@@ -1,14 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import MarkdownMessage from './MarkdownMessage'
-import { createBadgeAction, createChatAction, createNavigateAction } from '../models/badge-action'
+import { MarkdownMessage, createBadgeAction, createChatAction, createNavigateAction } from '@ojfbot/frame-ui-components'
+import '@ojfbot/frame-ui-components/styles/markdown-message'
 import { TabKey } from '../models/navigation'
 
 const meta: Meta<typeof MarkdownMessage> = {
   title: 'Components/MarkdownMessage',
   component: MarkdownMessage,
   argTypes: {
-    onActionClick: { action: 'actionClicked' },
-    onActionExecute: { action: 'actionExecuted' },
+    onExecute: { action: 'executed' },
   },
 }
 

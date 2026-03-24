@@ -14,13 +14,18 @@ import {
   addMessage as addMessageToStore,
   setDraftInput as setDraftInputAction,
   markMessagesAsRead,
-  setIsExpanded as setIsExpandedAction,
+  setDisplayState as setDisplayStateAction,
 } from '../store/slices/chatSlice'
-import { setCurrentTab as setCurrentTabAction } from '../store/slices/navigationSlice'
 import { TabKey } from '../models/navigation'
-import { Action } from '../models/badge-action'
-import { executeActions } from '../utils/action-dispatcher'
-import MarkdownMessage from './MarkdownMessage'
+import { createBadgeAction, createNavigateAction } from '../models/badge-action'
+import type { BadgeAction } from '@ojfbot/frame-ui-components'
+import { executeBadgeAction } from '../utils/action-dispatcher'
+import {
+  MarkdownMessage,
+  cleanStreamingContent,
+  extractSuggestionsFromResponse,
+} from '@ojfbot/frame-ui-components'
+import '@ojfbot/frame-ui-components/styles/markdown-message'
 import { bioFilesApi } from '../api/bioFilesApi'
 import { navigateToTab } from '../store/slices/navigationSlice'
 import { sendChatMessage, isV2Active } from '../services/chat-service'
@@ -32,14 +37,6 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   suggestions?: import('../models/badge-action').BadgeAction[]
-}
-
-// Legacy interface - kept for backward compatibility only
-interface QuickAction {
-  label: string
-  query: string
-  icon: string
-  navigateTo?: number
 }
 
 function InteractiveChat() {
@@ -147,142 +144,9 @@ function InteractiveChat() {
     }
   }, [messages])
 
-  // Helper to remove metadata from streaming content in real-time
-  const cleanStreamingContent = (content: string): { cleaned: string; isMetadataStreaming: boolean } => {
-    // CRITICAL: Strip everything from <metadata> tag onwards during streaming
-    // This prevents users from seeing partial metadata tags like "<meta", "<metadata>", or partial JSON
+  // cleanStreamingContent is now imported from @ojfbot/frame-ui-components
 
-    // First, check if we have a complete metadata block and remove it
-    let cleaned = content.replace(/<metadata>[\s\S]*?<\/metadata>/gi, '')
-
-    // Then, aggressively remove ANY incomplete metadata that's streaming in
-    // This catches cases like: "response text <meta", "response text <metadata", "response text <metadata>\n{"
-    const metadataStartIndex = cleaned.search(/<\s*metadata/i)
-    let isMetadataStreaming = false
-
-    if (metadataStartIndex !== -1) {
-      // Cut off everything from the metadata tag onwards
-      cleaned = cleaned.substring(0, metadataStartIndex).trim()
-      isMetadataStreaming = true // Metadata is currently streaming
-    }
-
-    // FALLBACK: Also remove old bracket-style navigation tags
-    cleaned = cleaned.replace(/\[NAVIGATE_TO_TAB:\d+:[^\]]+\]/g, '')
-
-    // Fix incomplete code blocks during streaming to prevent rendering issues
-    // Count backticks to detect incomplete code blocks
-    const backtickMatches = cleaned.match(/```/g)
-    const backtickCount = backtickMatches ? backtickMatches.length : 0
-
-    // If we have an odd number of ``` markers, we have an incomplete code block
-    if (backtickCount % 2 !== 0) {
-      // Add a temporary closing marker with a note
-      cleaned += '\n```\n*[Streaming...]*'
-    }
-
-    return { cleaned: cleaned.trim(), isMetadataStreaming }
-  }
-
-  const extractSuggestionsFromResponse = (response: string): import('../models/badge-action').BadgeAction[] => {
-    const suggestions: import('../models/badge-action').BadgeAction[] = []
-
-    console.log('[InteractiveChat] ========================================')
-    console.log('[InteractiveChat] extractSuggestionsFromResponse called')
-    console.log('[InteractiveChat] Response length:', response.length)
-    console.log('[InteractiveChat] Full response:')
-    console.log(response)
-    console.log('[InteractiveChat] ========================================')
-
-    // First, try to extract JSON badge action metadata (new format)
-    // Format: <metadata>{ "suggestions": [...] }</metadata>
-    const metadataMatch = response.match(/<metadata>([\s\S]*?)<\/metadata>/i)
-    console.log('[InteractiveChat] Metadata match found:', !!metadataMatch)
-
-    if (metadataMatch) {
-      const metadataContent = metadataMatch[1].trim()
-      console.log('[InteractiveChat] Metadata content:', metadataContent)
-
-      // Try to parse as JSON first (new format)
-      try {
-        const metadata = JSON.parse(metadataContent)
-        if (metadata.suggestions && Array.isArray(metadata.suggestions)) {
-          console.log('[InteractiveChat] Found JSON badge action suggestions:', metadata.suggestions.length)
-
-          // Return BadgeAction objects directly - DO NOT convert to QuickAction
-          // This preserves suggestedMessage and all other metadata
-          console.log('[InteractiveChat] Returning full BadgeAction objects with suggestedMessage')
-          return metadata.suggestions.slice(0, 6)
-        }
-      } catch (e) {
-        console.log('[InteractiveChat] Not valid JSON, trying XML format...')
-
-        // FALLBACK: Try XML format (old format)
-        // This is deprecated - agents should use JSON metadata instead
-        // Kept for backward compatibility only
-      }
-    }
-
-    // FALLBACK: Also support old bracket format for backward compatibility
-    // Format: [NAVIGATE_TO_TAB:1:Add your profile]
-    // This is deprecated - agents should use JSON metadata instead
-    // Kept for backward compatibility only
-
-    // DEPRECATED: "Next Steps" parsing is disabled to force agents to use JSON metadata
-    // This encourages agents to output proper structured badge actions
-    // If you need to re-enable during migration, uncomment the block below
-
-    /*
-    // Then, look for a suggestions section in the response
-    const suggestionsMatch = response.match(/## Next Steps?[\s\S]*?(?=\n##|<metadata>|$)/i)
-    if (suggestionsMatch) {
-      const suggestionsText = suggestionsMatch[0]
-
-      // Extract bullet points that look like suggestions
-      const bulletRegex = /[-*]\s*\*\*(.+?)\*\*[:\s]*(.+?)(?=\n[-*]|\n\n|$)/g
-      let match
-
-      while ((match = bulletRegex.exec(suggestionsText)) !== null) {
-        const label = match[1].trim()
-        const description = match[2].trim()
-
-        console.log('[InteractiveChat] Found "Next Steps" item:', { label, description })
-
-        // Check if this label matches any existing navigation suggestion
-        const existingNavSuggestion = suggestions.find(s =>
-          s.navigateTo !== undefined &&
-          (s.label.toLowerCase().includes(label.toLowerCase()) ||
-           label.toLowerCase().includes(s.label.toLowerCase()))
-        )
-
-        if (existingNavSuggestion) {
-          console.log('[InteractiveChat] Matched with navigation suggestion:', existingNavSuggestion.label)
-          // Already have a navigation version, skip this one
-          continue
-        }
-
-        // Determine icon based on keywords
-        let icon = '💡'
-        if (label.toLowerCase().includes('resume')) icon = '📄'
-        else if (label.toLowerCase().includes('job') || label.toLowerCase().includes('analyze')) icon = '🔍'
-        else if (label.toLowerCase().includes('tailor')) icon = '✨'
-        else if (label.toLowerCase().includes('learn') || label.toLowerCase().includes('skill')) icon = '📚'
-        else if (label.toLowerCase().includes('cover')) icon = '✍️'
-        else if (label.toLowerCase().includes('interview')) icon = '💼'
-        else if (label.toLowerCase().includes('bio') || label.toLowerCase().includes('profile')) icon = '👤'
-
-        suggestions.push({
-          label,
-          query: description,
-          icon
-        })
-      }
-    }
-    */
-
-    // Return only the suggestions we found (no default fallback)
-    console.log('[InteractiveChat] Final suggestions count:', suggestions.length)
-    return suggestions.slice(0, 6)
-  }
+  // extractSuggestionsFromResponse is now imported from @ojfbot/frame-ui-components
 
   const handleSend = useCallback(async (messageText?: string) => {
     const textToSend = messageText || draftInput.trim()
@@ -475,112 +339,56 @@ function InteractiveChat() {
     input.click()
   }, [dispatch])
 
-  const handleQuickAction = useCallback((action: QuickAction) => {
-    console.log('[InteractiveChat] ========================================')
-    console.log('[InteractiveChat] handleQuickAction called')
-    console.log('[InteractiveChat] Action details:', JSON.stringify(action, null, 2))
-    console.log('[InteractiveChat] navigateTo value:', action.navigateTo)
-    console.log('[InteractiveChat] navigateTo type:', typeof action.navigateTo)
-    console.log('[InteractiveChat] navigateTo is undefined?', action.navigateTo === undefined)
-    console.log('[InteractiveChat] ========================================')
-
-    // If this is a navigation action, navigate immediately
-    if (action.navigateTo !== undefined) {
-      console.log('[InteractiveChat] ✅ NAVIGATION ACTION DETECTED!')
-      console.log('[InteractiveChat] Target tab:', action.navigateTo)
-      console.log('[InteractiveChat] About to call setCurrentTab...')
-
-      // Navigate immediately - don't wait for message to send
-      dispatch(setCurrentTabAction(action.navigateTo))
-      
-      console.log('[InteractiveChat] ✅ setCurrentTab called successfully')
-      return
-    }
-
-    console.log('[InteractiveChat] ❌ Not a navigation action - processing as query')
-
-    // Otherwise, it's a chat query action
-    dispatch(setDraftInputAction(action.query))
-    // Focus the input to show the auto-populated text
-    sharedInputRef.current?.focus()
-    // Animate the send button click after a brief delay
-    setTimeout(() => {
-      handleSend(action.query)
-    }, 300)
-  }, [dispatch, handleSend])
-
-  // New action handler using the action dispatcher
-  const handleActionExecute = useCallback(async (actions: Action[], badgeAction: import('../models/badge-action').BadgeAction) => {
-    console.log('[InteractiveChat] handleActionExecute called with actions:', actions)
-    console.log('[InteractiveChat] badgeAction with suggested message:', badgeAction.suggestedMessage)
-
-    // Check if we're navigating away from Interactive tab with a chat action
-    const navAction = actions.find(a => a.type === 'navigate')
-    const chatAction = actions.find(a => a.type === 'chat')
-
-    if (navAction && chatAction) {
-      console.log('[InteractiveChat] Navigate + chat action combo - will expand chat on target tab')
-    }
-
-    await executeActions(actions, {
+  /** Unified badge action handler — delegates to executeBadgeAction from action-dispatcher. */
+  const handleBadgeExecute = useCallback(async (badgeAction: BadgeAction) => {
+    await executeBadgeAction(badgeAction, {
       dispatch,
+      isExpanded: true, // InteractiveChat is always expanded
       onSendMessage: async (message: string) => {
         await handleSend(message)
       },
       onFileUpload: handleFileUpload,
+      onExpandChat: () => dispatch(setDisplayStateAction('expanded')),
+      onFocusInput: () => sharedInputRef.current?.focus(),
     })
+  }, [dispatch, handleSend, handleFileUpload])
 
-    // Handle suggested message after actions complete
-    if (badgeAction.suggestedMessage) {
-      const { role, content } = badgeAction.suggestedMessage
-      const hasNavigate = actions.some(a => a.type === 'navigate')
-      console.log('[InteractiveChat] Processing suggested message:', { role, content, hasNavigate })
+  /** cv-builder specific: match action labels to TabKey navigation patterns. */
+  const matchAction = useCallback((label: string, suggestions: BadgeAction[]): BadgeAction | null => {
+    if (suggestions.length > 0) {
+      const exact = suggestions.find(s => s.label === label)
+      if (exact) return exact
 
-      // If we navigated to another tab, we need to ensure chat is expanded
-      // before showing the message (since we'll be on CondensedChat)
-      if (hasNavigate) {
-        console.log('[InteractiveChat] Navigated to another tab - will expand CondensedChat')
-        // Wait for tab transition
-        await new Promise(resolve => setTimeout(resolve, 300))
-
-        // Expand the CondensedChat
-        dispatch(setIsExpandedAction(true))
-        // Wait for expansion animation
-        await new Promise(resolve => setTimeout(resolve, 300))
-      }
-
-      if (role === 'user') {
-        // User-perspective message: auto-send it as a user message
-        // This is used for actions like "Generate Resume" where clicking the badge
-        // should send a message from the user's perspective to trigger agent work
-        dispatch(setDraftInputAction(content))
-
-        if (hasNavigate) {
-          // If we navigated, auto-send after a brief delay
-          await new Promise(resolve => setTimeout(resolve, 100))
-          await handleSend(content)
-        } else {
-          // No navigation, just focus for manual sending
-          sharedInputRef.current?.focus()
-        }
-      } else if (role === 'assistant') {
-        // Assistant-perspective message: add as assistant message WITHOUT triggering agent
-        // This is used for follow-up prompts like "Please share the job description..."
-        // where the agent is asking the user for input
-        const assistantMessage: Message = {
-          role: 'assistant',
-          content: content,
-        }
-        dispatch(addMessageToStore({ message: assistantMessage, markAsRead: true }))
-
-        // Focus input for user to type their response
-        // Small delay to ensure message is rendered first
-        setTimeout(() => {
-          sharedInputRef.current?.focus()
-        }, 100)
-      }
+      const lowerLabel = label.toLowerCase()
+      const partial = suggestions.find(s =>
+        s.label.toLowerCase().includes(lowerLabel) ||
+        lowerLabel.includes(s.label.toLowerCase()),
+      )
+      if (partial) return partial
     }
-  }, [dispatch, handleSend])
+
+    const l = label.toLowerCase()
+
+    if (l.match(/\b(bio|profile|add.*(bio|profile)|create.*(bio|profile))\b/))
+      return createBadgeAction(label, [createNavigateAction(TabKey.BIO)], { icon: '👤' })
+
+    if (l.match(/\b(job(?!.*generat)|listing|add.*job|import.*job|target)\b/))
+      return createBadgeAction(label, [createNavigateAction(TabKey.JOBS)], { icon: '💼' })
+
+    if (l.match(/\b(output|view.*resume|check.*resume|see.*resume)\b/))
+      return createBadgeAction(label, [createNavigateAction(TabKey.OUTPUTS)], { icon: '📄' })
+
+    if (l.match(/\b(research|intelligence|analysis)\b/))
+      return createBadgeAction(label, [createNavigateAction(TabKey.RESEARCH)], { icon: '🔬' })
+
+    if (l.match(/\b(pipeline|workflow|automation)\b/))
+      return createBadgeAction(label, [createNavigateAction(TabKey.PIPELINES)], { icon: '🔄' })
+
+    if (l.match(/\b(toolbox|tool|utility)\b/))
+      return createBadgeAction(label, [createNavigateAction(TabKey.TOOLBOX)], { icon: '🧰' })
+
+    return null
+  }, [])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     // Check if slash command menu should handle this key
@@ -634,11 +442,9 @@ function InteractiveChat() {
                 <MarkdownMessage
                   content={msg.content}
                   suggestions={msg.suggestions}
-                  onActionClick={(action) => {
-                    // Handle action clicks from inline badges (legacy)
-                    handleQuickAction(action)
-                  }}
-                  onActionExecute={handleActionExecute}
+                  onExecute={handleBadgeExecute}
+                  matchAction={matchAction}
+                  onFileUpload={handleFileUpload}
                 />
               )}
             </div>
@@ -656,10 +462,9 @@ function InteractiveChat() {
               <div className="message-content">
                 <MarkdownMessage
                   content={cleaned}
-                  onActionClick={(action) => {
-                    handleQuickAction(action)
-                  }}
-                  onActionExecute={handleActionExecute}
+                  onExecute={handleBadgeExecute}
+                  matchAction={matchAction}
+                  onFileUpload={handleFileUpload}
                 />
                 {isMetadataStreaming && (
                   <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
