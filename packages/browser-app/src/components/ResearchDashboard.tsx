@@ -16,7 +16,8 @@ import {
 import { View, TrashCan, Renew } from '@carbon/icons-react'
 import { ResearchEntry } from '@resume-builder/agent-core'
 import { BrowserStorage } from '../utils/browser-storage'
-import MarkdownMessage from './MarkdownMessage'
+import { MarkdownMessage } from '@ojfbot/frame-ui-components'
+import '@ojfbot/frame-ui-components/styles/markdown-message'
 
 const researchStorage = new BrowserStorage('cv-builder:research')
 

@@ -213,6 +213,9 @@ importers:
       '@carbon/react':
         specifier: ^1.67.0
         version: 1.97.0(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)(sass@1.94.2)
+      '@ojfbot/frame-ui-components':
+        specifier: file:../../../frame-ui-components
+        version: file:../frame-ui-components(@carbon/react@1.97.0(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)(sass@1.94.2))(react-dom@18.3.1(react@18.3.1))(react-markdown@10.1.0(@types/react@18.3.27)(react@18.3.1))(react@18.3.1)(remark-gfm@4.0.1)
       '@resume-builder/agent-core':
         specifier: file:../agent-core
         version: link:../agent-core
@@ -2048,6 +2051,15 @@ packages:
 
   '@octokit/types@16.0.0':
     resolution: {integrity: sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg==}
+
+  '@ojfbot/frame-ui-components@file:../frame-ui-components':
+    resolution: {directory: ../frame-ui-components, type: directory}
+    peerDependencies:
+      '@carbon/react': '>=1'
+      react: '>=18'
+      react-dom: '>=18'
+      react-markdown: '>=9'
+      remark-gfm: '>=4'
 
   '@originjs/vite-plugin-federation@1.4.1':
     resolution: {integrity: sha512-Uo08jW5pj1t58OUKuZNkmzcfTN2pqeVuAWCCiKf/75/oll4Efq4cHOqSE1FXMlvwZNGDziNdDyBbQ5IANem3CQ==}
@@ -8433,6 +8445,14 @@ snapshots:
   '@octokit/types@16.0.0':
     dependencies:
       '@octokit/openapi-types': 27.0.0
+
+  '@ojfbot/frame-ui-components@file:../frame-ui-components(@carbon/react@1.97.0(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)(sass@1.94.2))(react-dom@18.3.1(react@18.3.1))(react-markdown@10.1.0(@types/react@18.3.27)(react@18.3.1))(react@18.3.1)(remark-gfm@4.0.1)':
+    dependencies:
+      '@carbon/react': 1.97.0(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)(sass@1.94.2)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-markdown: 10.1.0(@types/react@18.3.27)(react@18.3.1)
+      remark-gfm: 4.0.1
 
   '@originjs/vite-plugin-federation@1.4.1':
     dependencies:

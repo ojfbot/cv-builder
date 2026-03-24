@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import BadgeButton from './BadgeButton'
-import { createBadgeAction, createChatAction, createNavigateAction } from '../models/badge-action'
+import { BadgeButton, createBadgeAction, createChatAction, createNavigateAction } from '@ojfbot/frame-ui-components'
 import { TabKey } from '../models/navigation'
 
 const meta: Meta<typeof BadgeButton> = {

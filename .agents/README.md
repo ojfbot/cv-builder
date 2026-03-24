@@ -128,7 +128,7 @@ Claude: I'll execute the pre-commit validator agent for you.
 ```
 
 #### Method 3: Slash commands (if configured)
-Create `.claude/commands/agent.md`:
+Create `.claude/skills/agent.md`:
 ```markdown
 Load and execute an agent from the .agents/ directory.
 
