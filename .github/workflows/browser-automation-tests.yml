@@ -65,7 +65,7 @@ jobs:
           # Fetch full history for baseline comparison
           fetch-depth: 0
 
-      - name: Clone frame-ui-components (file: protocol dep)
+      - name: Clone frame-ui-components (file protocol dep)
         run: git clone --depth 1 https://github.com/ojfbot/frame-ui-components.git ../frame-ui-components
 
       - name: Enable Corepack
@@ -434,7 +434,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Clone frame-ui-components (file: protocol dep)
+      - name: Clone frame-ui-components (file protocol dep)
         run: git clone --depth 1 https://github.com/ojfbot/frame-ui-components.git ../frame-ui-components
 
       # Download the draw.io canvas that was modified by the S3 pipeline.
@@ -556,7 +556,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Clone frame-ui-components (file: protocol dep)
+      - name: Clone frame-ui-components (file protocol dep)
         run: git clone --depth 1 https://github.com/ojfbot/frame-ui-components.git ../frame-ui-components
 
       - name: Enable Corepack

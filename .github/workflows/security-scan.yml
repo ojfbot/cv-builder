@@ -62,7 +62,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
-      - name: Clone frame-ui-components (file: protocol dep)
+      - name: Clone frame-ui-components (file protocol dep)
         run: git clone --depth 1 https://github.com/ojfbot/frame-ui-components.git ../frame-ui-components
 
       - name: Setup Node.js
@@ -96,7 +96,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
-      - name: Clone frame-ui-components (file: protocol dep)
+      - name: Clone frame-ui-components (file protocol dep)
         run: git clone --depth 1 https://github.com/ojfbot/frame-ui-components.git ../frame-ui-components
 
       - name: Setup Node.js
