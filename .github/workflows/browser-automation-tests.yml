@@ -18,7 +18,13 @@ on:
       - '.github/workflows/browser-automation-tests.yml'
       - 'docker-compose.ci.yml'
   push:
-    branches: [main]  # Only run on main branch (after PR merge), not on PR branches
+    paths:
+      - 'packages/browser-app/**'
+      - 'packages/browser-automation/**'
+      - 'packages/api/**'
+      - 'packages/agent-core/**'
+      - '.github/workflows/browser-automation-tests.yml'
+      - 'docker-compose.ci.yml'
   workflow_dispatch:
     inputs:
       update_baselines:
