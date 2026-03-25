@@ -65,6 +65,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  // Treat frame-ui-components as source (file: linked, not pre-built)
+  optimizeDeps: {
+    exclude: ['@ojfbot/frame-ui-components'],
+  },
   server: {
     port: 3000,
     // Scoped to the shell host origin. Set SHELL_ORIGIN for staging/preview environments.
@@ -74,6 +78,9 @@ export default defineConfig({
       origin: process.env.SHELL_ORIGIN
         ? [process.env.SHELL_ORIGIN, 'http://localhost:4000', 'http://127.0.0.1:4000']
         : ['http://localhost:4000', 'http://127.0.0.1:4000'],
+    },
+    fs: {
+      allow: ['../../..'],
     },
   },
   preview: {
