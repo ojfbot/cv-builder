@@ -419,7 +419,7 @@ jobs:
   deploy:
     name: Deploy (non-PR events)
     needs: [browser-tests]
-    if: github.event_name != 'pull_request' && (needs.browser-tests.result == 'success' || needs.browser-tests.result == 'failure')
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && (needs.browser-tests.result == 'success' || needs.browser-tests.result == 'failure')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
