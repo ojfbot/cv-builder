@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from '@carbon/react'
 import { Menu, Close } from '@carbon/icons-react'
-import { DashboardLayout } from '@ojfbot/frame-ui-components'
+import { DashboardLayout, ErrorBoundary } from '@ojfbot/frame-ui-components'
 import '@ojfbot/frame-ui-components/styles/dashboard-layout'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCurrentTab } from '../store/slices/navigationSlice'
@@ -179,7 +179,9 @@ function Dashboard({ shellMode }: DashboardProps) {
   return (
     <Provider store={store}>
       <AgentProvider>
-        <DashboardContent shellMode={shellMode} />
+        <ErrorBoundary>
+          <DashboardContent shellMode={shellMode} />
+        </ErrorBoundary>
       </AgentProvider>
     </Provider>
   )

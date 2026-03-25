@@ -6,9 +6,11 @@ import {
   ChatMessage,
   MetadataLoadingIndicator,
   MarkdownMessage,
+  BadgeButton,
 } from '@ojfbot/frame-ui-components'
 import '@ojfbot/frame-ui-components/styles/chat-shell'
 import '@ojfbot/frame-ui-components/styles/markdown-message'
+import '@ojfbot/frame-ui-components/styles/badge-button'
 import type { ChatDisplayState, BadgeAction } from '@ojfbot/frame-ui-components'
 import { cleanStreamingContent, extractSuggestionsFromResponse, stripMetadata } from '@ojfbot/frame-ui-components'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
