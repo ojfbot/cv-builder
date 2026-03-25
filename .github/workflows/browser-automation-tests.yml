@@ -10,7 +10,6 @@ name: Browser Automation Tests (Docker)
 
 on:
   pull_request:
-    branches: [main]
     paths:
       - 'packages/browser-app/**'
       - 'packages/browser-automation/**'
