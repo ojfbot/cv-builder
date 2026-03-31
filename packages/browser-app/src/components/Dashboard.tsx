@@ -9,10 +9,8 @@ import {
   TabPanels,
   TabPanel,
   Heading,
-  Tooltip,
 } from '@carbon/react'
-import { Menu, Close } from '@carbon/icons-react'
-import { DashboardLayout, ErrorBoundary } from '@ojfbot/frame-ui-components'
+import { DashboardLayout, ErrorBoundary, SidebarToggle } from '@ojfbot/frame-ui-components'
 import '@ojfbot/frame-ui-components/styles/dashboard-layout'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCurrentTab } from '../store/slices/navigationSlice'
@@ -47,7 +45,6 @@ function DashboardContent({ shellMode }: DashboardProps) {
   const v2Enabled = useAppSelector(state => state.v2.enabled)
   const showThreadSidebar = useAppSelector(state => state.v2.showThreadSidebar)
   const sidebarExpanded = useAppSelector(state => state.v2.sidebarExpanded)
-  const bioModalOpen = useAppSelector(state => state.v2.bioModalOpen)
   const chatExpanded = useAppSelector(state => state.chat.displayState === 'expanded')
 
   // Load V2 settings on mount
@@ -106,28 +103,8 @@ function DashboardContent({ shellMode }: DashboardProps) {
 
           <div className="dashboard-header-actions">
             <V2Toggle />
-
-            {/* Thread sidebar toggle button (V2 only) */}
             {v2Enabled && showThreadSidebar && (
-              <Tooltip
-                align="bottom-right"
-                label={sidebarExpanded ? 'Close threads' : 'Show threads'}
-              >
-                <button
-                  className="sidebar-toggle-btn"
-                  onClick={() => dispatch(setSidebarExpanded(!sidebarExpanded))}
-                  disabled={bioModalOpen}
-                  aria-label="Toggle thread sidebar"
-                  aria-hidden={bioModalOpen}
-                  style={{
-                    opacity: bioModalOpen ? 0.3 : 1,
-                    pointerEvents: bioModalOpen ? 'none' : 'auto',
-                    cursor: bioModalOpen ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {sidebarExpanded ? <Close size={20} /> : <Menu size={20} />}
-                </button>
-              </Tooltip>
+              <SidebarToggle isExpanded={sidebarExpanded} onToggle={() => dispatch(setSidebarExpanded(!sidebarExpanded))} />
             )}
           </div>
         </DashboardLayout.Header>
