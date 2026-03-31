@@ -310,3 +310,10 @@ cv.jim.software (Vercel) — auto-deploys on push to main.
 Branch protection: PR required, rebase-only merge (GitHub Ruleset).
 
 **Cache headers**: `vercel.json` header rules must list specific paths (e.g., `remoteEntry.js` with `no-store`) **before** the catch-all `(.*)` rule. Vercel evaluates later rules with higher priority, so the catch-all must come first to be overridden by specific paths. See commit `9b84f80`.
+
+## Deployment
+
+**NEVER deploy directly to production** via CLI (`vercel deploy --prod`, `vercel promote`, etc.).
+All production deployments go through the GitHub PR → CI → merge → automated deploy pipeline.
+The only exception is `workflow_dispatch` for manual CI triggers.
+Local Vercel CLI usage is restricted to preview deploys only.
