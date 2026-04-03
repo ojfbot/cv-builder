@@ -5,7 +5,7 @@
  * while maintaining compatibility with Draw.io desktop/web editors.
  */
 
-import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
+import { DOMParser, XMLSerializer, Document, Element } from '@xmldom/xmldom';
 
 /**
  * Position for new elements

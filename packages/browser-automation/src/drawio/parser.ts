@@ -5,7 +5,7 @@
  * for visual regression testing schema generation.
  */
 
-import { DOMParser } from '@xmldom/xmldom';
+import { DOMParser, Document, Element } from '@xmldom/xmldom';
 import {
   DrawioUISchema,
   DrawioNode,

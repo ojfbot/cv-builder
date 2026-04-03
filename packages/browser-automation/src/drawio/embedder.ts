@@ -7,6 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { Document, Element } from '@xmldom/xmldom';
 import { DrawioXMLManipulator, Position } from './xml-manipulator.js';
 import { TestManifest, ScreenshotMetadata } from './metadata.js';
 
