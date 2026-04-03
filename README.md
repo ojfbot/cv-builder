@@ -1,6 +1,28 @@
 # Resume Builder
 
-AI-powered resume builder with Claude agent orchestration system.
+> AI-powered resume builder with LangGraph multi-agent orchestration and a visual regression CI pipeline.
+
+The project migrated from a monolithic agent system (V1/agent-core) to LangGraph's state graph architecture (V2/agent-graph) for explicit state management, checkpointing, and SSE streaming. V2 is the default.
+
+## CI/CD Pipeline
+
+Every pull request targeting `main` runs the full browser automation + visual regression suite:
+
+```
+PR opened
+  └─ browser-automation-tests.yml
+       ├─ pnpm type-check (all packages)
+       ├─ Docker Compose: browser-app + api + browser-automation
+       ├─ Comprehensive tests + visual regression tests
+       ├─ Generate PR comment (test outcomes + baseline coverage)
+       ├─ Deploy draw.io architecture viewer → GitHub Pages
+       ├─ [if S3_BUCKET set] Upload baseline PNGs to S3
+       └─ [on main push] Commit updated draw.io canvas to repo
+```
+
+**Live architecture viewer:** Every CI run publishes a draw.io viewer (with real screenshots injected by the pipeline) to **[ojfbot.github.io/cv-builder](https://ojfbot.github.io/cv-builder/)**. Links are posted automatically in the PR comment.
+
+Visual regression baselines live in `packages/browser-automation/test-baselines/cv-builder-visual/`. Regenerate by triggering the workflow with `update_baselines: true`. When AWS credentials are configured, the pipeline uploads baselines to S3 and injects public URLs into the draw.io canvas. See [docs/AWS_CI_SETUP.md](docs/AWS_CI_SETUP.md) for infrastructure setup.
 
 ## Project Structure
 
@@ -200,50 +222,6 @@ pnpm docker:build
 ```bash
 docker-compose up
 ```
-
-## CI/CD Pipeline
-
-Every pull request targeting `main` runs the full browser automation + visual regression suite:
-
-```
-PR opened
-  └─ browser-automation-tests.yml
-       ├─ pnpm type-check (all packages)
-       ├─ Docker Compose: browser-app + api + browser-automation
-       ├─ Comprehensive tests + visual regression tests
-       ├─ Generate PR comment (test outcomes + baseline coverage)
-       ├─ Deploy draw.io architecture viewer → GitHub Pages
-       ├─ [if S3_BUCKET set] Upload baseline PNGs to S3
-       └─ [on main push] Commit updated draw.io canvas to repo
-```
-
-### GitHub Pages — Live Architecture Viewer
-
-Every CI run publishes a live draw.io viewer to **<https://ojfbot.github.io/cv-builder/>** (note: the GitHub Pages URL retains the repository name even after the display-name rename to Resume Builder).
-The viewer embeds the `cvBuilder.drawio.xml` canvas (with real screenshots injected by the
-pipeline) in a full-viewport `viewer.diagrams.net` iframe. Links to the viewer are posted
-automatically in the PR comment.
-
-### Baseline Management
-
-Visual regression baselines live in
-`packages/browser-automation/test-baselines/cv-builder-visual/`.
-To regenerate them, trigger the workflow manually with `update_baselines: true`.
-
-### AWS S3 Screenshot Pipeline (optional)
-
-When `S3_BUCKET`, `AWS_REGION`, and `AWS_ROLE_ARN` repository variables are set, the
-pipeline uploads all baseline PNGs to S3 and injects the public URLs into
-`cvBuilder.drawio.xml`, replacing embedded base64 images with lightweight URLs.
-See [docs/AWS_CI_SETUP.md](docs/AWS_CI_SETUP.md) for the one-time infrastructure setup.
-
-### Security — Dependency Overrides
-
-`pnpm.overrides` in `package.json` pins patched versions of four transitive dependencies
-(`@langchain/core`, `langchain`, `qs`, `fast-xml-parser`) to address known CVEs without
-waiting for upstream packages to update.
-
-See [docs/CI_CD_PIPELINE.md](docs/CI_CD_PIPELINE.md) for the complete pipeline reference.
 
 ## Documentation
 
