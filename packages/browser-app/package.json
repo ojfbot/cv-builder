@@ -24,15 +24,16 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "storybook": "~8.4.0",
+    "@frame/tsconfig": "workspace:^",
+    "@originjs/vite-plugin-federation": "^1.4.1",
+    "@storybook/addon-essentials": "~8.4.0",
     "@storybook/react": "~8.4.0",
     "@storybook/react-vite": "~8.4.0",
-    "@storybook/addon-essentials": "~8.4.0",
-    "@originjs/vite-plugin-federation": "^1.4.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "sass": "^1.94.0",
+    "storybook": "~8.4.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
     "vite-plugin-css-injected-by-js": "^4.0.1"

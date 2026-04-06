@@ -1,12 +1,7 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "@frame/tsconfig/node-emit.json",
   "compilerOptions": {
-    "noEmit": false,
-    "allowImportingTsExtensions": false,
-    "moduleResolution": "bundler",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true
+    "outDir": "./dist"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/**/*.spec.ts"]

@@ -1,0 +1,12 @@
+{
+  "name": "@frame/tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript configuration presets for Frame OS monorepos",
+  "private": true,
+  "files": [
+    "base.json",
+    "node.json",
+    "browser.json",
+    "node-emit.json"
+  ]
+}

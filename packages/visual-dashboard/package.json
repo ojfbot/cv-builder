@@ -20,6 +20,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@frame/tsconfig": "workspace:^",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",

@@ -64,6 +64,24 @@ pnpm type-check
 pnpm preview
 ```
 
+### Code Quality & Linting
+```bash
+# Run ESLint with @frame/eslint-plugin custom rules
+pnpm lint
+
+# Auto-fix where possible
+pnpm lint:fix
+```
+
+The project uses `@frame/eslint-plugin` with 5 custom rules enforcing monorepo safety:
+- **`no-source-maps-in-production`** — errors if sourceMap is enabled in production build configs
+- **`no-api-keys-in-client`** — errors on API keys or `dangerouslyAllowBrowser` in browser code
+- **`enforce-singleton-versions`** — warns on hardcoded versions in Module Federation shared configs
+- **`no-cross-package-relative-imports`** — errors on relative imports crossing workspace package boundaries
+- **`require-zod-validation-at-boundaries`** — warns if route handlers access `req.body`/`req.params`/`req.query` without Zod validation
+
+A **post-build artifact scanner** (`scripts/artifact-scanner.ts`) runs automatically after `pnpm build` via the `postbuild` hook, scanning `dist/` for `.map` files, `sourceMappingURL` directives, embedded API keys, and debugger statements.
+
 ### Security Commands
 ```bash
 # Run comprehensive security audit
@@ -178,12 +196,21 @@ packages/
 │   │   ├── middleware/  # Auth, validation, error handling
 │   │   └── services/    # Agent manager for server-side execution
 │   └── package.json
-└── browser-app/         # @cv-builder/browser-app
-    ├── src/
-    │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat
-    │   ├── api/         # API client for server communication
-    │   ├── services/    # Browser orchestrator
-    │   └── store/       # Redux state management
+├── browser-app/         # @cv-builder/browser-app
+│   ├── src/
+│   │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat
+│   │   ├── api/         # API client for server communication
+│   │   ├── services/    # Browser orchestrator
+│   │   └── store/       # Redux state management
+│   └── package.json
+├── tsconfig/            # @frame/tsconfig — shared TypeScript presets
+│   ├── base.json        # Shared base (ES2022, strict, bundler)
+│   ├── node.json        # Node.js packages
+│   ├── browser.json     # Browser/React packages
+│   └── node-emit.json   # Node packages that emit JS (sourceMap: false)
+└── eslint-plugin/       # @frame/eslint-plugin — custom ESLint rules
+    ├── src/rules/       # 5 custom rules (source maps, API keys, MF singletons, etc.)
+    ├── tests/           # RuleTester-based test suites
     └── package.json
 ```
 
