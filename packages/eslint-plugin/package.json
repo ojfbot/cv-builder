@@ -1,0 +1,25 @@
+{
+  "name": "@frame/eslint-plugin",
+  "version": "1.0.0",
+  "description": "Custom ESLint rules for Frame OS monorepos — source map leak prevention, API key detection, Module Federation safety, workspace boundary enforcement, and API validation",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@frame/tsconfig": "workspace:^",
+    "@types/node": "catalog:",
+    "eslint": "^9.0.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "eslint": ">=9.0.0"
+  }
+}
