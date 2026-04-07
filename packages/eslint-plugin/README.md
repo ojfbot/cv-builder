@@ -1,6 +1,6 @@
 # @frame/eslint-plugin
 
-Custom ESLint rules for Frame OS monorepos. Five rules enforcing source map safety, API key protection, Module Federation consistency, workspace boundary integrity, and API input validation.
+Custom ESLint rules for Frame OS monorepos. Eight rules enforcing source map safety, API key protection, Module Federation consistency, workspace boundary integrity, API input validation, production code quality, schema richness, and test coverage.
 
 ## Rules
 
@@ -23,6 +23,18 @@ Errors on relative imports like `../../agent-core/src/foo` that bypass pnpm work
 ### `require-zod-validation-at-boundaries` (warn)
 
 Warns when Express route handlers access `req.body`, `req.params`, or `req.query` without Zod `.parse()` or `.safeParse()` in the same function scope. Enforces input validation at API boundaries.
+
+### `no-console-in-production` (warn)
+
+Warns on `console.log`, `console.debug`, `console.warn`, `console.info` in production source files. Allows `console.error`. Skips test files, scripts, and configs. Designed to work with the PreToolUse lint hook — when Claude is about to edit a file with console.log, it sees the warning and removes it proactively.
+
+### `no-untyped-schema-fields` (warn)
+
+Warns when Zod schemas use `z.array(z.string())` for fields like `skills`, `technologies`, `items`, or `achievements` that benefit from enriched metadata (proficiency, recency, context). Addresses TECHDEBT TD-002/TD-003.
+
+### `require-test-for-new-exports` (warn)
+
+Warns when source files in `src/` export functions or classes without a corresponding test file. Prompts Claude to generate tests alongside implementation.
 
 ## Usage
 
@@ -53,4 +65,13 @@ export default [
 pnpm --filter @frame/eslint-plugin test
 ```
 
-12 tests across 5 rule suites using ESLint's `RuleTester` and vitest.
+15 tests across 8 rule suites using ESLint's `RuleTester` and vitest.
+
+## Hook Integration
+
+These rules are designed to work as **LLM instructions** via Claude Code hooks:
+
+- **PreToolUse hook** (`lint-before-edit.sh`): Before Claude edits a file, runs ESLint on it and injects violations as `additionalContext`. Claude sees the warnings and fixes them alongside its intended edit.
+- **PostToolUse hook** (`lint-after-edit.sh`): After Claude edits a file, compares violation count before/after. If the edit introduced new violations, injects a regression warning.
+- **`/lint-audit` skill**: Runs all rules + artifact scanner, cross-references with TECHDEBT.md, produces structured quality report.
+- **`/validate` skill (Step 4.5)**: Automated lint check as part of the pre-merge quality gate.
