@@ -131,7 +131,6 @@ function InteractiveChat() {
         scrollToBottom(true) // Use smooth scroll for tab switching
       }, 100)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTab, dispatch]) // Removed messages.length and scrollToBottom from dependencies
 
   // Extract suggestions from the last assistant message
