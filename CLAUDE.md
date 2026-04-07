@@ -73,7 +73,7 @@ pnpm lint
 pnpm lint:fix
 ```
 
-The project uses `@frame/eslint-plugin` with 8 custom rules enforcing monorepo safety:
+The project uses `@frame/eslint-plugin` with custom rules enforcing monorepo safety:
 - **`no-source-maps-in-production`** — errors if sourceMap is enabled in production build configs
 - **`no-api-keys-in-client`** — errors on API keys or `dangerouslyAllowBrowser` in browser code
 - **`enforce-singleton-versions`** — warns on hardcoded versions in Module Federation shared configs
@@ -228,7 +228,7 @@ packages/
 │   ├── browser.json     # Browser/React packages
 │   └── node-emit.json   # Node packages that emit JS (sourceMap: false)
 └── eslint-plugin/       # @frame/eslint-plugin — custom ESLint rules
-    ├── src/rules/       # 5 custom rules (source maps, API keys, MF singletons, etc.)
+    ├── src/rules/       # 8 custom rules (source maps, API keys, MF singletons, etc.)
     ├── tests/           # RuleTester-based test suites
     └── package.json
 ```
