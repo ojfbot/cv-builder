@@ -78,7 +78,6 @@ export function useSlashCommands({ input, onCommandExecuted, context }: UseSlash
       return () => window.removeEventListener('resize', updateMenuPosition);
     }
     // updateMenuPosition is stable (no dependencies), so we exclude it from deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showMenu]);
 
   // Handle keyboard navigation
