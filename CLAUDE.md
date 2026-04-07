@@ -73,14 +73,33 @@ pnpm lint
 pnpm lint:fix
 ```
 
-The project uses `@frame/eslint-plugin` with 5 custom rules enforcing monorepo safety:
+The project uses `@frame/eslint-plugin` with 8 custom rules enforcing monorepo safety:
 - **`no-source-maps-in-production`** — errors if sourceMap is enabled in production build configs
 - **`no-api-keys-in-client`** — errors on API keys or `dangerouslyAllowBrowser` in browser code
 - **`enforce-singleton-versions`** — warns on hardcoded versions in Module Federation shared configs
 - **`no-cross-package-relative-imports`** — errors on relative imports crossing workspace package boundaries
 - **`require-zod-validation-at-boundaries`** — warns if route handlers access `req.body`/`req.params`/`req.query` without Zod validation
+- **`no-console-in-production`** — warns on console.log/debug/warn in production source files
+- **`no-untyped-schema-fields`** — warns on flat `z.array(z.string())` for enrichable schema fields (see TD-002/TD-003)
+- **`require-test-for-new-exports`** — warns when exported functions have no corresponding test file
 
 A **post-build artifact scanner** (`scripts/artifact-scanner.ts`) runs automatically after `pnpm build` via the `postbuild` hook, scanning `dist/` for `.map` files, `sourceMappingURL` directives, embedded API keys, and debugger statements.
+
+### Claude Code Hooks
+
+The project uses Claude Code hooks (`.claude/settings.json`) to integrate ESLint rules as **LLM instructions**:
+
+- **PreToolUse (`lint-before-edit.sh`)** — Before Claude edits a file, runs ESLint and injects violations as `additionalContext`. Claude sees warnings and fixes them alongside its intended edit.
+- **PostToolUse (`lint-after-edit.sh`)** — After editing, compares violation count before/after. Reports regressions (new violations introduced by the edit).
+- **PostToolUse (`scan-after-write.sh`)** — Scans files written to `dist/` for source maps, API keys, debugger statements.
+- **PostToolUse (`log-skill.sh`)** — Logs skill invocations to `~/.claude/skill-telemetry.jsonl`.
+
+Global hooks (`~/.claude/settings.json`):
+- **PostToolUse (`log-tool-use.sh`)** — Logs all tool calls to `~/.claude/tool-telemetry.jsonl`.
+- **SessionStart (`log-session.sh`)** — Logs session metadata to `~/.claude/session-telemetry.jsonl`.
+- **UserPromptSubmit (`suggest-skill.sh`)** — Fuzzy-matches prompts to the skill catalog and suggests relevant skills.
+
+Telemetry analysis: `bash scripts/hooks/../../../core/scripts/analyze-telemetry.sh`
 
 ### Security Commands
 ```bash

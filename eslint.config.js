@@ -48,6 +48,9 @@ export default [
       '@frame/enforce-singleton-versions': 'warn',
       '@frame/no-cross-package-relative-imports': 'error',
       '@frame/require-zod-validation-at-boundaries': 'warn',
+      '@frame/no-console-in-production': 'warn',
+      '@frame/no-untyped-schema-fields': 'warn',
+      '@frame/require-test-for-new-exports': 'warn',
     },
   },
 ]
