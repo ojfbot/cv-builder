@@ -16,7 +16,7 @@ For detailed architecture documentation, see `ARCHITECTURE.md`.
 
 ## Package Manager
 
-This project uses **pnpm** as its package manager. The Node version is pinned to LTS (v24.11.1) via `.nvmrc`.
+This project uses **pnpm** as its package manager. The Node version is pinned to LTS via `.nvmrc`.
 
 ### Prerequisites
 - Node.js 24.11.1+ (use `fnm use` to switch to the correct version)
@@ -350,6 +350,8 @@ shared: {
 ### Local MF dev
 `@originjs/vite-plugin-federation` only generates `remoteEntry.js` on `vite build`, NOT `vite dev`.
 For MF local dev: `pnpm --filter @cv-builder/browser-app build && pnpm --filter @cv-builder/browser-app preview`
+
+**Note**: `@originjs/vite-plugin-federation` 1.4.1 is the latest release and the plugin appears unmaintained. Per-chunk minification is not supported. Long-term, migration to Vite's native Module Federation (Vite 6+) is recommended.
 
 ### Production deployment
 cv.jim.software (Vercel) — auto-deploys on push to main.
