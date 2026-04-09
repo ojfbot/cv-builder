@@ -20,6 +20,7 @@
     "start:api": "pnpm --filter @resume-builder/api start",
     "cli": "pnpm --filter @resume-builder/agent-core cli",
     "cli:headless": "pnpm --filter @resume-builder/agent-core cli:headless",
+    "test": "pnpm --recursive --if-present test",
     "lint": "pnpm exec eslint .",
     "lint:fix": "pnpm exec eslint . --fix",
     "type-check": "pnpm --recursive --if-present type-check",
