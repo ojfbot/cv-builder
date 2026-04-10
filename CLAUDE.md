@@ -16,11 +16,11 @@ For detailed architecture documentation, see `ARCHITECTURE.md`.
 
 ## Package Manager
 
-This project uses **pnpm** as its package manager. The Node version is pinned to LTS via `.nvmrc`.
+This project uses **pnpm** as its package manager. The pnpm version is pinned in the `packageManager` field of `package.json`. The Node version is pinned to LTS via `.nvmrc`.
 
 ### Prerequisites
 - Node.js 24.11.1+ (use `fnm use` to switch to the correct version)
-- pnpm 9.0.0+ (install via `corepack enable && corepack prepare pnpm@9.15.4 --activate`)
+- pnpm 9.0.0+ (install via `corepack enable && corepack prepare pnpm@9.15.4 --activate`) — CI reads the version from the `packageManager` field in `package.json`, not the action config
 - **Optional**: `uv` (Python package manager) — required to use the AWS Documentation MCP server in Claude Code. Install from https://docs.astral.sh/uv/. Copy `.mcp.json.example` (when available) or create `.mcp.json` locally with `{"mcpServers":{"aws-documentation":{"command":"uvx","args":["awslabs.aws-documentation-mcp-server@1.1.18"]}}}`. The `.mcp.json` file is gitignored (personal dev config).
 
 ## Development Commands
@@ -216,9 +216,9 @@ packages/
 │   │   └── services/    # Agent manager for server-side execution
 │   └── package.json
 ├── browser-app/         # @cv-builder/browser-app
+├── browser-app/         # @cv-builder/browser-app
 │   ├── src/
-│   │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat
-│   │   ├── api/         # API client for server communication
+│   │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat (decomposed sub-components)
 │   │   ├── services/    # Browser orchestrator
 │   │   └── store/       # Redux state management
 │   └── package.json
