@@ -216,9 +216,8 @@ packages/
 │   │   └── services/    # Agent manager for server-side execution
 │   └── package.json
 ├── browser-app/         # @cv-builder/browser-app
-├── browser-app/         # @cv-builder/browser-app
 │   ├── src/
-│   │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat (decomposed sub-components)
+│   │   ├── components/  # Dashboard components for Bio, Jobs, Outputs, Chat (container-presenter decomposition)
 │   │   ├── services/    # Browser orchestrator
 │   │   └── store/       # Redux state management
 │   └── package.json
@@ -329,7 +328,7 @@ Personal data (bio, jobs, outputs) is gitignored. Only example data in `public/e
 
 ## Frame OS Integration
 
-Resume Builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`). It exposes a `FrameBeadLike` implementation via `GET /api/beads` (see ADR-0016 / Gas Town Sprint 1), mapping `JobListing` entities to the universal FrameBead shape for ShellAgent consumption. The bead mapper now includes `type`, `created_at`, `updated_at`, and `sourceApp` fields for Mayor compatibility.
+Resume Builder is a **Module Federation remote** in the Frame OS cluster (see `domain-knowledge/frame-os-context.md`). It exposes a `FrameBeadLike` implementation via `GET /api/beads` (see ADR-0016 / Gas Town Sprint 1), mapping `JobListing` entities to the universal FrameBead shape for ShellAgent consumption. The bead mapper now includes `type`, `created_at`, `updated_at`, and `sourceApp` fields for Mayor compatibility. The AgentBead bridge (ADR-0043) maps Claude Code lifecycle events to Gas Town bead emissions; bead hooks and session coordination are deployed (see commit `7e5d8aa`). The shell's `/api/beads` aggregation uses a Dolt-first strategy with filesystem fallback.
 
 ### MF remote surface area
 `packages/browser-app/vite.config.ts` exposes two components:

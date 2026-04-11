@@ -26,7 +26,7 @@ Visual regression baselines live in `packages/browser-automation/test-baselines/
 
 ## Project Structure
 
-This is a monorepo with two main packages:
+This is a monorepo with the following packages:
 
 ```
 resume-builder/
@@ -96,7 +96,7 @@ resume-builder/
 
 ### Prerequisites
 
-- Node.js 24.11.1+ (LTS)
+- Node.js 22.11.1+ (LTS)
 - pnpm 9.0.0+
 - Docker (optional)
 - Anthropic API key
@@ -270,4 +270,4 @@ Part of [Frame OS](https://github.com/ojfbot/shell) — an AI-native application
 | [daily-logger](https://github.com/ojfbot/daily-logger) | Automated daily dev blog pipeline |
 | [purefoy](https://github.com/ojfbot/purefoy) | Roger Deakins cinematography knowledge base |
 | [MrPlug](https://github.com/ojfbot/MrPlug) | Chrome extension for AI UI feedback |
-| [frame-ui-components](https://github.com/ojfbot/frame-ui-components) | Shared component library (Carbon DS) |
+| [frame-ui-components](https://github.com/ojfbot/frame-ui-components) | Shared component library (Carbon DS) — published as `@ojfbot/frame-ui-components` on npm |
