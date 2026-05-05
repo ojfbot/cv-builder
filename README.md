@@ -9,9 +9,11 @@ The project migrated from a monolithic agent system (V1/agent-core) to LangGraph
 Every pull request targeting `main` runs the full browser automation + visual regression suite:
 
 ```
+```
 PR opened
   └─ browser-automation-tests.yml
        ├─ pnpm type-check (all packages)
+       ├─ skill-audit (shared composite action from ojfbot/github-actions@v1)
        ├─ Docker Compose: browser-app + api + browser-automation
        ├─ Comprehensive tests + visual regression tests
        ├─ Generate PR comment (test outcomes + baseline coverage)
@@ -271,3 +273,5 @@ Part of [Frame OS](https://github.com/ojfbot/shell) — an AI-native application
 | [purefoy](https://github.com/ojfbot/purefoy) | Roger Deakins cinematography knowledge base |
 | [MrPlug](https://github.com/ojfbot/MrPlug) | Chrome extension for AI UI feedback |
 | [frame-ui-components](https://github.com/ojfbot/frame-ui-components) | Shared component library (Carbon DS) — published as `@ojfbot/frame-ui-components` on npm |
+| [github-actions](https://github.com/ojfbot/github-actions) | Shared composite GitHub Actions (skill-audit CI, etc.) |
+| [asset-foundry](https://github.com/ojfbot/asset-foundry) | Asset pipeline with dual Blender transports — Frame MF remote at :3035 |
