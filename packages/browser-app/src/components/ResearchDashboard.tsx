@@ -14,7 +14,7 @@ import {
   Tag,
 } from '@carbon/react'
 import { View, TrashCan, Renew } from '@carbon/icons-react'
-import { ResearchEntry } from '@resume-builder/agent-core'
+import type { ResearchEntry } from '@resume-builder/agent-core/models/research'
 import { BrowserStorage } from '../utils/browser-storage'
 import { MarkdownMessage } from '@ojfbot/frame-ui-components'
 import '@ojfbot/frame-ui-components/styles/markdown-message'
