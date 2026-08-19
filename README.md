@@ -149,8 +149,7 @@ Example `env.json`:
     "output": "output",
     "public": "public"
   },
-  "model": "claude-sonnet-4-20250514"
-}
+  "model": "claude-opus-5"
 ```
 
 #### Option 2: .env.local (Legacy)
