@@ -75,8 +75,8 @@ importers:
   packages/agent-core:
     dependencies:
       '@anthropic-ai/sdk':
-        specifier: ^0.32.1
-        version: 0.32.1(encoding@0.1.13)
+        specifier: ^0.117.1
+        version: 0.117.1(zod@3.25.76)
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -90,7 +90,7 @@ importers:
         specifier: 2.4.5
         version: 2.4.5
       zod:
-        specifier: ^3.23.8
+        specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
       '@frame/tsconfig':
@@ -125,7 +125,7 @@ importers:
         version: 1.4.1(@langchain/core@1.1.38(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(ws@8.19.0))(ws@8.19.0)
       '@resume-builder/agent-core':
         specifier: file:../agent-core
-        version: file:packages/agent-core(encoding@0.1.13)
+        version: link:../agent-core
       '@types/better-sqlite3':
         specifier: ^7.6.13
         version: 7.6.13
@@ -177,7 +177,7 @@ importers:
         version: 1.1.38(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(ws@8.19.0)
       '@resume-builder/agent-core':
         specifier: file:../agent-core
-        version: file:packages/agent-core(encoding@0.1.13)
+        version: link:../agent-core
       '@resume-builder/agent-graph':
         specifier: file:../agent-graph
         version: file:packages/agent-graph(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(react@18.3.1)(ws@8.19.0)
@@ -465,6 +465,15 @@ importers:
         version: 6.4.1(@types/node@22.19.1)(sass@1.94.2)(tsx@4.21.0)(yaml@2.8.3)
 
 packages:
+
+  '@anthropic-ai/sdk@0.117.1':
+    resolution: {integrity: sha512-Yn2QlXfyCiKJ5YGCOOay7ZE78ISvII2XY621WMCiflmG8IYgwx59IBwPExxki3Xk9jKUtnD/Sj6UvplWr0rZxg==}
+    hasBin: true
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
 
   '@anthropic-ai/sdk@0.32.1':
     resolution: {integrity: sha512-U9JwTrDvdQ9iWuABVsMLj8nJVwAyQz6QXvgLsVhryhCEPkLsbcP/MXxm+jYcAwLoV8ESbaTTjnD4kuAFa+Hyjg==}
@@ -1802,6 +1811,7 @@ packages:
   '@lerna/create@9.0.3':
     resolution: {integrity: sha512-hUTEWrR8zH+/Z3bp/R1aLm6DW8vB/BB7KH7Yeg4fMfrvSwxegiLVW9uJFAzWkK4mzEagmj/Dti85Yg9MN13t0g==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+    deprecated: This package is an implementation detail of Lerna and is no longer published separately.
 
   '@mdx-js/react@3.1.1':
     resolution: {integrity: sha512-f++rKLQgUVYDAtECQ6fn/is15GkEH9+nZPM3MS0RcxVqoTfawHvDlSCH7JbMhAM6uJ32v3eXLvLmLvjGu7PTQw==}
@@ -2624,6 +2634,9 @@ packages:
     resolution: {integrity: sha512-dSfDCeihDmZlV2oyr0yWPTUfh07suS+R5OB+FZGiv/hHyK3hrFBW5rR1UYjfa57vBsrP9lciFkRPzebaV1Qujw==}
     engines: {node: '>=18.0.0'}
 
+  '@stablelib/base64@1.0.1':
+    resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
+
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
 
@@ -3012,6 +3025,7 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@vitejs/plugin-react@4.7.0':
     resolution: {integrity: sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA==}
@@ -3502,6 +3516,7 @@ packages:
   conventional-changelog-core@5.0.1:
     resolution: {integrity: sha512-Rvi5pH+LvgsqGwZPZ3Cq/tz4ty7mjijhr3qR4m9IBXNbxGGYgTVVO+duXzz9aArmHxFtwZ+LRkrNIMDQzgoY4A==}
     engines: {node: '>=14'}
+    deprecated: Deprecated and no longer maintained. Please use conventional-changelog instead.
 
   conventional-changelog-preset-loader@3.0.0:
     resolution: {integrity: sha512-qy9XbdSLmVnwnvzEisjxdDiLA4OmV3o8db+Zdg4WiFw14fP3B6XNz98X0swPPpkTd/pc1K7+adKgEDM1JCUMiA==}
@@ -3952,6 +3967,9 @@ packages:
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
 
+  fast-sha256@1.3.0:
+    resolution: {integrity: sha512-n11RGP/lrWEFI/bWdygLxhI+pVeo1ZYIVwvvPkW7azl/rOy+F3HYRZ2K5zeE9mmkhQppyv9sQFx0JM9UabnpPQ==}
+
   fast-xml-builder@1.2.0:
     resolution: {integrity: sha512-00aAWieqff+ZJhsXA4g1g7M8k+7AYoMUUHF+/zFb5U6Uv/P0Vl4QZo84/IcufzYalLuEj9928bXN9PbbFzMF0Q==}
 
@@ -4133,7 +4151,7 @@ packages:
   git-raw-commits@3.0.0:
     resolution: {integrity: sha512-b5OHmZ3vAgGrDn/X0kS+9qCfNKWe4K/jFnhwzVWWg0/k5eLa3060tZShrRg8Dja5kPc+YjS0Gc6y7cRr44Lpjw==}
     engines: {node: '>=14'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-remote-origin-url@2.0.0:
@@ -4143,7 +4161,7 @@ packages:
   git-semver-tags@5.0.1:
     resolution: {integrity: sha512-hIvOeZwRbQ+7YEUmCkHqo8FOLQZCEn18yevLHADlFPZY02KJGsu5FZt9YW/lybfK2uhWFI7Qg/07LekJiTv7iA==}
     engines: {node: '>=14'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-up@7.0.0:
@@ -6055,6 +6073,9 @@ packages:
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
 
+  standardwebhooks@1.0.0:
+    resolution: {integrity: sha512-BbHGOQK9olHPMvQNHWul6MYlrRTAOKn03rOe4A8O3CLWhNf4YHBqq2HJKKC+sfqpxiBY52pNeesD6jIiLDz8jg==}
+
   statuses@2.0.1:
     resolution: {integrity: sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==}
     engines: {node: '>= 0.8'}
@@ -6450,6 +6471,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@11.1.0:
@@ -6462,6 +6484,7 @@ packages:
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   validate-npm-package-license@3.0.4:
@@ -6760,6 +6783,13 @@ packages:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
 snapshots:
+
+  '@anthropic-ai/sdk@0.117.1(zod@3.25.76)':
+    dependencies:
+      json-schema-to-ts: 3.1.1
+      standardwebhooks: 1.0.0
+    optionalDependencies:
+      zod: 3.25.76
 
   '@anthropic-ai/sdk@0.32.1(encoding@0.1.13)':
     dependencies:
@@ -8823,16 +8853,14 @@ snapshots:
       react: 18.3.1
       react-redux: 9.2.0(@types/react@18.3.27)(react@18.3.1)(redux@5.0.1)
 
-  '@resume-builder/agent-core@file:packages/agent-core(encoding@0.1.13)':
+  '@resume-builder/agent-core@file:packages/agent-core':
     dependencies:
-      '@anthropic-ai/sdk': 0.32.1(encoding@0.1.13)
+      '@anthropic-ai/sdk': 0.117.1(zod@3.25.76)
       commander: 12.1.0
       dotenv: 16.6.1
       mammoth: 1.11.0
       pdf-parse: 2.4.5
       zod: 3.25.76
-    transitivePeerDependencies:
-      - encoding
 
   '@resume-builder/agent-graph@file:packages/agent-graph(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(react@18.3.1)(ws@8.19.0)':
     dependencies:
@@ -8841,7 +8869,7 @@ snapshots:
       '@langchain/core': 1.1.38(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(ws@8.19.0)
       '@langchain/langgraph': 0.2.74(@langchain/core@1.1.38(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(ws@8.19.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@langchain/openai': 1.4.1(@langchain/core@1.1.38(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(ws@8.19.0))(ws@8.19.0)
-      '@resume-builder/agent-core': file:packages/agent-core(encoding@0.1.13)
+      '@resume-builder/agent-core': file:packages/agent-core
       '@types/better-sqlite3': 7.6.13
       better-sqlite3: 12.8.0
       langchain: 1.2.39(@langchain/core@1.1.38(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(ws@8.19.0))(openai@6.32.0(ws@8.19.0)(zod@3.25.76))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(ws@8.19.0)
@@ -8855,7 +8883,6 @@ snapshots:
       - '@opentelemetry/exporter-trace-otlp-proto'
       - '@opentelemetry/sdk-trace-base'
       - cheerio
-      - encoding
       - openai
       - peggy
       - pg-native
@@ -9316,6 +9343,8 @@ snapshots:
   '@smithy/uuid@1.1.1':
     dependencies:
       tslib: 2.8.1
+
+  '@stablelib/base64@1.0.1': {}
 
   '@standard-schema/spec@1.0.0': {}
 
@@ -10866,6 +10895,8 @@ snapshots:
   fast-json-stable-stringify@2.1.0: {}
 
   fast-levenshtein@2.0.6: {}
+
+  fast-sha256@1.3.0: {}
 
   fast-xml-builder@1.2.0:
     dependencies:
@@ -13488,6 +13519,11 @@ snapshots:
       minipass: 7.1.2
 
   stackback@0.0.2: {}
+
+  standardwebhooks@1.0.0:
+    dependencies:
+      '@stablelib/base64': 1.0.1
+      fast-sha256: 1.3.0
 
   statuses@2.0.1: {}
 
