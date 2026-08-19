@@ -132,9 +132,15 @@ program
     }
   })
 
+// pnpm forwards the literal `--` separator into the script's argv (unlike
+// npm), and commander treats everything after `--` as positional — silently
+// dropping option flags. No command here takes a dash-prefixed positional,
+// so strip bare `--` tokens before parsing.
+const argv = process.argv.filter((arg, index) => !(index >= 2 && arg === '--'))
+
 // Default to interactive mode if no command specified
-if (!process.argv.slice(2).length) {
+if (!argv.slice(2).length) {
   program.parse(['node', 'cv-builder', 'interactive'])
 } else {
-  program.parse()
+  program.parse(argv)
 }

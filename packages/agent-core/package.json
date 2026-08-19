@@ -12,7 +12,7 @@
   },
   "scripts": {
     "cli": "tsx src/cli/index.ts",
-    "cli:headless": "tsx src/cli/index.ts --headless",
+    "cli:headless": "tsx src/cli/index.ts generate",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
