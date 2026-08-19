@@ -93,7 +93,7 @@ export function createOrchestratorNode(options: NodeOptions) {
 
     const model = new ChatAnthropic({
       apiKey: options.apiKey,
-      model: options.model || "claude-sonnet-4-20250514",
+      model: options.model || "claude-opus-5",
       maxTokens: options.maxTokens || 2048,
       temperature: options.temperature || 0.7,
     });

@@ -44,7 +44,7 @@ export function createTailoringNode(options: NodeOptions) {
 
     const model = new ChatAnthropic({
       apiKey: options.apiKey,
-      model: options.model || "claude-sonnet-4-20250514",
+      model: options.model || "claude-opus-5",
       maxTokens: options.maxTokens || 4096,
       temperature: options.temperature || 0.7,
     });

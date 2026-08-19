@@ -201,7 +201,7 @@ Remember: You're helping users make the most of their professional documents to 
 
     // Create streaming request
     const stream = await this.client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-5',
       max_tokens: 4096,
       system: this.getSystemPrompt(),
       messages: this.conversationHistory,
