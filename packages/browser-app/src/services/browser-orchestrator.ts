@@ -6,8 +6,11 @@
  * server-side through the API for security and separation of concerns.
  */
 
-import type { Bio, JobListing } from '@resume-builder/agent-core';
-import { BioSchema, JobListingSchema } from '@resume-builder/agent-core';
+// Import from model subpaths, not the package index — the index's module graph
+// includes the agent classes and therefore @anthropic-ai/sdk, which must never
+// be bundled into the browser (artifact scanner blocks it).
+import { BioSchema, type Bio } from '@resume-builder/agent-core/models/bio';
+import { JobListingSchema, type JobListing } from '@resume-builder/agent-core/models/job';
 import { BrowserStorage } from '../utils/browser-storage.js';
 import { apiClient as defaultApiClient, type ApiClient } from '../api/client.js';
 
