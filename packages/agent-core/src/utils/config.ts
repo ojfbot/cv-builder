@@ -17,10 +17,18 @@ const EnvJsonSchema = z.object({
     toolbox: z.string().default('toolbox'),
     temp: z.string().default('temp'),
   }).default({}),
-  model: z.string().default('claude-sonnet-4-20250514'),
+  model: z.string().default('claude-opus-5'),
 })
 
 export type EnvJson = z.infer<typeof EnvJsonSchema>
+
+// Resolve configured directories against the workspace root (three levels
+// above src/utils) rather than process.cwd(), so the CLI and API work from
+// any directory. Absolute paths in the config still win via path.resolve.
+const workspaceRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../../..'
+)
 
 export interface Config {
   anthropicApiKey: string
@@ -73,17 +81,16 @@ export function getConfig(): Config {
 
   if (envJson) {
     // Use env.json configuration
-    const baseDir = process.cwd()
     return {
       anthropicApiKey: envJson.anthropicApiKey,
-      bioDir: path.join(baseDir, envJson.directories.bio),
-      jobsDir: path.join(baseDir, envJson.directories.jobs),
-      outputDir: path.join(baseDir, envJson.directories.output),
-      publicDir: path.join(baseDir, envJson.directories.public),
-      researchDir: path.join(baseDir, envJson.directories.research),
-      pipelinesDir: path.join(baseDir, envJson.directories.pipelines),
-      toolboxDir: path.join(baseDir, envJson.directories.toolbox),
-      tempDir: path.join(baseDir, envJson.directories.temp),
+      bioDir: path.resolve(workspaceRoot, envJson.directories.bio),
+      jobsDir: path.resolve(workspaceRoot, envJson.directories.jobs),
+      outputDir: path.resolve(workspaceRoot, envJson.directories.output),
+      publicDir: path.resolve(workspaceRoot, envJson.directories.public),
+      researchDir: path.resolve(workspaceRoot, envJson.directories.research),
+      pipelinesDir: path.resolve(workspaceRoot, envJson.directories.pipelines),
+      toolboxDir: path.resolve(workspaceRoot, envJson.directories.toolbox),
+      tempDir: path.resolve(workspaceRoot, envJson.directories.temp),
       model: envJson.model,
     }
   }
@@ -103,18 +110,16 @@ export function getConfig(): Config {
     )
   }
 
-  const baseDir = process.cwd()
-
   return {
     anthropicApiKey,
-    bioDir: path.join(baseDir, process.env.BIO_DIR || 'bio'),
-    jobsDir: path.join(baseDir, process.env.JOBS_DIR || 'jobs'),
-    outputDir: path.join(baseDir, process.env.OUTPUT_DIR || 'output'),
-    publicDir: path.join(baseDir, process.env.PUBLIC_DIR || 'public'),
-    researchDir: path.join(baseDir, process.env.RESEARCH_DIR || 'research'),
-    pipelinesDir: path.join(baseDir, process.env.PIPELINES_DIR || 'pipelines'),
-    toolboxDir: path.join(baseDir, process.env.TOOLBOX_DIR || 'toolbox'),
-    tempDir: path.join(baseDir, process.env.TEMP_DIR || 'temp'),
-    model: process.env.MODEL || 'claude-sonnet-4-20250514',
+    bioDir: path.resolve(workspaceRoot, process.env.BIO_DIR || 'bio'),
+    jobsDir: path.resolve(workspaceRoot, process.env.JOBS_DIR || 'jobs'),
+    outputDir: path.resolve(workspaceRoot, process.env.OUTPUT_DIR || 'output'),
+    publicDir: path.resolve(workspaceRoot, process.env.PUBLIC_DIR || 'public'),
+    researchDir: path.resolve(workspaceRoot, process.env.RESEARCH_DIR || 'research'),
+    pipelinesDir: path.resolve(workspaceRoot, process.env.PIPELINES_DIR || 'pipelines'),
+    toolboxDir: path.resolve(workspaceRoot, process.env.TOOLBOX_DIR || 'toolbox'),
+    tempDir: path.resolve(workspaceRoot, process.env.TEMP_DIR || 'temp'),
+    model: process.env.MODEL || 'claude-opus-5',
   }
 }

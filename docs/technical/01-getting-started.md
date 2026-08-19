@@ -57,17 +57,18 @@ cv-builder/
 
 ### CLI Mode (Interactive)
 ```bash
-npm run cli
+pnpm cli
 ```
 
 ### CLI Mode (Headless)
 ```bash
-npm run cli:headless -- --job jobs/example.json
+# <jobId> is a filename in the configured jobs directory, without the .json extension
+pnpm cli:headless -- --job <jobId>
 ```
 
 ### Web UI
 ```bash
-npm run dev
+pnpm dev
 ```
 Then open http://localhost:3000
 

@@ -30,7 +30,7 @@ pnpm dev              # Browser app (port 3000)
 
 # CLI
 pnpm cli                                   # interactive
-pnpm cli:headless -- --job jobs/example.json   # headless
+pnpm cli:headless -- --job <jobId>         # headless generate (<jobId> = filename in the jobs dir, without .json)
 
 # Build / quality
 pnpm build            # production build (runs security checks first)
