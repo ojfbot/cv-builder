@@ -574,14 +574,64 @@ I'll help you with that! Let me guide you through the next steps.
   }
 
   async processRequest(userRequest: string): Promise<string> {
-    return await this.chat(userRequest)
+    const message = await this.withSavedDataContext(userRequest)
+    return await this.chat(message)
   }
 
   async processRequestStreaming(
     userRequest: string,
     onChunk: (text: string) => void
   ): Promise<string> {
-    return await this.streamChat(userRequest, onChunk)
+    const message = await this.withSavedDataContext(userRequest)
+    return await this.streamChat(message, onChunk)
+  }
+
+  /**
+   * Prepend saved bio/job data from the configured storage dirs to the user
+   * request, so the model works from real data instead of claiming nothing is
+   * saved. Full job JSON is included only for listings referenced by ID in the
+   * request; otherwise just the index of saved IDs.
+   */
+  private async withSavedDataContext(userRequest: string): Promise<string> {
+    const sections: string[] = []
+
+    try {
+      const bio = await this.loadBio()
+      sections.push(`Saved bio:\n${JSON.stringify(bio, null, 2)}`)
+    } catch {
+      sections.push('Saved bio: none — collect bio information interactively.')
+    }
+
+    let jobIds: string[] = []
+    try {
+      jobIds = await this.listJobs()
+    } catch {
+      // storage dir missing or unreadable — treat as no saved jobs
+    }
+    sections.push(
+      jobIds.length > 0
+        ? `Saved job listing IDs: ${jobIds.join(', ')}`
+        : 'Saved job listings: none.'
+    )
+
+    const requestLower = userRequest.toLowerCase()
+    for (const jobId of jobIds) {
+      if (!requestLower.includes(jobId.toLowerCase())) continue
+      try {
+        const job = await this.loadJob(jobId)
+        sections.push(`Job listing "${jobId}":\n${JSON.stringify(job, null, 2)}`)
+      } catch {
+        sections.push(`Job listing "${jobId}" exists but could not be loaded.`)
+      }
+    }
+
+    return `<saved_data>
+The following data was loaded from the user's local storage. Use it directly — do not claim data is missing when it appears here.
+
+${sections.join('\n\n')}
+</saved_data>
+
+${userRequest}`
   }
 
   // Helper methods for loading data
