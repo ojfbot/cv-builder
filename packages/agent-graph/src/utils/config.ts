@@ -24,7 +24,7 @@ export const AgentGraphConfigSchema = z.object({
   openaiApiKey: z.string().optional(),
 
   // Model settings
-  model: z.string().default("claude-sonnet-4-20250514"),
+  model: z.string().default("claude-opus-5"),
   temperature: z.number().min(0).max(1).default(0.7),
 
   // Directories (reuse from agent-core)

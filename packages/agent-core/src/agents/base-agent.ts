@@ -41,8 +41,8 @@ export abstract class BaseAgent {
     })
 
     const response = await this.client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: options?.maxTokens || 4096,
+      model: 'claude-opus-5',
+      max_tokens: options?.maxTokens || 16000,
       system: this.getSystemPrompt(),
       messages: this.conversationHistory,
       stream: options?.stream || false,
@@ -75,8 +75,8 @@ export abstract class BaseAgent {
     })
 
     const stream = await this.client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: 'claude-opus-5',
+      max_tokens: 16000,
       system: this.getSystemPrompt(),
       messages: this.conversationHistory,
       stream: true,

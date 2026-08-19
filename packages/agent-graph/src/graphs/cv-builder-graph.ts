@@ -72,7 +72,7 @@ export function createCVBuilderGraph(config: GraphConfig) {
   // Create node options
   const nodeOptions: NodeOptions = {
     apiKey: config.apiKey,
-    model: config.model || "claude-sonnet-4-20250514",
+    model: config.model || "claude-opus-5",
     temperature: config.temperature || 0.7,
     maxTokens: config.maxTokens || 4096,
   };
