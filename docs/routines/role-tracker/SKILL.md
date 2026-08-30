@@ -126,6 +126,32 @@ Bridge from tracking to tailoring:
 3. Report a short human summary: what changed, what needs the operator's
    decision (Inbox, tier changes, approaching deadlines).
 
+## Remote routine variant (claude.ai Routines)
+
+A Routine fired from the claude.ai Routines panel spawns a **fresh cloud
+session with no repository and no local filesystem state** — it cannot read
+this file, and it cannot see the operator's vault. Verified 2026-08-30: the
+account's environments are plain `Default` cloud environments with no repo
+bound, and a fired run failed on exactly that.
+
+So for the scheduled variant:
+
+- The **mechanics travel inline in the routine prompt**, not by reference to
+  this file. This file is the source that prompt is written from; keep them
+  in sync by hand when the mechanics change.
+- The **tracker file is a Notion page**, not a vault markdown file — it is the
+  only durable surface a fired session can both read and write. Address it by
+  URL, never by title search.
+- **No snapshots.** With no filesystem between runs, each row carries a
+  `watch:` line holding its material fields (band, location, travel, close
+  date, quals summary); diffing is `watch:` versus the live posting, and the
+  routine updates `watch:` in place.
+- `promote` stays interactive-only — it needs the repo's `/jobs/` directory
+  and the operator's judgment about when to apply.
+
+The local variant (this file, vault markdown, real snapshots) remains valid
+for interactive `/role-tracker` runs inside a cv-builder checkout.
+
 ## Cadence and scheduling
 
 Default cadence lives in the tracker file's config section (typical: every
