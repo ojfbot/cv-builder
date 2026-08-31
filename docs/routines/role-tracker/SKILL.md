@@ -90,9 +90,14 @@ For each row in the tracker file's target tiers (skip rows already
    labeled by city; set `tier basis:` to the best of them; re-evaluate the
    row's tier against §1 using that figure. **A band for any city outside the
    target list is discarded** — never recorded, never used as a proxy or
-   estimate, never allowed to move a tier or raise `changed`. If no target
-   city has a posted band, the row reads `comp: none posted for a target
-   location — UNVERIFIED` and keeps its current tier.
+   estimate, never allowed to move a tier or raise `changed`. **Exception: a
+   stated national range.** Where the employer publishes one US-wide range and
+   says it is not geo-adjusted, that range covers DFW too — record it as
+   `national (non-geo-adjusted)` and let it set `tier basis`. If no target city
+   has a posted band and no national range exists, the row reads `comp: none
+   posted for a target location — UNVERIFIED` and keeps its current tier.
+   When a comp-structure finding lands on one row, apply it to that employer's
+   sibling rows in the same pass (A1/A1b and any Senior/non-Senior twins).
 5. **Shape check:** if the posting reveals the role's travel/customer posture,
    set or correct the row's `Shape` value per the spec vocabulary.
 

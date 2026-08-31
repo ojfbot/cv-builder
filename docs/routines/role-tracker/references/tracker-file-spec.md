@@ -66,9 +66,20 @@ Rules:
 - **`tier basis:` names the governing band** — the highest posted band across
   the target locations. The operator relocates for the right offer, so all
   target cities count equally; record which one the number came from.
-- **No target-city band = `comp: none posted for a target location —
-  UNVERIFIED`.** The row keeps its current tier and is flagged for manual
-  resolve. This is a normal steady state for DFW-only rows, not a failure.
+- **A stated national range counts.** When the employer publishes one US-wide
+  range and says it is *not adjusted for geographic differential* (Deloitte and
+  Google both do this), that range applies to every listed location, DFW
+  included. It is not another city's number — record it as
+  `national (non-geo-adjusted)`, and it may set `tier basis`. Label it that way
+  always, so it is never mistaken for a city-specific band.
+- **No target-city band and no national range = `comp: none posted for a
+  target location — UNVERIFIED`.** The row keeps its current tier and is
+  flagged for manual resolve. This is a normal steady state for DFW-only rows,
+  not a failure.
+- **Propagate a shared finding across sibling rows.** When two rows are the
+  same employer and req family (A1/A1b; a role's Senior and non-Senior twins),
+  a comp-structure finding established on one applies to the other. Update both
+  in the same pass, or state in the Changelog why it does not carry over.
 
 ### Status vocabulary
 
