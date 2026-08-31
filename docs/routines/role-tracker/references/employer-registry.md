@@ -226,3 +226,40 @@ a mail connector.
 
 Open question before building it: confirm a mail connector is actually available
 to the routine. Without one, the alert mail has no reader and this stays manual.
+
+## Consulting tranche — MBB and the FDE-consulting space (2026-08-31)
+
+The tracker had Deloitte, Accenture and Capgemini but none of MBB. All three
+MBB AI arms are in this space and all have Dallas presence.
+
+| Firm / arm | DFW roles seen | Band | Verdict |
+|---|---|---|---|
+| McKinsey **QuantumBlack** | AI Engineer, Data Engineer I/II, Principal Data Scientist I — Dallas among NA locations | not posted | track; req names *mentoring client teams and shaping engineering cultures* — the FDE motion in consulting language |
+| **BCG X** | AI Engineer, Dallas TX | \$110K–\$190K (Glassdoor); campus \$110–160k | **below the \$200k floor** — auto-rejects on band unless a senior title |
+| Bain **Vector** | **Lead, AI Engineering — Dallas** | not posted | **best MBB fit.** 3–5+ yrs AI/ML eng, LLM apps, retrieval/vector search. Vector is 1,500+ specialists. Interview 5–7 stages, case + Python/SQL/ML/GenAI |
+| EPAM | Lead AI Engineer, "Virtual / Travel" | \$130–180k est. | travel-positive shape, below target on band |
+| Credera | Addison TX, Omnicom-owned | — | DFW-native, resolve |
+| Improving | DFW-founded | — | DFW-native, resolve |
+| West Monroe | ~2,000 consultants, Forbes AI recognition | — | resolve |
+
+**The comp judgment:** MBB AI arms have exactly the right shape — client-embedded,
+travel-heavy, sales-adjacent — but their *engineer* titles pay less than the FDE
+labs and less than Deloitte. Deloitte Frontier GenAI at \$155,600–\$306,800
+national beats BCG X Dallas at \$110–190k outright. MBB enters at Tier B/C on
+band unless entered at Lead/Principal level, which is why Bain's *Lead* AI
+Engineering is the one worth chasing and BCG X's IC track is not.
+
+### Anti-fits — record so passes stop ranking them
+
+- **Slalom** runs a deliberate *local-market model*: consultants live in the city
+  they serve, explicitly to avoid the fly-in model. Structurally opposite to the
+  50%-travel goal. Do not rank Slalom highly on shape.
+- **Thoughtworks** is on Greenhouse (`thoughtworks`, verified) but its US board
+  carried 53 jobs with **nothing engineering in any target metro** — business
+  development and marketing only. Keep the feed, expect thin yield.
+
+### Access gap
+
+McKinsey, BCG and Bain careers sites are all egress-blocked and **none are on
+Greenhouse, Lever or Ashby** — they run their own job platforms, so they need
+allowlist entries and page fetches, not API polls.

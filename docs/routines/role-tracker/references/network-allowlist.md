@@ -80,6 +80,24 @@ api.recruitee.com
 *.myworkdayjobs.com
 ```
 
+Group 1c, **consulting firms** — MBB and the FDE-consulting space. None are on
+a public ATS API; they run their own platforms, so these need page fetches:
+
+```text
+mckinsey.com
+*.mckinsey.com
+careers.bcg.com
+bain.com
+*.bain.com
+jobs.slalom.com
+careers.epam.com
+credera.com
+*.credera.com
+westmonroe.com
+*.westmonroe.com
+improving.com
+```
+
 Group 2, aggregators and search boards — optional, and expect partial success
 (see below):
 
