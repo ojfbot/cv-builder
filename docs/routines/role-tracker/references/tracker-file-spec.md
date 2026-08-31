@@ -41,6 +41,35 @@ Company · Title, Location, URL, Comp, Travel/presence, Shape, Status,
 Blockers/Notes. Row ids are permanent — never reuse an id, even for a dropped
 row.
 
+### Comp is geo-keyed, never a single number
+
+Employers post a **different band per city**, and coverage is uneven: Colorado,
+New York, Washington and Illinois require a posted range; **Texas does not**.
+So a multi-city req's visible bands are frequently for cities the operator
+would never work in, and the home-market (DFW) band is frequently absent.
+
+`comp:` is therefore a list keyed by target location, not a scalar:
+
+```
+- comp (by target city):
+    - New York: $155,600–$306,800
+    - Chicago: $168,700–$281,000
+    - Dallas/DFW: not posted
+  tier basis: New York (best target-city band)
+```
+
+Rules:
+
+- **Only target locations may appear.** A band for a city outside §1's target
+  list is not recorded — not as comp, not as a proxy, not as an estimate. It is
+  discarded.
+- **`tier basis:` names the governing band** — the highest posted band across
+  the target locations. The operator relocates for the right offer, so all
+  target cities count equally; record which one the number came from.
+- **No target-city band = `comp: none posted for a target location —
+  UNVERIFIED`.** The row keeps its current tier and is flagged for manual
+  resolve. This is a normal steady state for DFW-only rows, not a failure.
+
 ### Status vocabulary
 
 `open` · `closed` · `changed` · `check-failed` · `applied` · `loop` ·
@@ -49,6 +78,9 @@ row.
 - `changed` — the posting body diff hit a material field (location list,
   salary band, travel %, required qualifications, close date). Store the diff
   in the Changelog; status returns to `open` on the next clean run.
+  **A band difference counts only when the *same city's* band moved.** Seeing
+  a different city's number than last pass is not a change — it is a different
+  measurement. Name the city in the Changelog entry whenever a band moves.
 - `check-failed` — the fetch errored (network, bot-wall, timeout). **Two-strike
   rule:** a row becomes `closed` only after closure evidence (404, "no longer
   accepting", gone from the source's own search index) on **two consecutive
@@ -92,11 +124,17 @@ The *values* come from the tracker file's §1; the mechanics are:
 2. **Hard blockers** — a required-qualifications hit on any hard-blocker
    keyword rejects the req (append to Dropped if it would otherwise keep
    resurfacing).
-3. **Band floor** — reject if the posted band max is below the §1 floor; flag
-   (don't reject) inside the §1 flag range; treat no posted band as
-   `UNVERIFIED`, not as a rejection.
-4. **Location** — must match a §1 location, or be a multi-city list containing
-   one.
+3. **Band floor** — run the floor test **only against a target-city band**
+   (see "Comp is geo-keyed" above). Reject if the best target-city band max is
+   below the §1 floor; flag (don't reject) inside the §1 flag range. A req
+   with no target-city band is `UNVERIFIED` — never a rejection, never a tier
+   move, and never a `changed`. Bands for non-target cities are discarded, not
+   substituted in.
+4. **Location** — the req must include a §1 target location. For a multi-city
+   req, the row's Location field records **the intersection with §1's target
+   list**, not the employer's full city list: that intersection is exactly the
+   set the comp lookup iterates. (Deloitte A1 lists 39 cities; the row should
+   read Dallas, Houston, Chicago, Seattle, New York, Austin.)
 5. **Soft blockers** — never reject; record in the Blockers column.
 6. **Shape ranking** — when summarizing or ordering candidates at comparable
    comp, apply §1's shape preference order.

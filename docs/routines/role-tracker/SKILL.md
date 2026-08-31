@@ -78,13 +78,21 @@ For each row in the tracker file's target tiers (skip rows already
 2. **Diff against the stored snapshot** (save page text to the snapshots dir,
    one file per row id). Emit `changed` on any diff to: location list, salary
    band, travel %, required qualifications, close date. Record the diff in the
-   Changelog.
+   Changelog. **Bands diff per city:** a difference counts only if the same
+   city's band moved — a number sourced from a different city than last pass
+   is a different measurement, not a change. Name the city in the entry.
 3. **`RESOLVE` rows:** query the row's listed search URL, find the matching
    posting, write the direct URL (and any posted band) back into the row,
    clear the flag.
-4. **`UNVERIFIED` comp:** try to read a posted band from the posting; if
-   found, write it back and re-evaluate the row's tier against the comp filter
-   in the tracker file's constraints section.
+4. **`UNVERIFIED` comp — geo-keyed, one lookup per target city.** Do not read
+   "the band." Walk the intersection of the posting's locations with §1's
+   target list and read each of those cities' bands; write back only those,
+   labeled by city; set `tier basis:` to the best of them; re-evaluate the
+   row's tier against §1 using that figure. **A band for any city outside the
+   target list is discarded** — never recorded, never used as a proxy or
+   estimate, never allowed to move a tier or raise `changed`. If no target
+   city has a posted band, the row reads `comp: none posted for a target
+   location — UNVERIFIED` and keeps its current tier.
 5. **Shape check:** if the posting reveals the role's travel/customer posture,
    set or correct the row's `Shape` value per the spec vocabulary.
 
@@ -97,7 +105,9 @@ calibration predictions, narrative/RFI sections) — the spec lists them.
    (they are data, not part of this skill).
 2. Triage each hit with the filter grammar in the spec, using the values
    (title patterns, hard/soft blockers, band floor, locations, shape ranking)
-   from the tracker file's constraints section.
+   from the tracker file's constraints section. The band floor runs against a
+   **target-city** band only; a hit whose posted band belongs to a non-target
+   city reaches the Inbox as `comp: UNVERIFIED`, never carrying that number.
 3. Anything surviving that is not already in a tier, the Inbox, or the Dropped
    table → append to `## Inbox` with URL, one-line summary, shape tag, and the
    triggering search. Secondary-title-family hits get the `secondary` tag.
@@ -143,9 +153,14 @@ So for the scheduled variant:
   only durable surface a fired session can both read and write. Address it by
   URL, never by title search.
 - **No snapshots.** With no filesystem between runs, each row carries a
-  `watch:` line holding its material fields (band, location, travel, close
-  date, quals summary); diffing is `watch:` versus the live posting, and the
-  routine updates `watch:` in place.
+  `watch:` line holding its material fields (per-target-city bands, location,
+  travel, close date, quals summary); diffing is `watch:` versus the live
+  posting, and the routine updates `watch:` in place. Bands are stored keyed by
+  city so the next pass diffs like against like.
+- **Pay-transparency coverage is uneven** — CO, NY, WA and IL require a posted
+  range; **TX does not**. A DFW-only row sitting at `comp: UNVERIFIED`
+  indefinitely is the expected steady state, not an unresolved task. Never
+  close that gap by borrowing another city's number.
 - `promote` stays interactive-only — it needs the repo's `/jobs/` directory
   and the operator's judgment about when to apply.
 
