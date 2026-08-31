@@ -99,10 +99,54 @@ Deployed roles **with typed compensation** — which is what finally verified th
 A3/A4/A5/A6 rows. Reading the ATS feed instead of the marketing site bypasses
 the wall entirely and legitimately.
 
-**Consequence for sequencing:** the API path is the fast lane for labs and
-platform vendors — exactly the Tier A and secondary-title set. DFW *enterprise*
-coverage does not come from here; it needs careers-page fetches or the deferred
-email-alert intake. Do not spend more effort probing enterprise slugs.
+**Consequence for sequencing:** the Greenhouse/Lever/Ashby path is the fast lane
+for labs and platform vendors — exactly the Tier A and secondary-title set.
+
+### DFW enterprises: resolved on Workday after all (2026-08-31)
+
+Guessing Workday slugs is hopeless, but **searching for the board URL is not**.
+`WebSearch` with `allowed_domains: ["myworkdayjobs.com"]` and the employer name
+returns the real tenant and site from indexed job URLs. Seven DFW enterprises
+resolved and verified this way — each returns JSON from a live POST:
+
+| Employer | Tenant / site | Verified |
+|---|---|---|
+| Toyota North America | `toyota.wd503` / `TMNA` | 200, 84 eng matches |
+| AT&T | `att.wd1` / `ATTGeneral` | 200, 125 |
+| McKesson | `mckesson.wd3` / `External_Careers` | 200, 176 |
+| Fidelity | `fmr.wd1` / `FidelityCareers` | 200, 142 |
+| Southwest Airlines | `swa.wd1` / `external` | 200, 12 |
+| Capital One | `capitalone.wd12` / `Capital_One` | 200, 1197 |
+| USAA | `usaa.wd1` / `USAAJOBSWD` | 200, 30 |
+
+First real yield: AT&T **Lead Data/AI Engineering – Applied AI** (Dallas) and
+**Lead Tech Business Mgmt – AI Software Engineer** (Dallas); Fidelity Senior
+Data Scientist and Principal SWE (Westlake).
+
+**Own-site, no Workday board** — Charles Schwab (`careers.schwab.com`), Texas
+Instruments (`careers.ti.com`), PepsiCo/Frito-Lay, American Airlines mainline
+(`jobs.aa.com` — note `aaregional.wd5/Search` is the regional carrier, a
+different employer; do not use it for AA).
+
+**Still unresolved:** JPMorgan, Goldman Sachs, Sabre, Match Group, Vistra,
+CBRE, Jacobs, Comerica, Elevance. Same WebSearch method applies.
+
+### Workday query gotchas
+
+- **The tenant number is not guessable** — Toyota is `wd503` not `wd5`, Capital
+  One is `wd12`. Always take it from a real indexed URL, never a pattern.
+- **Call shape:** `POST /wday/cxs/{tenant}/{site}/jobs`, headers
+  `Content-Type: application/json` and `Accept: application/json`, body
+  `{"limit":20,"offset":0,"searchText":"..."}`. A GET on the host returns 406
+  and tells you nothing.
+- **`searchText` is fuzzy and OR-ish.** `"AI"` returns 445 matches at McKesson;
+  `"machine learning engineer"` returns 411 at Capital One. Treat the result as
+  a candidate pool, then **filter titles client-side** against §1's grammar —
+  do not trust the count as a relevance signal.
+- **`total` is the match count, not the payload.** Only `limit` postings come
+  back; paginate with `offset` when a filtered pass needs more.
+- **Filter location client-side** on each posting's `locationsText`, which
+  carries the city string (`Plano, Texas`, `Westlake, TX`).
 
 ## Phase 1 — DFW tranche
 
