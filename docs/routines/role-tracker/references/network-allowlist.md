@@ -29,8 +29,14 @@ tracker page is reachable regardless), and the Anthropic API.
 A leading `*.` matches subdomains; apex domains are listed separately where the
 site is served from the apex.
 
+The **Allowed domains** field accepts domains only — no comments, no URLs. Do
+not paste `#` headers or blank-line groupings into it; it rejects the whole
+entry with "is not a valid domain."
+
+Group 1, company career sites and ATS platforms — the primary sources, and the
+only ones that reliably carry per-city bands:
+
 ```text
-# Company career sites and ATS platforms — the primary sources
 apply.deloitte.com
 job-boards.greenhouse.io
 boards.greenhouse.io
@@ -58,8 +64,12 @@ c3.ai
 *.c3.ai
 liatrio.ai
 *.liatrio.ai
+```
 
-# Aggregators and search boards — expect partial success, see below
+Group 2, aggregators and search boards — optional, and expect partial success
+(see below):
+
+```text
 indeed.com
 *.indeed.com
 simplyhired.com
@@ -85,8 +95,11 @@ startup.jobs
 jobs.technyc.org
 builtinchicago.org
 *.builtinchicago.org
+```
 
-# FDE-specific trackers and market data
+Group 3, FDE-specific trackers and market data:
+
+```text
 fdepulse.com
 *.fdepulse.com
 fwddeploy.com
