@@ -68,6 +68,42 @@ endpoint returns 200 — a guessed slug that 404s looks identical to an employer
 with no open roles, which is exactly the failure the two-strike rule exists to
 prevent.
 
+## Probe results, 2026-08-31 — read this before planning work
+
+**The ATS-API play works for tech employers, not for the DFW enterprise set.**
+
+Probed 24 DFW-native enterprises (Toyota NA, AT&T, Schwab, Fidelity, Capital
+One, JPMorgan, Goldman, McKesson, TI, Sabre, Southwest, American, Match,
+PepsiCo, Vistra, CBRE, Jacobs, Comerica, USAA, Elevance) across Greenhouse,
+Lever and Ashby: **zero hits**. Large enterprises run Workday, Oracle or
+SuccessFactors.
+
+A Workday tenant-host probe was **inconclusive, not positive** — every
+`*.wd{N}.myworkdayjobs.com` host returned 406 including deliberately wrong
+slugs, so the wildcard answers everything and the result carries no
+information. Workday tenants still need per-employer discovery of the tenant
+and site name from each careers page. Do not record a Workday row on the
+strength of a host responding.
+
+**Verified working endpoints (200, non-trivial payload):**
+
+| ATS | Confirmed slugs |
+|---|---|
+| Greenhouse | `anthropic` · `databricks` · `stripe` · `cloudflare` · `datadog` · `scaleai` · `vercel` · `figma` |
+| Ashby | `openai` · `snowflake` · `sierra` · `cohere` · `ramp` · `writer` |
+| Lever | `palantir` |
+
+**`openai` is the headline.** `openai.com` has been bot-walled every pass since
+6, but the employer's own Ashby feed returns 758 live jobs including 18 Forward
+Deployed roles **with typed compensation** — which is what finally verified the
+A3/A4/A5/A6 rows. Reading the ATS feed instead of the marketing site bypasses
+the wall entirely and legitimately.
+
+**Consequence for sequencing:** the API path is the fast lane for labs and
+platform vendors — exactly the Tier A and secondary-title set. DFW *enterprise*
+coverage does not come from here; it needs careers-page fetches or the deferred
+email-alert intake. Do not spend more effort probing enterprise slugs.
+
 ## Phase 1 — DFW tranche
 
 **Slug evidence already in hand** (URLs seen in tracked rows, so these resolve
