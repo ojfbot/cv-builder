@@ -118,6 +118,39 @@ resolved and verified this way — each returns JSON from a live POST:
 | Southwest Airlines | `swa.wd1` / `external` | 200, 12 |
 | Capital One | `capitalone.wd12` / `Capital_One` | 200, 1197 |
 | USAA | `usaa.wd1` / `USAAJOBSWD` | 200, 30 |
+| Sabre | `sabre.wd1` / `SabreJobs` | 200, 90 |
+| Vistra | `vst.wd5` / `vistra_careers` | 200, 97 |
+| Elevance Health | `elevancehealth.wd1` / `ANT` | 200, 46 |
+| Johnson Controls | `jci.wd5` / `JCI` | 200, 1218 |
+| PNC (Dallas Innovation Center) | `pnc.wd5` / `External` | 200, 241 |
+
+Johnson Controls and PNC were not on the original list — both surfaced during
+resolution and both hire AI/tech in DFW (JCI had an **Ai/ML Engineer, Dallas TX**
+posting; PNC runs a Dallas Innovation Center). Twelve verified endpoints total.
+
+### Wrong-company trap — verify the tenant belongs to the employer you searched
+
+Search results conflate similarly-named employers, and a wrong tenant looks
+exactly like a working one. Three caught during this pass:
+
+- **Comerica** → search surfaced `commercebank.wd1` (Commerce Bank, a different
+  bank). Comerica has no Workday board; it is own-site.
+- **CBRE** → surfaced `cw.wd1` (Cushman & Wakefield) on a job that merely
+  mentioned CBRE in its title. CBRE is own-site.
+- **American Airlines** → `aaregional.wd5` is the *regional* carrier, a
+  different employer. AA mainline is own-site (`jobs.aa.com`).
+
+Always confirm the tenant string is the employer's own before recording a row.
+
+**Own-site, no Workday board** — Charles Schwab, Texas Instruments,
+PepsiCo/Frito-Lay, American Airlines mainline, JPMorgan Chase, Match Group,
+CBRE, Comerica, Goldman Sachs, Jacobs. These only get covered by careers-page
+fetches or the email-alert intake.
+
+**Walmart** — `WalmartExternal` is the correct site (proven by a live Dallas
+job URL) but the CXS endpoint returns 422 on every casing tried. Left
+unresolved rather than recorded as broken; worth one more attempt with a
+different request body.
 
 First real yield: AT&T **Lead Data/AI Engineering – Applied AI** (Dallas) and
 **Lead Tech Business Mgmt – AI Software Engineer** (Dallas); Fidelity Senior
@@ -128,8 +161,9 @@ Instruments (`careers.ti.com`), PepsiCo/Frito-Lay, American Airlines mainline
 (`jobs.aa.com` — note `aaregional.wd5/Search` is the regional carrier, a
 different employer; do not use it for AA).
 
-**Still unresolved:** JPMorgan, Goldman Sachs, Sabre, Match Group, Vistra,
-CBRE, Jacobs, Comerica, Elevance. Same WebSearch method applies.
+**Resolution complete for the Phase 1 DFW tranche** — every employer on the
+original list is now either a verified endpoint above, own-site, or (Walmart)
+explicitly parked. Nothing is left in an unknown state.
 
 ### Workday query gotchas
 
