@@ -66,6 +66,20 @@ liatrio.ai
 *.liatrio.ai
 ```
 
+Group 1b, **ATS JSON APIs** — the highest-value additions. These are separate
+hosts from the human-facing boards in Group 1 (`boards-api.` and `api.` rather
+than `job-boards.` and `jobs.`), so allowlisting the board does NOT allowlist
+its API. See `employer-registry.md` for what these are for.
+
+```text
+boards-api.greenhouse.io
+api.lever.co
+api.ashbyhq.com
+api.smartrecruiters.com
+api.recruitee.com
+*.myworkdayjobs.com
+```
+
 Group 2, aggregators and search boards — optional, and expect partial success
 (see below):
 
