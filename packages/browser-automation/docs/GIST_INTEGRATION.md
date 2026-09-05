@@ -746,7 +746,7 @@ gh pr view <number>
 ## See Also
 
 - [Screenshot Capture Pipeline](./SCREENSHOT_CAPTURE.md) - Capture workflow
-- [Visual Regression Architecture](./VISUAL_REGRESSION_ARCHITECTURE.md) - Overall system
+- [Visual Regression Architecture](../../../docs/VISUAL_REGRESSION_ARCHITECTURE.md) - Overall system
 - [GitHub CLI Documentation](https://cli.github.com/manual/) - gh command reference
 - [GitHub Gists API](https://docs.github.com/en/rest/gists) - Gist API reference
 

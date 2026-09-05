@@ -252,7 +252,7 @@ PR #62 implements a production-ready visual regression testing system with deter
   - `packages/browser-automation/docs/VISUAL_REGRESSION.md` (800+ lines)
   - `VISUAL_REGRESSION_IMPLEMENTATION.md` (600+ lines)
   - `VISUAL_REGRESSION_NEXT_STEPS.md` (400+ lines)
-  - `VISUAL_REGRESSION_ARCHITECTURE.md` (root level)
+  - `docs/VISUAL_REGRESSION_ARCHITECTURE.md`
 
 ---
 

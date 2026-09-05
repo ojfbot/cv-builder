@@ -708,7 +708,7 @@ Create lightweight dashboard:
 
 - [Draw.io Schema Documentation](./DRAWIO_SCHEMA.md) - Complete schema specification
 - [Screenshot Capture Pipeline](./SCREENSHOT_CAPTURE.md) - Capture workflow
-- [Visual Regression Architecture](./VISUAL_REGRESSION_ARCHITECTURE.md) - Overall system design
+- [Visual Regression Architecture](../../../docs/VISUAL_REGRESSION_ARCHITECTURE.md) - Overall system design
 - [Draw.io Developer Docs](https://www.drawio.com/doc/) - Draw.io XML format
 
 ---

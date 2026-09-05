@@ -9,7 +9,6 @@ The project migrated from a monolithic agent system (V1/agent-core) to LangGraph
 Every pull request targeting `main` runs the full browser automation + visual regression suite:
 
 ```
-```
 PR opened
   └─ browser-automation-tests.yml
        ├─ pnpm type-check (all packages)
@@ -85,9 +84,9 @@ resume-builder/
 ├── docs/                    # Documentation
 │   ├── CI_CD_PIPELINE.md    # Complete CI/CD pipeline reference
 │   ├── AWS_CI_SETUP.md      # S3 + OIDC one-time setup guide
+│   ├── V2_QUICKSTART.md     # V2 quick start guide
 │   ├── technical/           # Technical docs & ADRs
 │   └── how-to/              # Guides
-├── V2_QUICKSTART.md         # V2 quick start guide
 ├── docker-compose.yml       # Docker orchestration
 ├── docker-compose.ci.yml    # CI-specific Docker Compose
 ├── Dockerfile               # Agent system container
@@ -199,7 +198,7 @@ This uses the new LangGraph-based architecture with:
 
 **Note:** V2 (LangGraph) mode is now enabled by default in the browser UI. Users can toggle between V1 and V2 modes using the toggle in the dashboard header.
 
-See [V2_QUICKSTART.md](V2_QUICKSTART.md) for details.
+See [V2_QUICKSTART.md](docs/V2_QUICKSTART.md) for details.
 
 ### Individual Services
 ```bash
@@ -236,7 +235,7 @@ Comprehensive documentation is available in the `/docs` directory:
 
 ### Development
 - [Agents Guide](docs/AGENTS_GUIDE.md) - Working with AI agents
-- [Badge Actions](docs/BADGE_ACTIONS_GUIDE.md) - Interactive UI actions
+- [Badge Actions](docs/archive/BADGE_ACTIONS_GUIDE.md) - Interactive UI actions
 - [Navigation System](docs/NAVIGATION_SYSTEM.md) - Tab navigation
 - [Browser Integration](docs/BROWSER_INTEGRATION.md) - Browser app integration
 

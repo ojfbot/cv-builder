@@ -765,7 +765,7 @@ Create lightweight dashboard:
 - [Draw.io Schema Documentation](./DRAWIO_SCHEMA.md) - Complete schema specification
 - [Pattern Detection Rules](./PATTERN_DETECTION.md) - Heuristic detection rules
 - [Template Usage Guide](./TEMPLATE_USAGE.md) - Using Draw.io templates
-- [Visual Regression Architecture](./VISUAL_REGRESSION_ARCHITECTURE.md) - Overall system design
+- [Visual Regression Architecture](../../../docs/VISUAL_REGRESSION_ARCHITECTURE.md) - Overall system design
 
 ---
 
