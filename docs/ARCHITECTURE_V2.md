@@ -1,12 +1,92 @@
 # CV Builder Architecture V2 (LangGraph)
 
-## Overview
+> **Status (2026-09-24):** V2 is partly built. **As built** below describes what's in `packages/agent-graph` and `packages/api` today (verified against `main` @ `b670930`, tracking [#154](https://github.com/ojfbot/cv-builder/issues/154)). **Original design** further down is the 2025-12-04 target, kept for reference. Where the two disagree, trust As built.
 
-CV Builder V2 introduces a **LangGraph-based multi-agent orchestration system** with sophisticated state management, thread-based conversations, and RAG (Retrieval-Augmented Generation) capabilities. This represents a major architectural upgrade from V1's simple agent coordination.
+## As built (2026-09-24)
 
-## Architecture Comparison
+### Runtime
 
-### V1 (agent-core) vs V2 (agent-graph)
+- The API always mounts V1 (`agent-core`) at `/api/*`. It mounts V2 (`agent-graph`, via `GraphManager`) at `/api/v2/*` only when `ENABLE_V2_API=true`. The root `pnpm dev:*` scripts set the flag. Docker, the CI compose file and `pnpm --filter @resume-builder/api start` don't, so CI's browser suites exercise V1.
+- The browser starts in V2 mode (`v2Slice.ts`), and a header toggle switches to V1.
+- The public Vercel deployment serves the browser bundle only. Its API base URL is `http://localhost:3001/api`, and no API host is configured.
+
+### State graph
+
+```mermaid
+graph LR
+    START([START]) --> O{orchestrator}
+    O -->|generate_resume| R[resumeGeneratorNode]
+    O -->|analyze_job| J[jobAnalysisNode]
+    O -->|tailor_resume| T[tailoringNode]
+    O -->|analyze_skills_gap| S[skillsGapNode]
+    O -->|prepare_interview| I[interviewCoachNode]
+    O -->|done / error| END([END])
+    O -.->|anything else, incl. rag_retrieval| O
+    R --> O
+    J --> O
+    T --> O
+    S --> O
+    I --> O
+```
+
+- **Routing.** `routeToAgent` (`cv-builder-graph.ts`) switches on `state.nextAction`. The orchestrator sets it by regex-parsing `**Next Action**: <action>` from a model reply, falling back to keyword matching. The parsed value isn't validated against `NextActionSchema`.
+- **Hub-and-spoke.** There's no classifier, no parallel fan-out and no aggregator. Each specialist returns to the orchestrator, which makes another model call on the specialist's reply before it can reach `END`.
+- **Model settings.** Defaults are `claude-opus-5`, `temperature || 0.7` (so 0 can't be set) and 2048 max tokens for the orchestrator. No explicit `recursionLimit` is passed.
+- **Persistence.** The SQLite checkpointer (default, `DB_PATH` or `./cv_builder.db`) or the Postgres one, plus thread managers. `putWrites` is a no-op in both, which blocks `interrupt`-based human-in-the-loop.
+
+### RAG
+
+`src/rag/` holds three retrievers (resume templates, learning resources, interview prep) over an in-memory `MemoryVectorStore` seeded with hard-coded documents, using OpenAI embeddings (`OPENAI_API_KEY`). `createRAGRetrievalNode` is exported but **not added to the graph**. `rag_retrieval` is in the action enum but falls through to the orchestrator, and no node reads `ragResults`.
+
+### API ↔ browser contract
+
+| Endpoint | Server | Browser |
+|----------|--------|---------|
+| `POST /api/v2/chat` | ✅ | ✅ |
+| `POST /api/v2/chat/stream` | ✅ sends `event: connected\|state\|message\|done\|error` frames; `data` has no `type` | ⚠️ `client-v2.ts` only parses segments that start with `data: ` and checks `event.type`. Frames are dropped depending on network chunking, and `done` is never detected |
+| `POST/GET/PATCH/DELETE /api/v2/threads[...]`, `GET/PATCH /threads/:id/state`, `GET /threads/user/:userId`, `GET /stats` | ✅ | ✅ |
+| `GET /api/v2/threads/:id` | ❌ no route | ⚠️ called by `threadsSlice` (`getThread`) |
+
+### Configuration actually read
+
+| Variable | Used for |
+|----------|----------|
+| `ENABLE_V2_API` | mount `/api/v2/*` |
+| `DATABASE_TYPE` | `sqlite` (default) or `postgres` |
+| `DB_PATH` | SQLite file (default `./cv_builder.db`) |
+| `DATABASE_URL` / `POSTGRES_URL` | Postgres connection |
+| `OPENAI_API_KEY` | RAG embeddings only (RAG is unwired) |
+| `LOG_LEVEL` | logger |
+
+The Anthropic key and model come from the agent-core config (`env.json`).
+
+### Tests
+
+`packages/agent-graph` has no test files; vitest is configured but unused. `scripts/test-*.ts` are manual smoke scripts that call the live model.
+
+### Designed, not built
+
+Each row names what would build it. Slices live in [`.claude/roadmap.md`](../.claude/roadmap.md).
+
+| Item | Built by |
+|------|----------|
+| Input-existence rules, specialist → END on `done\|error`, validated actions, `?? 0.7`, `recursionLimit`, stream-client and `GET /threads/:id` fixes, graph-compile + routing tests | `rm:rm-l1-cv-builder#S1` |
+| RAG in the graph with a persistent store and a `ragResults` consumer, or its removal | `rm:rm-l1-cv-builder#S2` |
+| Grounding check (every generated bullet maps to a source-CV span) + fabrication eval | `rm:rm-l1-cv-builder#S3` |
+| Hosted API reachable from the public site; keyless end-to-end run | `rm:rm-l1-cv-builder#S4`, `#S5` |
+| Gap classification, adversarial gap review, pre-submission audit | TD-004 / TD-005 / TD-007 → `rm:rm-l1-cv-builder#S6`–`#S8` |
+| Classifier node, parallel expert fan-out, aggregator, `RoutingDecision{confidence}`, RAG loop back to classifier | not scheduled |
+| Persisted `putWrites` / human-in-the-loop via `interrupt` | not scheduled |
+
+---
+
+## Original design (2025-12-04) — not as built
+
+> This is the target from 2025-12-04, with headings shifted down a level. It describes components that don't exist (see Designed, not built above). Two sections were removed on 2026-09-24: a V1-vs-V2 performance table that projected speedups for a parallel path that was never built or measured, and a feature-parity table that marked RAG and parallel execution as shipped. The config block and env vars below are the design and aren't read by the code; see Configuration actually read above.
+
+### Architecture Comparison
+
+#### V1 (agent-core) vs V2 (agent-graph)
 
 | Feature | V1 (agent-core) | V2 (agent-graph) |
 |---------|-----------------|------------------|
@@ -19,7 +99,7 @@ CV Builder V2 introduces a **LangGraph-based multi-agent orchestration system** 
 | **Routing** | Manual | Intelligent node routing |
 | **Streaming** | Basic SSE | Advanced SSE with state updates |
 
-## High-Level Architecture
+### High-Level Architecture
 
 ```mermaid
 graph TB
@@ -91,9 +171,9 @@ graph TB
     style GraphMgr fill:#e1f5fe
 ```
 
-## V2 LangGraph State Machine
+### V2 LangGraph State Machine
 
-### State Graph Flow
+#### State Graph Flow
 
 ```mermaid
 graph LR
@@ -123,7 +203,7 @@ graph LR
     style Aggregator fill:#2196f3
 ```
 
-### Detailed State Graph with Conditional Edges
+#### Detailed State Graph with Conditional Edges
 
 ```mermaid
 stateDiagram-v2
@@ -174,9 +254,9 @@ stateDiagram-v2
     end note
 ```
 
-## Component Architecture
+### Component Architecture
 
-### 1. Graph Manager (Server-Side Orchestration)
+#### 1. Graph Manager (Server-Side Orchestration)
 
 ```mermaid
 classDiagram
@@ -224,7 +304,7 @@ classDiagram
     ThreadManager --> SqliteSaver
 ```
 
-### 2. State Schema
+#### 2. State Schema
 
 ```mermaid
 classDiagram
@@ -277,7 +357,7 @@ classDiagram
     CVBuilderState --> StateMetadata
 ```
 
-### 3. Node Architecture
+#### 3. Node Architecture
 
 ```mermaid
 classDiagram
@@ -332,7 +412,7 @@ classDiagram
     BaseNode <|-- RAGRetrievalNode
 ```
 
-### 4. RAG System Architecture
+#### 4. RAG System Architecture
 
 ```mermaid
 graph TB
@@ -370,9 +450,9 @@ graph TB
     style VectorStore fill:#ff9800
 ```
 
-## Data Flow Diagrams
+### Data Flow Diagrams
 
-### 1. User Message Flow (V2)
+#### 1. User Message Flow (V2)
 
 ```mermaid
 sequenceDiagram
@@ -406,7 +486,7 @@ sequenceDiagram
     APIv2-->>Browser: Close stream
 ```
 
-### 2. Thread Management Flow
+#### 2. Thread Management Flow
 
 ```mermaid
 sequenceDiagram
@@ -437,7 +517,7 @@ sequenceDiagram
     APIv2-->>Browser: List of threads
 ```
 
-### 3. Checkpoint and State Persistence
+#### 3. Checkpoint and State Persistence
 
 ```mermaid
 graph TB
@@ -471,7 +551,7 @@ graph TB
     style Resume fill:#4caf50
 ```
 
-### 4. Parallel Expert Execution
+#### 4. Parallel Expert Execution
 
 ```mermaid
 gantt
@@ -495,9 +575,9 @@ gantt
     Aggregation :500, 50
 ```
 
-## API Endpoints (V2)
+### API Endpoints (V2)
 
-### Chat Endpoints
+#### Chat Endpoints
 
 ```mermaid
 graph LR
@@ -524,7 +604,7 @@ graph LR
     Metadata --> PostStream
 ```
 
-### Thread Management Endpoints
+#### Thread Management Endpoints
 
 | Method | Endpoint | Description | Request Body | Response |
 |--------|----------|-------------|--------------|----------|
@@ -534,7 +614,7 @@ graph LR
 | `PATCH` | `/api/v2/threads/:id` | Update thread | `{title?, metadata?}` | Updated `Thread` |
 | `DELETE` | `/api/v2/threads/:id` | Delete thread | - | `{success: true}` |
 
-## Database Schema
+### Database Schema
 
 ```mermaid
 erDiagram
@@ -570,9 +650,9 @@ erDiagram
     }
 ```
 
-## Configuration
+### Configuration
 
-### V2 Configuration (agent-graph)
+#### V2 Configuration (agent-graph)
 
 ```typescript
 // packages/agent-graph/src/utils/config.ts
@@ -587,7 +667,7 @@ interface GraphConfig {
 }
 ```
 
-### Environment Variables
+#### Environment Variables
 
 ```bash
 # V2 Feature Flag
@@ -604,26 +684,9 @@ VECTOR_STORE_PATH=./packages/agent-graph/vector_store/
 MAX_PARALLEL_NODES=5
 ```
 
-## Performance Characteristics
+### Migration Guide (V1 → V2)
 
-### Execution Time Comparison
-
-| Task | V1 (Sequential) | V2 (Parallel) | Improvement |
-|------|-----------------|---------------|-------------|
-| Resume Generation | 2.5s | 2.5s | 0% |
-| Job Analysis | 1.8s | 1.8s | 0% |
-| Resume + Analysis | 4.3s | 2.5s | **42%** ↓ |
-| Full Pipeline (5 agents) | 8.5s | 3.2s | **62%** ↓ |
-
-### State Persistence Overhead
-
-- Checkpoint save: ~5-10ms per node
-- Checkpoint load: ~3-5ms
-- Total overhead: <50ms for typical workflow
-
-## Migration Guide (V1 → V2)
-
-### For Developers
+#### For Developers
 
 **V1 API Call:**
 ```typescript
@@ -652,25 +715,9 @@ for await (const chunk of reader) {
 }
 ```
 
-### Feature Parity
+### Troubleshooting
 
-| Feature | V1 | V2 | Notes |
-|---------|----|----|-------|
-| Chat | ✅ | ✅ | V2 adds thread support |
-| Streaming | ✅ | ✅ | V2 has richer state updates |
-| Resume Generation | ✅ | ✅ | V2 uses RAG templates |
-| Job Analysis | ✅ | ✅ | V2 adds parallel execution |
-| Tailoring | ✅ | ✅ | V2 improves keyword optimization |
-| Skills Gap | ✅ | ✅ | V2 uses RAG for resources |
-| Interview Prep | ✅ | ✅ | V2 uses RAG for examples |
-| Conversation History | ❌ | ✅ | **New in V2** |
-| State Persistence | ❌ | ✅ | **New in V2** |
-| RAG Context | ❌ | ✅ | **New in V2** |
-| Parallel Execution | ❌ | ✅ | **New in V2** |
-
-## Troubleshooting
-
-### V2 Specific Issues
+#### V2 Specific Issues
 
 **Database locked error:**
 ```
@@ -684,15 +731,9 @@ Solution: Thread may have been deleted or never created.
 Check thread exists before sending messages.
 ```
 
-**Vector store initialization failed:**
-```
-Solution: Ensure vector store path is writable.
-Check RAG_ENABLED=true in config.
-```
+### Future Enhancements
 
-## Future Enhancements
-
-### Planned Features
+#### Planned Features
 
 1. **Advanced RAG**
    - Document ingestion API
@@ -719,7 +760,7 @@ Check RAG_ENABLED=true in config.
    - Time-travel debugging
    - State export/import
 
-## References
+### References
 
 - [LangGraph.js Documentation](https://docs.langchain.com/oss/javascript/langgraph/overview)
 - [Multi-Agent Systems](https://langchain-ai.github.io/langgraphjs/concepts/multi_agent/)
@@ -728,6 +769,4 @@ Check RAG_ENABLED=true in config.
 
 ---
 
-**Last Updated**: 2025-12-04
-**Version**: 2.0.0-alpha
-**Status**: In Development
+**Design written**: 2025-12-04 · **As built verified**: 2026-09-24
