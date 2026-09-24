@@ -2,7 +2,29 @@
 
 > AI-powered resume builder with LangGraph multi-agent orchestration and a visual regression CI pipeline.
 
-The project migrated from a monolithic agent system (V1/agent-core) to LangGraph's state graph architecture (V2/agent-graph) for explicit state management, checkpointing, and SSE streaming. V2 is the default.
+Two agent runtimes ship side by side: V1 (`agent-core`, always mounted at `/api/*`) and V2 (`agent-graph`, a LangGraph state graph with SQLite checkpointing and threads, mounted at `/api/v2/*` only when `ENABLE_V2_API=true`). The browser UI defaults to V2 mode; the root `pnpm dev:*` scripts set the flag, but any other server start (Docker, CI compose, `pnpm --filter @resume-builder/api start`) runs V1 only.
+
+## As built (2026-09-24)
+
+Verified against `main` @ `b670930`. Tracking: [#154](https://github.com/ojfbot/cv-builder/issues/154).
+
+- **V2 graph** — hub-and-spoke: `START → orchestrator → {resumeGenerator | jobAnalysis | tailoring | skillsGap | interviewCoach} → orchestrator → … → END`. One conditional edge; no parallel fan-out, no aggregator.
+- **Orchestrator** — one Opus call per turn, next action parsed from `**Next Action**:` by regex with a keyword fallback; it runs again after every specialist.
+- **RAG** — `rag-retrieval-node.ts` and three seed-data retrievers exist but are **not wired into the graph**; no node reads `ragResults`.
+- **Tests** — Playwright/visual suites in `browser-automation` (run against V1 in CI); `packages/agent-graph` has no tests.
+- **Hosted deployment** — the Vercel build ships the browser app only; its API base URL is `http://localhost:3001/api`. There is no hosted API, so the public site can't tailor a resume.
+- **Grounding** — the tailoring prompts tell the model not to fabricate; nothing checks the output against the source CV.
+
+**Designed, not built** (each names what would build it; slices live in [`.claude/roadmap.md`](.claude/roadmap.md)):
+
+| Item | Built by |
+|------|----------|
+| Orchestrator input rules, specialist → END edge, validated actions, graph tests, V2 stream client fix | `rm:rm-l1-cv-builder#S1` |
+| RAG in the graph (persistent store + a consumer), or its removal | `rm:rm-l1-cv-builder#S2` |
+| Bullet → source-CV grounding check + fabrication eval | `rm:rm-l1-cv-builder#S3` |
+| Hosted API + keyless end-to-end run | `rm:rm-l1-cv-builder#S4`, `#S5` |
+| Gap classification / adversarial review / pre-submission audit | TD-004, TD-005, TD-007 → `rm:rm-l1-cv-builder#S6`–`#S8` |
+| Classifier node, parallel fan-out, aggregator, routing confidence | not scheduled (see `docs/ARCHITECTURE_V2.md` § Original design) |
 
 ## CI/CD Pipeline
 
@@ -41,12 +63,12 @@ resume-builder/
 │   │   │   └── cli/         # CLI interface
 │   │   └── package.json
 │   │
-│   ├── agent-graph/         # V2: LangGraph multi-agent system ⭐ DEFAULT
+│   ├── agent-graph/         # V2: LangGraph multi-agent system (behind ENABLE_V2_API)
 │   │   ├── src/
 │   │   │   ├── graphs/      # StateGraph definitions
 │   │   │   ├── nodes/       # Agent nodes
 │   │   │   ├── state/       # State management & checkpointing
-│   │   │   ├── rag/         # Vector stores & retrievers
+│   │   │   ├── rag/         # Vector store & retrievers (not wired into the graph)
 │   │   │   └── utils/       # Utilities
 │   │   └── package.json
 │   │
@@ -180,24 +202,15 @@ See [`SECURITY.md`](SECURITY.md) for detailed security policies and incident rep
 
 ## Development
 
-### Run Full Stack (V1 - Legacy)
+### Run Full Stack
 ```bash
-pnpm dev:all        # API server + Browser UI (agent-core)
+pnpm dev:all        # API server (V1 + V2 routes) + Browser UI
+pnpm dev:v2         # identical to dev:all
 ```
 
-### Run Full Stack (V2 - LangGraph) ⭐ DEFAULT
-```bash
-pnpm dev:v2         # API server + Browser UI (agent-graph)
-# Or use pnpm dev:all - V2 is now the default mode in the browser UI
-```
+Both scripts set `ENABLE_V2_API=true`, so the API mounts V1 (`/api/*`) and V2 (`/api/v2/*`, agent-graph with SQLite checkpointing and threads). The browser UI starts in V2 mode; the toggle in the dashboard header switches to V1. Starting the API without the flag serves V1 only.
 
-This uses the new LangGraph-based architecture with:
-- 🔄 Multi-agent orchestration
-- 💾 State persistence (checkpointing)
-- 🧵 Thread-based conversations
-- 📡 Streaming support (SSE)
-
-**Note:** V2 (LangGraph) mode is now enabled by default in the browser UI. Users can toggle between V1 and V2 modes using the toggle in the dashboard header.
+Known V2 gaps (see [As built](#as-built-2026-09-24)): the V2 streaming client expects `data:`-first frames carrying a `type` field, but the server sends named `event:` frames with no `type` — so frames are dropped depending on network chunking, the ones that do parse are untyped, and `done` is never detected. Also, `GET /api/v2/threads/:id` (used to load a thread) has no route. Both are fixed by `rm:rm-l1-cv-builder#S1`.
 
 See [V2_QUICKSTART.md](V2_QUICKSTART.md) for details.
 

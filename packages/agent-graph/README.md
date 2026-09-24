@@ -1,64 +1,54 @@
-# @cv-builder/agent-graph
+# @resume-builder/agent-graph
 
-LangGraph-based multi-agent system for CV Builder using a blackboard architecture pattern.
+The V2 runtime: a LangGraph state graph whose nodes share one state object and persist through a SQLite (or Postgres) checkpointer. The API server mounts it at `/api/v2/*` when `ENABLE_V2_API=true`.
 
-## Status
+## As built (2026-09-24)
 
-**Phase 1: Foundation** ✅ Complete
-- State schema with Zod validation
-- **SQLite checkpointer** for rapid prototyping (zero setup!)
-- PostgreSQL checkpointer for production (optional)
-- Thread manager for conversation lifecycle
-- Configuration and logging utilities
+Verified against `main` @ `b670930`. Tracking: [ojfbot/cv-builder#154](https://github.com/ojfbot/cv-builder/issues/154).
 
-**Phase 2: Core Agents** 🚧 Ready to Start
-- Converting specialized agents to LangGraph nodes
+**Delivered**
 
-## Architecture
-
-This package implements a **blackboard pattern** where multiple specialized agents collaborate via shared state:
+- Foundation: Zod-validated state schema, SQLite checkpointer (default) and Postgres checkpointer, thread managers for both, config and logging.
+- Nodes: `orchestrator` plus five specialists — `resumeGeneratorNode`, `jobAnalysisNode`, `tailoringNode`, `skillsGapNode`, `interviewCoachNode` (`src/nodes/`).
+- Graph (`src/graphs/cv-builder-graph.ts`): hub-and-spoke.
 
 ```
-┌─────────────────────────────────────────┐
-│         BLACKBOARD (Shared State)        │
-│  • Messages  • Bio  • Jobs  • Analysis  │
-└─────────────────────────────────────────┘
-    ↕️        ↕️        ↕️        ↕️
-Orchestrator  Resume   Job     Tailoring
-   Node      Generator Analysis   Node
-                Node     Node
+START → orchestrator ──(routeToAgent on state.nextAction)──▶ specialist ──▶ orchestrator ──▶ … ──▶ END
+                     └──(done | error)──▶ END
 ```
 
-## Installation
+How it behaves today:
+
+- The orchestrator makes one model call per visit and reads the next action from a `**Next Action**: <action>` line by regex. If the line is missing it guesses from keywords. The parsed value isn't validated against `NextActionSchema`.
+- Every specialist edge goes back to the orchestrator, so each request costs a second orchestrator call. That call reads the specialist's reply as if it were the user's request.
+- `temperature` is set with `||`, so passing `0` gives you `0.7`. No explicit `recursionLimit` is passed.
+- Checkpointer `putWrites` is a no-op in both backends. `interrupt`-based human-in-the-loop won't work until it persists.
+
+**Present in source, not wired**
+
+- `src/nodes/rag-retrieval-node.ts` and `src/rag/` (three retrievers over an in-memory `MemoryVectorStore` with hard-coded seed documents; embeddings need `OPENAI_API_KEY`). The node is exported but never added to the graph. `rag_retrieval` is in the action enum but not in `routeToAgent`, so it falls through to the orchestrator. No node reads `ragResults`.
+
+**Designed, not built** — tracked as slices in [`.claude/roadmap.md`](../../.claude/roadmap.md):
+
+| Item | Slice |
+|------|-------|
+| Input-existence rules, specialist → END edge, action validation, `?? 0.7`, `recursionLimit`, graph-compile + routing tests | `rm:rm-l1-cv-builder#S1` |
+| RAG wired with a persistent store and a consumer — or removed | `rm:rm-l1-cv-builder#S2` |
+| Classifier node, parallel fan-out, aggregator, routing confidence (`docs/ARCHITECTURE_V2.md` § Original design) | not scheduled |
+
+**Tests:** none in this package yet. Vitest is configured; `scripts/test-*.ts` are manual smoke scripts that call the live model.
+
+## Quick start
+
+SQLite is the default (`DATABASE_TYPE` unset) and needs no install.
 
 ```bash
-cd packages/agent-graph
-npm install
+# from the repo root
+pnpm --filter @resume-builder/agent-graph exec tsx src/utils/init-db.ts   # creates cv_builder.db
+pnpm --filter @resume-builder/agent-graph exec tsx scripts/test-sqlite.ts  # checkpointer smoke run
 ```
 
-## Quick Start (Zero Setup!)
-
-### SQLite Mode (Default for Development)
-
-**No database installation required!** SQLite is file-based and perfect for prototyping.
-
-```bash
-# Initialize database (creates cv_builder.db)
-npx tsx src/utils/init-db.ts
-
-# Run tests to verify
-npx tsx scripts/test-sqlite.ts
-```
-
-That's it! You're ready to build. See [SQLITE_SETUP.md](./SQLITE_SETUP.md) for details.
-
-### PostgreSQL Mode (Optional for Production)
-
-For production deployments requiring concurrent access:
-
-1. Install PostgreSQL
-2. Create database and tables (see `docs/technical/06-phase-1-implementation-guide.md`)
-3. Set environment variable:
+See [SQLITE_SETUP.md](./SQLITE_SETUP.md). For Postgres, set:
 
 ```bash
 export DATABASE_TYPE=postgres
@@ -67,80 +57,33 @@ export DATABASE_URL="postgresql://localhost:5432/cv_builder_prod"
 
 ## Usage
 
-### Creating State
-
 ```typescript
-import { createInitialState } from "@cv-builder/agent-graph";
+import {
+  createInitialState,
+  createSQLiteCheckpointer,
+  createSQLiteThreadManager,
+  createCVBuilderGraph,
+} from "@resume-builder/agent-graph";
 
 const state = createInitialState("user-123", "thread-456");
-```
 
-### SQLite Checkpointing (Development)
-
-```typescript
-import { createSQLiteCheckpointer } from "@cv-builder/agent-graph";
-
-const checkpointer = createSQLiteCheckpointer(); // Uses ./cv_builder.db
-
-// Save checkpoint
-await checkpointer.put(config, checkpoint, metadata);
-
-// Retrieve checkpoint
+const checkpointer = createSQLiteCheckpointer(); // ./cv_builder.db
 const tuple = await checkpointer.getTuple(config);
+console.log(checkpointer.getStats()); // { checkpointCount, threadCount, dbSize }
 
-// Get stats
-const stats = checkpointer.getStats();
-console.log(stats); // { checkpointCount: 42, threadCount: 7, dbSize: "0.15 MB" }
-```
-
-### SQLite Thread Management
-
-```typescript
-import { createSQLiteThreadManager } from "@cv-builder/agent-graph";
-
-const threadManager = createSQLiteThreadManager(); // Uses ./cv_builder.db
+const threadManager = createSQLiteThreadManager();
 await threadManager.initialize();
+const thread = await threadManager.createThread({ userId: "user-123", title: "Resume session" });
 
-// Create thread
-const thread = await threadManager.createThread({
-  userId: "user-123",
-  title: "Resume Generation Session"
-});
-
-// List threads
-const threads = await threadManager.listThreads("user-123");
+const graph = createCVBuilderGraph({ apiKey });
 ```
 
-### PostgreSQL (Production)
-
-```typescript
-import { createCheckpointer, createThreadManager } from "@cv-builder/agent-graph";
-
-const checkpointer = createCheckpointer(config.databaseUrl!);
-const threadManager = createThreadManager(config.databaseUrl!);
-// Same API as SQLite versions
-```
+`createCheckpointer(databaseUrl)` and `createThreadManager(databaseUrl)` are the Postgres equivalents and have the same API.
 
 ## Development
 
 ```bash
-# Type check
-npm run type-check
-
-# Run tests
-npm test
-
-# Watch mode
-npm run dev
+pnpm --filter @resume-builder/agent-graph type-check
+pnpm --filter @resume-builder/agent-graph exec vitest run   # no test files yet — fails until S1 lands
+pnpm --filter @resume-builder/agent-graph dev
 ```
-
-## Next Steps
-
-- **Phase 2**: Convert specialized agents to nodes
-- **Phase 3**: Implement orchestrator and state graph
-- **Phase 4**: Add RAG capabilities with vector stores
-- **Phase 5**: Integrate with API server
-
-## Documentation
-
-See `docs/technical/` for complete migration plan and architecture decisions.
