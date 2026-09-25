@@ -4,9 +4,9 @@
 
 Two agent runtimes ship side by side: V1 (`agent-core`, always mounted at `/api/*`) and V2 (`agent-graph`, a LangGraph state graph with SQLite checkpointing and threads, mounted at `/api/v2/*` only when `ENABLE_V2_API=true`). The browser UI defaults to V2 mode; the root `pnpm dev:*` scripts set the flag, but any other server start (Docker, CI compose, `pnpm --filter @resume-builder/api start`) runs V1 only.
 
-## As built (2026-09-24)
+## As built (2026-09-25)
 
-Verified against `main` @ `b670930`. Tracking: [#154](https://github.com/ojfbot/cv-builder/issues/154).
+Verified against `main` @ `1f48bda`. Tracking: [#154](https://github.com/ojfbot/cv-builder/issues/154).
 
 - **V2 graph** — hub-and-spoke: `START → orchestrator → {resumeGenerator | jobAnalysis | tailoring | skillsGap | interviewCoach} → orchestrator → … → END`. One conditional edge; no parallel fan-out, no aggregator.
 - **Orchestrator** — one Opus call per turn, next action parsed from `**Next Action**:` by regex with a keyword fallback; it runs again after every specialist.
