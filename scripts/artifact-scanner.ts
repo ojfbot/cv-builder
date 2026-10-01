@@ -7,6 +7,8 @@
  * - sourceMappingURL directives embedded in JS/CSS
  * - API key patterns (sk-ant-*, ANTHROPIC_API_KEY, etc.)
  * - debugger statements
+ * - loopback URLs in browser bundles (a public page fetching localhost triggers
+ *   the browser's Local Network Access prompt for every visitor)
  *
  * Defense in depth: ESLint catches the configuration (sourceMap: true in tsconfig).
  * This scanner catches the artifact (.map files actually shipped in dist/).
@@ -27,7 +29,7 @@ import * as path from 'path'
 
 interface Violation {
   file: string
-  type: 'source-map-file' | 'source-mapping-url' | 'api-key' | 'debugger'
+  type: 'source-map-file' | 'source-mapping-url' | 'api-key' | 'debugger' | 'loopback-url'
   detail: string
   line?: number
 }
@@ -43,6 +45,12 @@ const API_KEY_PATTERNS = [
 const DEBUGGER_PATTERNS = [
   /\bdebugger\b/,
 ]
+
+const LOOPBACK_PATTERN = /https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])\b/
+
+// Packages whose dist/ ships to visitors' browsers. Server packages
+// legitimately bind to localhost and are not scanned for loopback URLs.
+const BROWSER_PACKAGES = new Set(['browser-app'])
 
 function walkDir(dir: string): string[] {
   const files: string[] = []
@@ -61,7 +69,7 @@ function walkDir(dir: string): string[] {
   return files
 }
 
-function scanFile(filePath: string): Violation[] {
+function scanFile(filePath: string, isBrowserBundle: boolean): Violation[] {
   const violations: Violation[] = []
   const ext = path.extname(filePath).toLowerCase()
   const relativePath = path.relative(process.cwd(), filePath)
@@ -117,6 +125,19 @@ function scanFile(filePath: string): Violation[] {
       }
     }
 
+    // Check for loopback URLs (only in browser bundles)
+    if (isBrowserBundle && ['.js', '.mjs', '.cjs', '.html'].includes(ext)) {
+      const match = line.match(LOOPBACK_PATTERN)
+      if (match) {
+        violations.push({
+          file: relativePath,
+          type: 'loopback-url',
+          detail: `${match[0]} in browser bundle — gate the default behind import.meta.env.DEV`,
+          line: lineNum,
+        })
+      }
+    }
+
     // Check for debugger statements (only in JS files)
     if (['.js', '.mjs', '.cjs'].includes(ext)) {
       for (const pattern of DEBUGGER_PATTERNS) {
@@ -164,7 +185,7 @@ function main() {
 
     for (const file of files) {
       scannedFiles++
-      allViolations.push(...scanFile(file))
+      allViolations.push(...scanFile(file, BROWSER_PACKAGES.has(pkg)))
     }
   }
 

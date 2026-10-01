@@ -42,16 +42,22 @@ const DEFAULTS: CvSettings = {
 
 // ── Connection status hook ────────────────────────────────────────────────────
 
-type ConnStatus = 'idle' | 'checking' | 'connected' | 'unreachable'
+type ConnStatus = 'idle' | 'checking' | 'connected' | 'unreachable' | 'not-configured'
 
 function useConnectionStatus(apiBaseUrl: string) {
   const [status, setStatus] = useState<ConnStatus>('idle')
 
   const check = useCallback(async () => {
+    const baseUrl = apiBaseUrl || DEFAULT_API_BASE_URL
+    // No configured API (production default) — don't probe anything
+    if (!baseUrl) {
+      setStatus('not-configured')
+      return
+    }
     setStatus('checking')
     try {
       // Derive /health from any base URL (strips /api, /api/v2, etc.)
-      const healthUrl = new URL('/health', apiBaseUrl || DEFAULT_API_BASE_URL).href
+      const healthUrl = new URL('/health', baseUrl).href
       const controller = new AbortController()
       const timer = setTimeout(() => controller.abort(), 4000)
       const res = await fetch(healthUrl, { signal: controller.signal })
@@ -98,8 +104,8 @@ export default function SettingsPanel({ onClose: _onClose }: { onClose?: () => v
         <TextInput
           id="cv-api-base-url"
           labelText="API base URL"
-          helperText={`Default: ${DEFAULT_API_BASE_URL}`}
-          placeholder={DEFAULT_API_BASE_URL}
+          helperText={DEFAULT_API_BASE_URL ? `Default: ${DEFAULT_API_BASE_URL}` : 'No API configured by default'}
+          placeholder={DEFAULT_API_BASE_URL || 'https://…/api'}
           value={apiBaseUrl}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiBaseUrl(e.target.value)}
           onBlur={handleApiUrlBlur}
@@ -186,6 +192,13 @@ function ConnectionIndicator({ status, url }: { status: ConnStatus; url: string 
       <span className="settings-conn-status">
         <Tag type="green" size="sm">Connected</Tag>
         <span className="settings-conn-url">{url}</span>
+      </span>
+    )
+  }
+  if (status === 'not-configured') {
+    return (
+      <span className="settings-conn-status">
+        <Tag type="gray" size="sm">Not configured</Tag>
       </span>
     )
   }

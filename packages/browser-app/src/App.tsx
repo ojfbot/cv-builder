@@ -51,9 +51,12 @@ function AppContent() {
   }
 
   const handleAppClick = (appName: keyof typeof APP_PORTS) => {
-    const port = APP_PORTS[appName];
-    const url = `http://localhost:${port}`;
-    window.location.href = url; // Navigate in same tab
+    // Sibling apps only exist on localhost ports in dev; never navigate a
+    // production visitor to loopback
+    if (import.meta.env.DEV) {
+      const port = APP_PORTS[appName];
+      window.location.href = `http://localhost:${port}`; // Navigate in same tab
+    }
   };
 
   // Focus search input when sidebar expands

@@ -1,4 +1,5 @@
 import type { Bio, JobListing } from '@resume-builder/agent-core';
+import { getApiBaseUrl } from '../config/api';
 
 /**
  * API Client Configuration
@@ -56,6 +57,10 @@ export class ApiClient {
     url: string,
     options: RequestInit = {}
   ): Promise<Response> {
+    if (!this.baseUrl) {
+      throw new Error('API not configured');
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
@@ -281,8 +286,7 @@ export class ApiClient {
  * Create an API client instance
  */
 export function createApiClient(config?: Partial<ApiClientConfig>): ApiClient {
-  const baseUrl =
-    config?.baseUrl || import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const baseUrl = config?.baseUrl || getApiBaseUrl();
 
   return new ApiClient({
     baseUrl,

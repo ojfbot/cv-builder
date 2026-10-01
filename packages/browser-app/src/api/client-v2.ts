@@ -8,6 +8,8 @@
  * - RAG-enhanced responses
  */
 
+import { getApiV2BaseUrl } from '../config/api';
+
 export interface Thread {
   threadId: string;
   userId?: string;
@@ -85,6 +87,10 @@ export class ApiClientV2 {
     url: string,
     options: RequestInit = {}
   ): Promise<Response> {
+    if (!this.baseUrl) {
+      throw new Error('API not configured');
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
@@ -279,10 +285,7 @@ export class ApiClientV2 {
  * Create a V2 API client instance
  */
 export function createApiClientV2(config?: Partial<ApiClientV2Config>): ApiClientV2 {
-  const baseUrl =
-    config?.baseUrl ||
-    import.meta.env.VITE_API_V2_URL ||
-    'http://localhost:3001/api/v2';
+  const baseUrl = config?.baseUrl || getApiV2BaseUrl();
 
   return new ApiClientV2({
     baseUrl,
