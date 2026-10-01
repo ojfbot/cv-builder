@@ -1,5 +1,5 @@
 import type { BioFile, FileListQuery, DocumentSummary, ChatMessage } from '@resume-builder/agent-core/models/bio'
-import { DEFAULT_API_BASE_URL, DEFAULT_API_TIMEOUT } from '../config/api'
+import { DEFAULT_API_BASE_URL, DEFAULT_API_TIMEOUT, getApiBaseUrl } from '../config/api'
 
 /**
  * Bio Files API Client
@@ -20,6 +20,9 @@ export class BioFilesApi {
    * Fetch with timeout and error handling
    */
   private async fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
+    if (!this.baseUrl) {
+      throw new Error('API not configured')
+    }
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.timeout)
 
@@ -286,6 +289,9 @@ export class BioFilesApi {
     message: string,
     history: ChatMessage[]
   ): AsyncGenerator<string> {
+    if (!this.baseUrl) {
+      throw new Error('API not configured')
+    }
     const response = await fetch(`${this.baseUrl}/bios/files/${fileId}/chat?stream=true`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -345,7 +351,7 @@ export class BioFilesApi {
  * Create a BioFilesApi instance
  */
 export function createBioFilesApi(baseUrl?: string, timeout?: number): BioFilesApi {
-  const url = baseUrl || import.meta.env.VITE_API_URL || DEFAULT_API_BASE_URL
+  const url = baseUrl || getApiBaseUrl()
   return new BioFilesApi(url, timeout)
 }
 
