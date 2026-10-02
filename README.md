@@ -12,7 +12,7 @@ Verified against `main` @ `b670930`. Tracking: [#154](https://github.com/ojfbot/
 - **Orchestrator** — one Opus call per turn, next action parsed from `**Next Action**:` by regex with a keyword fallback; it runs again after every specialist.
 - **RAG** — `rag-retrieval-node.ts` and three seed-data retrievers exist but are **not wired into the graph**; no node reads `ragResults`.
 - **Tests** — Playwright/visual suites in `browser-automation` (run against V1 in CI); `packages/agent-graph` has no tests.
-- **Hosted deployment** — the Vercel build ships the browser app only; its API base URL is `http://localhost:3001/api`. There is no hosted API, so the public site can't tailor a resume.
+- **Hosted deployment** — the Vercel build ships the browser app only; the localhost API base URL was removed in PR #157 (build-time env guard). There is no hosted API, so the public site can't tailor a resume.
 - **Grounding** — the tailoring prompts tell the model not to fabricate; nothing checks the output against the source CV.
 
 **Designed, not built** (each names what would build it; slices live in [`.claude/roadmap.md`](.claude/roadmap.md)):
